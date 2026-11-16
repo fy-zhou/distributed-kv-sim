@@ -38,6 +38,15 @@ def main():
     p.add_argument("--admission", choices=["always", "no_remote"],
                    default="always")
     p.add_argument("--seed", type=int, default=42)
+    # Measurement-backed profiles can be supplied via CLI without modifying
+    # event engine source. The compute defaults are illustrative only.
+    p.add_argument("--kv-bytes-per-token", type=int, default=114688)
+    p.add_argument("--gpu-fixed-ms", type=float, default=2.0)
+    p.add_argument("--gpu-ms-per-new-token", type=float, default=0.003)
+    p.add_argument("--gpu-ms-per-attention-pair", type=float, default=1.8e-6)
+    p.add_argument("--h2d-fixed-ms", type=float, default=1.684)
+    p.add_argument("--h2d-ms-per-gib", type=float, default=71.210)
+    p.add_argument("--remote-setup-ms", type=float, default=0.15)
     p.add_argument("--out", type=pathlib.Path,
                    default=pathlib.Path("results/smoke"))
     a = p.parse_args()
@@ -55,8 +64,16 @@ def main():
         specs, prefixes, a.seed, a.initial_occupancy)
     summary_rows, request_rows = [], []
     for policy in a.policy:
-        cfg = Config(policy=policy, admission=a.admission,
-                     fabric_gib_s=a.fabric_gib_s)
+        cfg = Config(
+            policy=policy, admission=a.admission,
+            fabric_gib_s=a.fabric_gib_s,
+            kv_bytes_per_token=a.kv_bytes_per_token,
+            gpu_fixed_ms=a.gpu_fixed_ms,
+            gpu_ms_per_new_token=a.gpu_ms_per_new_token,
+            gpu_ms_per_attention_pair=a.gpu_ms_per_attention_pair,
+            h2d_fixed_ms=a.h2d_fixed_ms,
+            h2d_ms_per_gib=a.h2d_ms_per_gib,
+            remote_setup_ms=a.remote_setup_ms)
         sim = run_policy(specs, reqs, seeds, cfg)
         summary_rows.append(sim.summary())
         request_rows += [dict(policy=policy, admission=a.admission, **r)
