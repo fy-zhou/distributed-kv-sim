@@ -204,9 +204,9 @@ class Simulator:
             self.nodes[source].cache.pin(keys)
             bytes_to_copy = (job.remote_blocks * self.cfg.block_size
                              * self.cfg.kv_bytes_per_token)
-            job.flow_id = self.network.start(self.now, source, node_id,
-                                             bytes_to_copy)
-            self._refresh_flow_event()
+            # Setup latency is an explicit event, not a post-hoc subtraction.
+            self._schedule(self.now + self.cfg.remote_setup_ms, "flow_start",
+                           (node_id, source, bytes_to_copy))
         else:
             self._start_compute(job)
 
@@ -225,7 +225,7 @@ class Simulator:
         flow = self.network.finish(self.now, flow_id)
         keys = job.req.hashes[job.local_hit:job.hit]
         self.nodes[flow.src].cache.unpin(keys)
-        job.transfer_ms = self.now - job.start_ms - self.cfg.remote_setup_ms
+        job.transfer_ms = self.now - job.start_ms
         job.flow_id = None
         self._start_compute(job)
         self._refresh_flow_event()
@@ -283,6 +283,14 @@ class Simulator:
                 self.nodes[node_id].queue.append(payload)
                 self.arrival_order.append(payload.request_id)
                 self._start(node_id)
+            elif kind == "flow_start":
+                target, source, size_bytes = payload
+                job = self.nodes[target].active
+                if job is None or job.source != source or job.flow_id is not None:
+                    raise RuntimeError("invalid transfer setup event")
+                job.flow_id = self.network.start(self.now, source, target,
+                                                 size_bytes)
+                self._refresh_flow_event()
             elif kind == "flow_done":
                 self._on_flow_done(payload)
             elif kind == "job_done":
