@@ -1,16 +1,9 @@
-"""Experimental bandwidth-aware current-request cost policy.
+"""Bandwidth-aware placement with a marginal network-congestion penalty.
 
-The base estimate already accounts for current network flows. This variant
-adds a configurable congestion surcharge, which should only be used as an
-experimental heuristic; it is not a validated scheduling improvement.
+Greedy estimates the current request's service time; this policy additionally
+estimates how introducing a candidate transfer delays existing active flows.
+That estimate is a local fluid-network approximation, not counterfactual replay.
 """
-
-def select(sim, req, congestion_weight_ms=1.0):
-    def cost(i):
-        local, source, longest = sim._best_source(req, i)
-        remote = (longest - local) if source is not None else 0
-        competing = sum(1 for f in sim.network.flows.values()
-                        if remote and (f.src == source or f.dst == i))
-        return (sim._estimate(req, i)
-                + congestion_weight_ms * competing * int(remote > 0), i)
-    return min(sim.nodes, key=cost)
+def select(sim, req):
+    return min(sim.nodes, key=lambda node_id: (
+        sim._policy_cost(req, node_id), node_id))
