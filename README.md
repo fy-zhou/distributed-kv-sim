@@ -112,3 +112,49 @@ capacities, and GPU compute is a placeholder performance curve. Compare
 relative behavior, correctness and pathological traces; do not report its
 latency values as observed vLLM TTFT. For all published performance results,
 perform independent physical GPU/NIC calibration and error analysis.
+
+## Modular architecture refactor (branch: `refactor/modular-architecture`)
+
+The original v0.2 behavior is being reorganized into separate packages while
+retaining backwards-compatible `kv_sim.core`, `kv_sim.prefix` and
+`kv_sim.network` imports. This branch is **not yet server-validated**.
+
+```text
+kv_sim/
+  engine/    simulator.py, events.py, clock.py
+  cluster/   node.py, gpu.py, network.py
+  cache/     prefix_hash.py, block_store.py, lru.py, admission.py
+  scheduler/ round_robin.py, shortest_queue.py, max_hit.py,
+             greedy.py, bandwidth_aware.py
+  predictor/ compute.py, h2d.py, transfer.py
+  workload/  synthetic.py, trace.py
+  metrics/   collector.py
+```
+
+- The **engine** now performs request and event orchestration, not the
+  definitions of every subsystem.
+- **Scheduler** functions choose placement; all four legacy strategies plus
+  an **experimental** `bandwidth_aware` candidate are selectable.
+- **Cache** separates cryptographic block IDs, capacity-constrained storage,
+  LRU eviction, and admission decisions.
+- **Cluster** holds node state, the fluid shared network, and a minimal
+  one-request-at-a-time GPU resource abstraction.
+- **Predictor** implementations are independent calibration targets.
+- **Workload** supports synthetic prefix-locality traces and CSV replay with
+  `tokens` containing JSON arrays of token IDs.
+- **Metrics** computes per-policy request latency and cache/network totals.
+
+### Verify on server using your own proxy
+
+```bash
+cd /state/partition/fyzhou/distributed-kv-sim
+git -c http.proxy=http://127.0.0.1:17890 fetch origin
+git switch --track origin/refactor/modular-architecture
+python3 -m compileall -q kv_sim scripts tests
+python3 -m unittest discover -s tests -v
+python3 scripts/run.py --nodes 4 --requests 200 --out /state/partition/fyzhou/results/distributed-kv-sim/modular-smoke
+python3 scripts/run.py --nodes 4 --requests 200 --policy bandwidth_aware --out /state/partition/fyzhou/results/distributed-kv-sim/modular-bandwidth-aware
+```
+
+Do not treat the experimental `bandwidth_aware` heuristic as an established
+result or a performance improvement; compare it under identical traces.
