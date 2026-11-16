@@ -158,3 +158,35 @@ python3 scripts/run.py --nodes 4 --requests 200 --policy bandwidth_aware --out /
 
 Do not treat the experimental `bandwidth_aware` heuristic as an established
 result or a performance improvement; compare it under identical traces.
+
+## Hotspot experiment: inspect scheduler decisions
+
+Use the standalone experiment on branch `exp/hotspot-evaluation-v2`:
+
+```bash
+cd /state/partition/fyzhou/distributed-kv-sim
+git -c http.proxy=http://127.0.0.1:17890 fetch origin
+git switch --track origin/exp/hotspot-evaluation-v2
+python3 -m unittest discover -s tests -v
+python3 scripts/hotspot_experiment.py --nodes 4 --requests 240 --cache-blocks 512 --shared-blocks 256 --burst-width 8 --burst-gap-ms 2 --fabric-gib-s 2 --nic-gib-s 2 --out /state/partition/fyzhou/results/distributed-kv-sim/hotspot-v2
+```
+
+A fully deterministic synthetic workload generates many requests with the same
+long shared prefix, unique suffixes, and bursty arrivals. All nodes start with
+full CPU caches; node 0 initially stores the hot prefix and other nodes store
+cold blocks. Models and network transmission are still *simulated*.
+
+Files under `hotspot-v2`:
+- `summary.csv`: per-policy P50/P95/P99, aggregate transfers and evictions
+- `requests.csv`: per-request actual simulated service outcomes
+- `decisions.csv`: **every candidate node**'s breakdown, externality, policy score, selected bit
+- `placement_diff.csv`: Greedy vs bandwidth-aware selected nodes and whether they differ
+- `config.json`: parameters used
+
+An equal P95 does not imply equal placement. Compare `placement_diff.csv`.
+Conversely, changed placement does not establish improved system performance.
+Bandwith-aware externality is a first-order heuristic; it is not a network
+counterfactual solver or a calibrated physical latency model.
+
+Next validation: collect real network concurrency measurements, fit GPU
+prefill-only compute, replay several seeds and workload regimes.
