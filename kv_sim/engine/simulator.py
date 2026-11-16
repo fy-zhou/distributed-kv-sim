@@ -33,6 +33,8 @@ class Config:
     fabric_gib_s: float = 24.0
     policy: str = "greedy"
     admission: str = "always"
+    network_externality_weight: float = 1.0
+    trace_decisions: bool = False
 
 
 class Simulator:
@@ -68,6 +70,7 @@ class Simulator:
         self.rr = 0
         self.rows = []
         self.arrival_order = []
+        self.decisions = []
 
     def seed_cache(self, node_id, blocks):
         """Initialize meaningful cache hashes; caller controls initial fill."""
@@ -126,41 +129,87 @@ class Simulator:
         return (remote_remaining + self._h2d_time(job.hit)
                 + self._compute_time(job.req, job.hit))
 
-    def _estimate(self, req, node_id):
+    def _estimate_breakdown(self, req, node_id):
+        """Estimated waiting, transfer and compute costs for one candidate."""
         node = self.nodes[node_id]
-        local, source, n = self._best_source(req, node_id)
-        remote = n - local if source is not None else 0
+        local, source, length = self._best_source(req, node_id)
+        remote = length - local if source is not None else 0
+        payload = remote * self.cfg.block_size * self.cfg.kv_bytes_per_token
+        competing = 0
         remote_ms = 0.0
         if remote:
-            size = remote * self.cfg.block_size * self.cfg.kv_bytes_per_token
-            active = sum(1 for f in self.network.flows.values()
-                         if f.src == source or f.dst == node_id)
-            rate = min(
-                self.network.nic[source] / (active + 1),
-                self.network.nic[node_id] / (active + 1),
-                self.network.fabric / (len(self.network.flows) + 1))
-            remote_ms = self.transfer_predictor.predict_ms(size, rate)
-        own = remote_ms + self._h2d_time(n) + self._compute_time(req, n)
+            competing = sum(1 for f in self.network.flows.values()
+                            if f.src == source or f.dst == node_id)
+            rate = min(self.network.nic[source] / (competing + 1),
+                       self.network.nic[node_id] / (competing + 1),
+                       self.network.fabric / (len(self.network.flows) + 1))
+            remote_ms = self.transfer_predictor.predict_ms(payload, rate)
+        h2d_ms = self._h2d_time(length)
+        compute_ms = self._compute_time(req, length)
         waiting = self._remaining_active_ms(node)
-        # Account for already queued jobs using their estimated *own*
-        # costs, including remote fetch and H2D, without recursively
-        # counting the same queue. Cache evolution remains unknown.
         for pending in node.queue:
-            pending_local, pending_source, pending_n = self._best_source(
-                pending, node_id)
-            pending_remote = pending_n - pending_local if pending_source is not None else 0
-            if pending_remote:
-                payload = (pending_remote * self.cfg.block_size
-                           * self.cfg.kv_bytes_per_token)
-                rate = min(self.network.nic[pending_source],
-                           self.network.nic[node_id], self.network.fabric)
-                waiting += self.transfer_predictor.predict_ms(payload, rate)
-            waiting += self._h2d_time(pending_n) + self._compute_time(
-                pending, pending_n)
-        return waiting + own
+            plocal, psource, pn = self._best_source(pending, node_id)
+            premote = pn - plocal if psource is not None else 0
+            if premote:
+                pbytes = premote * self.cfg.block_size * self.cfg.kv_bytes_per_token
+                rate = min(self.network.nic[psource], self.network.nic[node_id],
+                           self.network.fabric)
+                waiting += self.transfer_predictor.predict_ms(pbytes, rate)
+            waiting += self._h2d_time(pn) + self._compute_time(pending, pn)
+        return dict(node=node_id, local_blocks=local, remote_blocks=remote,
+                    total_hit_blocks=length, source=source, payload_bytes=payload,
+                    competing_flows=competing,
+                    active_network_flows=len(self.network.flows),
+                    queue_ms=waiting, network_ms=remote_ms, h2d_ms=h2d_ms,
+                    compute_ms=compute_ms,
+                    estimated_ms=waiting + remote_ms + h2d_ms + compute_ms)
+
+    def _estimate(self, req, node_id):
+        return self._estimate_breakdown(req, node_id)["estimated_ms"]
+
+    def _externality_ms(self, req, node_id):
+        """First-order added completion delay to active flows, no full replay."""
+        local, source, length = self._best_source(req, node_id)
+        if source is None or length <= local or not self.network.flows:
+            return 0.0
+        flows = list(self.network.flows.values())
+        counts_src = {}
+        counts_dst = {}
+        for f in flows:
+            counts_src[f.src] = counts_src.get(f.src, 0) + 1
+            counts_dst[f.dst] = counts_dst.get(f.dst, 0) + 1
+        counts_src[source] = counts_src.get(source, 0) + 1
+        counts_dst[node_id] = counts_dst.get(node_id, 0) + 1
+        fabric_share = self.network.fabric / (len(flows) + 1)
+        added = 0.0
+        for f in flows:
+            rate = min(self.network.nic[f.src] / counts_src[f.src],
+                       self.network.nic[f.dst] / counts_dst[f.dst],
+                       fabric_share)
+            added += f.remaining_bytes * (
+                1.0 / rate - 1.0 / f.rate_bytes_per_ms)
+        return max(0.0, added)
+
+    def _policy_cost(self, req, node_id):
+        cost = self._estimate(req, node_id)
+        if self.cfg.policy == "bandwidth_aware":
+            cost += (self.cfg.network_externality_weight
+                     * self._externality_ms(req, node_id))
+        return cost
 
     def _choose(self, req):
-        return choose_node(self, req)
+        chosen = choose_node(self, req)
+        if self.cfg.trace_decisions:
+            for node_id in sorted(self.nodes):
+                d = self._estimate_breakdown(req, node_id)
+                d.update(request_id=req.request_id,
+                         arrival_ms=req.arrival_ms,
+                         policy=self.cfg.policy,
+                         network_externality_ms=self._externality_ms(req, node_id),
+                         policy_score_ms=self._policy_cost(req, node_id),
+                         selected=int(chosen == node_id))
+                self.decisions.append(d)
+        return chosen
 
     def _refresh_flow_event(self):
         self.epoch += 1
