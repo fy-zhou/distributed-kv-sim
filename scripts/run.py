@@ -69,7 +69,7 @@ def main():
     write_csv(a.out / "summary.csv", summary_rows)
     write_csv(a.out / "requests.csv", request_rows)
     with (a.out / "configuration.json").open("w") as f:
-        json.dump(dict(args=vars(a) | {"out": str(a.out)},
+        json.dump(dict(args=dict(vars(a), out=str(a.out)),
                        model_note="Compute curve is illustrative; not yet "
                        "benchmarked against real vLLM GPU execution.",
                        prefix_note="Per-16-token cryptographic chain hash.",
