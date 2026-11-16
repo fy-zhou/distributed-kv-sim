@@ -5,18 +5,17 @@ serialized in the default model. Remote transfer progresses concurrently
 across nodes under a fluid shared-NIC/fabric capacity constraint.
 """
 import heapq
-import math
-import statistics
-from collections import deque
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from ..cache import BlockCache, admitted_blocks
 from ..cluster.node import Node, NodeSpec
 from ..cluster.network import FluidNetwork
+from ..cluster.gpu import is_gpu_idle
 from ..predictor import ComputePredictor, H2DPredictor, TransferPredictor
 from ..scheduler import choose_node
 from ..metrics.collector import summarize
-from .events import Request, Job
+from .events import (Request, Job, EVENT_ARRIVAL, EVENT_FLOW_START,
+                     EVENT_FLOW_DONE, EVENT_JOB_DONE)
 from .clock import SimulationClock
 
 @dataclass
@@ -168,11 +167,11 @@ class Simulator:
         next_flow = self.network.next_finish(self.now)
         if next_flow is not None:
             t, flow_id = next_flow
-            self._schedule(t, "flow_done", flow_id, self.epoch)
+            self._schedule(t, EVENT_FLOW_DONE, flow_id, self.epoch)
 
     def _start(self, node_id):
         node = self.nodes[node_id]
-        if node.active is not None or not node.queue:
+        if not is_gpu_idle(node) or not node.queue:
             return
         req = node.queue.popleft()
         local, source, longest = self._best_source(req, node_id)
@@ -188,7 +187,7 @@ class Simulator:
                              * self.cfg.kv_bytes_per_token)
             # Setup latency is an explicit event, not a post-hoc subtraction.
             job.transfer_start_ms = self.now + self.cfg.remote_setup_ms
-            self._schedule(job.transfer_start_ms, "flow_start",
+            self._schedule(job.transfer_start_ms, EVENT_FLOW_START,
                            (node_id, source, bytes_to_copy))
         else:
             self._start_compute(job)
@@ -197,7 +196,7 @@ class Simulator:
         job.load_ms = self._h2d_time(job.hit)
         job.compute_ms = self._compute_time(job.req, job.hit)
         job.expected_finish_ms = self.now + job.load_ms + job.compute_ms
-        self._schedule(job.expected_finish_ms, "job_done", job.target)
+        self._schedule(job.expected_finish_ms, EVENT_JOB_DONE, job.target)
 
     def _on_flow_done(self, flow_id):
         job = next((node.active for node in self.nodes.values()
@@ -251,20 +250,20 @@ class Simulator:
                 raise ValueError("invalid request")
             if req.length_tokens // self.cfg.block_size < len(req.hashes):
                 raise ValueError("invalid request hashes")
-            self._schedule(req.arrival_ms, "arrival", req)
+            self._schedule(req.arrival_ms, EVENT_ARRIVAL, req)
         while self.events:
             now, _, kind, payload, event_epoch = heapq.heappop(self.events)
-            if kind == "flow_done" and event_epoch != self.epoch:
+            if kind == EVENT_FLOW_DONE and event_epoch != self.epoch:
                 continue
             self.network.advance(now)
             self.clock.advance(now)
             self.now = now
-            if kind == "arrival":
+            if kind == EVENT_ARRIVAL:
                 node_id = self._choose(payload)
                 self.nodes[node_id].queue.append(payload)
                 self.arrival_order.append(payload.request_id)
                 self._start(node_id)
-            elif kind == "flow_start":
+            elif kind == EVENT_FLOW_START:
                 target, source, size_bytes = payload
                 job = self.nodes[target].active
                 if job is None or job.source != source or job.flow_id is not None:
@@ -274,7 +273,7 @@ class Simulator:
                 self._refresh_flow_event()
             elif kind == "flow_done":
                 self._on_flow_done(payload)
-            elif kind == "job_done":
+            elif kind == EVENT_JOB_DONE:
                 self._on_job_done(payload)
             else:
                 raise RuntimeError("unknown event")
