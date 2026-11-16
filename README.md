@@ -190,3 +190,62 @@ counterfactual solver or a calibrated physical latency model.
 
 Next validation: collect real network concurrency measurements, fit GPU
 prefill-only compute, replay several seeds and workload regimes.
+
+## Paired Hotspot Robustness Sweep (`exp/hotspot-robustness`)
+
+This branch evaluates **stability, not just one favorable seed**. Every
+`(seed, fabric, burst, cache)` scenario runs Greedy once and
+Bandwidth-Aware once per `lambda` on the exact same requests and initial
+LRU state. The simulator validates that `lambda=0` yields the same
+per-request placement, hit counts and simulated timing as Greedy.
+
+### Fast verification on 4090-02 (Python 3.8 compatible)
+
+```bash
+cd /state/partition/fyzhou/distributed-kv-sim
+git -c http.proxy=http://127.0.0.1:17890 fetch origin
+git switch --track origin/exp/hotspot-robustness
+python3 -m unittest discover -s tests -v
+python3 scripts/hotspot_robustness.py --requests 24 --shared-blocks 16 --cache-blocks 32 --seeds 41 42 --fabric-gib-s 1 4 --burst-widths 1 4 --lambdas 0 1 --out /state/partition/fyzhou/results/distributed-kv-sim/robust-smoke
+```
+
+### Full sensitivity matrix (CPU-only, larger sweep)
+
+```bash
+python3 scripts/hotspot_robustness.py \
+  --seeds 41 42 43 44 45 \
+  --fabric-gib-s 1 2 4 8 16 \
+  --burst-widths 1 4 8 16 \
+  --cache-blocks 256 512 \
+  --lambdas 0 0.25 0.5 1 2 4 \
+  --requests 240 --shared-blocks 256 \
+  --out /state/partition/fyzhou/results/distributed-kv-sim/robust-full
+```
+
+Outputs:
+- `runs.csv`: *paired-by-seed* Greedy and Bandwidth-Aware metrics; signed
+  improvement (%) can be negative.
+- `aggregated.csv`: per-configuration averages, median, empirical
+  across-seed P10/P90, min/max, positive-seed count.
+- `config.json`: full experimental parameters and simulation caveats.
+
+Optional figures, if `matplotlib` is installed:
+
+```bash
+python3 scripts/plot_hotspot_robustness.py \
+  --input /state/partition/fyzhou/results/distributed-kv-sim/robust-full/aggregated.csv \
+  --cache-blocks 512 --burst-width 8 --lambda-weight 1 --fabric-gib-s 2
+```
+
+Figures: P95 improvement vs fabric capacity, P95 improvement vs burst width,
+and placement changes vs lambda. Shading denotes observed P10-P90 across
+seeds, **not** 95% confidence intervals.
+
+### Interpretation / limitations
+
+Do **not** pick an optimal lambda on the same seeds and then report its
+performance as an unbiased hold-out result. Use separate tuning and
+evaluation seeds. Report unsuccessful and negative-improvement regimes.
+Hardware calibration and validation are still required. This model does
+not implement physical NIC packet congestion, full GPU decode, or arbitrary
+multi-hop topology.
