@@ -2,7 +2,7 @@
 
 A lightweight, deterministic **discrete-event simulator** for multi-node CPU-resident KV prefix reuse. Written in Python (standard library only). No GPUs, model weights, RDMA devices, root permissions or externally hosted services required to run the simulation.
 
-**Status: prototype v0.1.** This is a synthetic simulator, not measured cluster performance. Compute times are an illustrative workload-dependent model; 4090 H2D coefficients are imported from a separate single-node experiment, and network bandwidth is configured. Do not interpret output TTFT as actual vLLM measurements.
+**Status: prototype v0.2 candidate (on `feat/v02-predictor-correctness`).** This is a synthetic simulator, not measured cluster performance. Compute times are an illustrative workload-dependent model; 4090 H2D coefficients are imported from a separate single-node experiment, and network bandwidth is configured. Do not interpret output TTFT as actual vLLM measurements.
 
 ## Quick start (4090-02 or any Linux host)
 
@@ -71,3 +71,44 @@ The default GPU compute coefficients are **illustrative, not calibrated**. Defau
 5. Use recorded trace replay and compare simulation error against real multi-node vLLM execution.
 
 Conceptually informed by [Vidur](https://github.com/microsoft/vidur) (event simulation/performance profiling), [Preble](https://arxiv.org/abs/2407.00023) (prefix locality scheduling) and [Mooncake](https://arxiv.org/abs/2407.00079) (KV transfer/cache tiers). No upstream code has been copied.
+
+## v0.2 candidate: predictor and correctness improvements
+
+v0.2 introduces explicit `ComputePredictor`, `H2DPredictor` and
+`TransferPredictor` classes in `kv_sim/predictor.py`. Their parameters are
+CLI-configurable. The GPU compute default remains **illustrative** and must
+be replaced with actual measurements before drawing hardware conclusions.
+
+The greedy cost estimator now accounts for already elapsed time of the active
+request, including actual transfer remaining bytes if a transfer is underway,
+and includes fetch/H2D cost for queued requests. It is *still an approximation*:
+future contention and cache evolution are unknown.
+
+With `admission=no_remote`, requests that fetch a remote prefix retain none of
+the remote-dependent KV blocks. This avoids creating unusable orphan suffix
+entries; it is a deliberately conservative first policy, not optimal selective
+admission.
+
+### Test this branch on 4090-02
+
+```bash
+cd /state/partition/fyzhou/distributed-kv-sim
+git -c http.proxy=http://127.0.0.1:17890 fetch origin
+git switch --track origin/feat/v02-predictor-correctness
+python3 -m unittest discover -s tests -v
+python3 scripts/run.py --nodes 4 --requests 200 \
+  --out /state/partition/fyzhou/results/distributed-kv-sim/v02-smoke
+python3 scripts/experiment_matrix.py --requests 300 \
+  --out /state/partition/fyzhou/results/distributed-kv-sim/v02-matrix
+```
+
+To restore the previous stable implementation: `git switch main`.
+
+### Experimental design caveat
+
+`experiment_matrix.py` is a **synthetic algorithm comparison**, not a
+hardware validation. The network is a fluid contention model with configured
+capacities, and GPU compute is a placeholder performance curve. Compare
+relative behavior, correctness and pathological traces; do not report its
+latency values as observed vLLM TTFT. For all published performance results,
+perform independent physical GPU/NIC calibration and error analysis.
