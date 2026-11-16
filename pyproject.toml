@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "distributed-kv-sim"
+version = "0.1.0"
+description = "Event-driven multi-node transfer-aware KV cache simulation"
+requires-python = ">=3.9"
+dependencies = []
+
+[tool.setuptools.packages.find]
+include = ["kv_sim*"]
