@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 
 from .prefix import BlockCache, prefix_hashes
 from .network import FluidNetwork
+from .predictor import ComputePredictor, H2DPredictor, TransferPredictor
 
 
 @dataclass(frozen=True)
@@ -74,6 +75,8 @@ class Job:
     load_ms: float = 0.0
     compute_ms: float = 0.0
     flow_id: object = None
+    expected_finish_ms: object = None
+    transfer_start_ms: object = None
 
 
 class Simulator:
@@ -88,6 +91,16 @@ class Simulator:
         self.nodes = {s.node_id: Node(
             s, BlockCache(s.cache_capacity_blocks, self.cfg.admission))
             for s in specs}
+        self.compute_predictor = ComputePredictor(
+            fixed_ms=self.cfg.gpu_fixed_ms,
+            ms_per_new_token=self.cfg.gpu_ms_per_new_token,
+            ms_per_causal_pair=self.cfg.gpu_ms_per_attention_pair)
+        self.h2d_predictor = H2DPredictor(
+            kv_bytes_per_token=self.cfg.kv_bytes_per_token,
+            fixed_ms=self.cfg.h2d_fixed_ms,
+            ms_per_gib=self.cfg.h2d_ms_per_gib)
+        self.transfer_predictor = TransferPredictor(
+            setup_ms=self.cfg.remote_setup_ms)
         self.network = FluidNetwork(
             {s.node_id: s.nic_gib_s * (2**30) / 1000 for s in specs},
             self.cfg.fabric_gib_s * (2**30) / 1000)
@@ -125,20 +138,36 @@ class Simulator:
 
     def _compute_time(self, req, hit_blocks):
         h = min(req.length_tokens, hit_blocks * self.cfg.block_size)
-        m = req.length_tokens - h
-        # Each newly computed token attends to all earlier cached tokens
-        # and causally to its own part of the new sequence.
-        causal_pairs = m * (2 * h + m + 1) / 2
-        return (self.cfg.gpu_fixed_ms
-                + self.cfg.gpu_ms_per_new_token * m
-                + self.cfg.gpu_ms_per_attention_pair * causal_pairs)
+        return self.compute_predictor.predict_ms(req.length_tokens, h)
 
     def _h2d_time(self, hit_blocks):
-        if hit_blocks == 0:
+        return self.h2d_predictor.predict_ms(
+            hit_blocks * self.cfg.block_size)
+
+    def _remaining_active_ms(self, node):
+        """Use scheduled compute completion, not a full restart estimate."""
+        job = node.active
+        if job is None:
             return 0.0
-        gib = (hit_blocks * self.cfg.block_size
-               * self.cfg.kv_bytes_per_token / 2**30)
-        return self.cfg.h2d_fixed_ms + self.cfg.h2d_ms_per_gib * gib
+        if job.expected_finish_ms is not None:
+            return max(0.0, job.expected_finish_ms - self.now)
+        # Remote transfer is in setup or in progress; include remaining
+        # transfer, then local H2D and prefill (no lookahead into contention).
+        remote_remaining = 0.0
+        if job.flow_id is not None:
+            flow = self.network.flows[job.flow_id]
+            remote_remaining = flow.remaining_bytes / flow.rate_bytes_per_ms
+        elif job.remote_blocks:
+            payload = (job.remote_blocks * self.cfg.block_size
+                       * self.cfg.kv_bytes_per_token)
+            rate = min(self.network.nic[job.source],
+                       self.network.nic[job.target], self.network.fabric)
+            setup_left = (max(0.0, job.transfer_start_ms - self.now)
+                          if job.transfer_start_ms is not None else
+                          self.cfg.remote_setup_ms)
+            remote_remaining = setup_left + payload / rate
+        return (remote_remaining + self._h2d_time(job.hit)
+                + self._compute_time(job.req, job.hit))
 
     def _estimate(self, req, node_id):
         node = self.nodes[node_id]
@@ -153,15 +182,24 @@ class Simulator:
                 self.network.nic[source] / (active + 1),
                 self.network.nic[node_id] / (active + 1),
                 self.network.fabric / (len(self.network.flows) + 1))
-            remote_ms = self.cfg.remote_setup_ms + size / rate
+            remote_ms = self.transfer_predictor.predict_ms(size, rate)
         own = remote_ms + self._h2d_time(n) + self._compute_time(req, n)
-        waiting = 0.0
-        if node.active is not None:
-            # Deliberately simple predictive bound, not an oracle.
-            waiting += self._h2d_time(node.active.hit) + self._compute_time(
-                node.active.req, node.active.hit)
+        waiting = self._remaining_active_ms(node)
+        # Account for already queued jobs using their estimated *own*
+        # costs, including remote fetch and H2D, without recursively
+        # counting the same queue. Cache evolution remains unknown.
         for pending in node.queue:
-            waiting += self._compute_time(pending, self._hit(pending, node_id))
+            pending_local, pending_source, pending_n = self._best_source(
+                pending, node_id)
+            pending_remote = pending_n - pending_local if pending_source is not None else 0
+            if pending_remote:
+                payload = (pending_remote * self.cfg.block_size
+                           * self.cfg.kv_bytes_per_token)
+                rate = min(self.network.nic[pending_source],
+                           self.network.nic[node_id], self.network.fabric)
+                waiting += self.transfer_predictor.predict_ms(payload, rate)
+            waiting += self._h2d_time(pending_n) + self._compute_time(
+                pending, pending_n)
         return waiting + own
 
     def _choose(self, req):
@@ -205,7 +243,8 @@ class Simulator:
             bytes_to_copy = (job.remote_blocks * self.cfg.block_size
                              * self.cfg.kv_bytes_per_token)
             # Setup latency is an explicit event, not a post-hoc subtraction.
-            self._schedule(self.now + self.cfg.remote_setup_ms, "flow_start",
+            job.transfer_start_ms = self.now + self.cfg.remote_setup_ms
+            self._schedule(job.transfer_start_ms, "flow_start",
                            (node_id, source, bytes_to_copy))
         else:
             self._start_compute(job)
@@ -213,8 +252,8 @@ class Simulator:
     def _start_compute(self, job):
         job.load_ms = self._h2d_time(job.hit)
         job.compute_ms = self._compute_time(job.req, job.hit)
-        self._schedule(
-            self.now + job.load_ms + job.compute_ms, "job_done", job.target)
+        job.expected_finish_ms = self.now + job.load_ms + job.compute_ms
+        self._schedule(job.expected_finish_ms, "job_done", job.target)
 
     def _on_flow_done(self, flow_id):
         job = next((node.active for node in self.nodes.values()
@@ -238,9 +277,11 @@ class Simulator:
         req = job.req
         if self.cfg.admission == "always":
             node.cache.admit(req.hashes)
-        else:
-            # No remote retention, but locally computed suffix may be stored.
-            node.cache.admit(req.hashes[job.hit:])
+        elif job.remote_blocks == 0:
+            # Full locally computed prefix can be retained. If this job
+            # fetched a remote middle segment, retaining only a computed
+            # suffix is unusable and pollutes the cache.
+            node.cache.admit(req.hashes)
         ttft = self.now - req.arrival_ms
         self.rows.append({
             "request_id": req.request_id,
