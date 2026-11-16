@@ -1,0 +1,19 @@
+name: Python simulator tests
+on:
+  push:
+  pull_request:
+jobs:
+  unittest:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: python -m unittest discover -s tests -v
+      - run: |
+          python scripts/run.py --nodes 4 --requests 60 --cache-blocks 128 --out results/ci
+          python -c "import csv; x=list(csv.DictReader(open('results/ci/summary.csv'))); assert len(x)==4; assert all(float(r['p95_ttft_ms'])>0 for r in x)"
