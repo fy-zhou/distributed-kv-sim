@@ -285,3 +285,46 @@ Store raw data and credentials on the server, outside of Git.
 
 Only commit figures when they are genuinely useful and small; SVG files
 are usually more inspectable and lightweight than screenshots.
+
+## Post-hoc robustness findings and cache/network diagnostic follow-up
+
+The compact result archive is at
+`experiments/hotspot-robustness-20261117/`. Its
+`ANALYSIS.md` documents the observed 352 positive / 648 negative
+nonzero-lambda comparisons, capacity cliff, and suspected endpoint NIC
+saturation. These are synthetic results, **not** measured cluster speedups.
+
+Branch `exp/cache-network-diagnostics` adds an opt-in, read-only cache
+residency trace (`Simulator.track_prefix`) and a paired diagnostic runner
+which varies **NIC capacity independently from Fabric capacity**.
+It records P95, network traffic, queue/network/H2D/compute totals,
+per-node source evictions, and the remaining contiguous hot prefix.
+
+### Fast diagnostic smoke test
+
+```bash
+cd /state/partition/fyzhou/distributed-kv-sim
+git -c http.proxy=http://127.0.0.1:17890 fetch origin
+git switch --track origin/exp/cache-network-diagnostics
+python3 -m unittest discover -s tests -v
+python3 scripts/cache_network_diagnostics.py --seeds 41 42 --nics 1 2 --fabrics 1 4 --cache-blocks 256 512 --bursts 1 8 --lambdas 0 1 --requests 36 --shared-blocks 16 --out /state/partition/fyzhou/results/distributed-kv-sim/diagnostics-smoke
+```
+
+### Focused multi-seed diagnostic
+
+```bash
+python3 scripts/cache_network_diagnostics.py \
+  --seeds 41 42 43 44 45 \
+  --nics 1 2 4 8 \
+  --fabrics 1 2 4 8 16 \
+  --cache-blocks 256 512 \
+  --bursts 1 8 --lambdas 0 1 \
+  --requests 240 --shared-blocks 256 \
+  --out /state/partition/fyzhou/results/distributed-kv-sim/diagnostics-full
+```
+
+Output `diagnostics.csv` contains condition-level paired results and
+`source_cache_trace_example.csv` shows the source-node hot prefix trajectory
+for one example scenario; store the complete output outside the repository.
+The test source caches are full; cache 256 equals exactly the hot prefix.
+No real GPU or network transfers are performed.
