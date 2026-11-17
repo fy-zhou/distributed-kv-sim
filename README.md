@@ -328,3 +328,20 @@ Output `diagnostics.csv` contains condition-level paired results and
 for one example scenario; store the complete output outside the repository.
 The test source caches are full; cache 256 equals exactly the hot prefix.
 No real GPU or network transfers are performed.
+
+### Compact diagnostic archive for GitHub
+
+After the diagnostic run finishes, retain only condition-level results and
+source hashes (hard cap: 1 MiB):
+
+```bash
+python3 scripts/archive_cache_network.py \
+  --source /state/partition/fyzhou/results/distributed-kv-sim/diagnostics-full \
+  --destination experiments/cache-network-diagnostics-20261117
+git add experiments/cache-network-diagnostics-20261117
+git commit -m "Record paired NIC fabric cache diagnostics"
+git -c http.proxy=http://127.0.0.1:17890 push origin exp/cache-network-diagnostics
+```
+
+The archive contains `README.md`, `compact.csv` and
+`manifest.json`. Raw event-level traces remain on the server.
