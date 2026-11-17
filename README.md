@@ -249,3 +249,39 @@ evaluation seeds. Report unsuccessful and negative-improvement regimes.
 Hardware calibration and validation are still required. This model does
 not implement physical NIC packet congestion, full GPU decode, or arbitrary
 multi-hop topology.
+
+## Commit lightweight experiment records to GitHub
+
+Server-side full results normally live outside the repository, e.g.
+`/state/partition/fyzhou/results/distributed-kv-sim/robust-full`.
+Do not commit per-request traces or the full results tree. Instead, use
+the standard-library-only archive exporter to create an inspectable,
+compact, versioned record in `experiments/`.
+
+```bash
+cd /state/partition/fyzhou/distributed-kv-sim
+python3 scripts/archive_experiment.py \
+  --source /state/partition/fyzhou/results/distributed-kv-sim/robust-full \
+  --destination experiments/hotspot-robustness-20261117
+git status --short
+git add experiments/hotspot-robustness-20261117
+git commit -m "Record hotspot robustness sweep: 5 seeds, 1200 paired runs"
+git -c http.proxy=http://127.0.0.1:17890 push origin exp/hotspot-robustness
+```
+
+The archive includes:
+- `README.md` — methodology, positive / neutral / negative outcome counts
+  for nonzero lambda, and breakdown by lambda.
+- `paired_compact.csv` — 10 retained columns per run; per-seed results stay
+  inspectable without pushing full request/decision traces.
+- `aggregated_compact.csv` — reduced parameter-level summary across seeds.
+- `manifest.json` — actual code commit, reproducibility parameters, hashes
+  of original `runs.csv`, `aggregated.csv` and `config.json`.
+
+The exporter refuses to exceed 1 MiB in total. It also refuses to overwrite
+an already nonempty archive directory: create a new dated or named directory
+for each new run. Git push requires the server's existing Git credentials.
+Store raw data and credentials on the server, outside of Git.
+
+Only commit figures when they are genuinely useful and small; SVG files
+are usually more inspectable and lightweight than screenshots.
