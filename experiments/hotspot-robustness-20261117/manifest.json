@@ -1,0 +1,57 @@
+{
+  "kind": "synthetic_hotspot_robustness",
+  "source_sha256": {
+    "runs.csv": "45b3130bf4fa324f939b540d89f1f28d328409927b09cece9baa9ea9571a6ad0",
+    "aggregated.csv": "abf9a0a687e43723387f9874155438339648cb34248c92a1ab5599ad4bae034b",
+    "config.json": "e311acb075277684778032e188c68dc3de71b004c63ead854ab6c9fe70f6e2c5"
+  },
+  "git_code_commit": "5d664c2a9978d68249534ce1355e7facf3231fec",
+  "parameters": {
+    "seeds": [
+      41,
+      42,
+      43,
+      44,
+      45
+    ],
+    "fabric_gib_s": [
+      1.0,
+      2.0,
+      4.0,
+      8.0,
+      16.0
+    ],
+    "burst_widths": [
+      1,
+      4,
+      8,
+      16
+    ],
+    "cache_blocks": [
+      256,
+      512
+    ],
+    "lambdas": [
+      0.0,
+      0.25,
+      0.5,
+      1.0,
+      2.0,
+      4.0
+    ],
+    "nodes": 4,
+    "requests": 240,
+    "shared_blocks": 256,
+    "suffix_blocks": 4,
+    "burst_gap_ms": 2.0,
+    "within_burst_ms": 0.02,
+    "nic_gib_s": 2.0,
+    "admission": "always",
+    "runs": 1200,
+    "scenarios": 200,
+    "note": "Synthetic, uncalibrated GPU compute; configured fluid network. P10/P90 are across-seed empirical percentiles, NOT confidence intervals."
+  },
+  "rows": 1200,
+  "aggregate_rows": 240,
+  "note": "Simulation uses illustrative GPU compute and fluid network. Not measured hardware results."
+}
