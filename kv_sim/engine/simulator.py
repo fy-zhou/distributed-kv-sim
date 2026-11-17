@@ -71,6 +71,14 @@ class Simulator:
         self.rows = []
         self.arrival_order = []
         self.decisions = []
+        self.tracked_prefix = ()
+        self.cache_trace = []
+
+    def track_prefix(self, prefix_hashes):
+        """Opt-in prefix residency audit; read-only and no scheduler effects."""
+        self.tracked_prefix = tuple(prefix_hashes)
+        if not self.tracked_prefix:
+            raise ValueError("tracked prefix must contain at least one block")
 
     def seed_cache(self, node_id, blocks):
         """Initialize meaningful cache hashes; caller controls initial fill."""
@@ -288,6 +296,18 @@ class Simulator:
             "ttft_ms": ttft,
             "finished_ms": self.now,
         })
+        if self.tracked_prefix:
+            for tracked_node, state in sorted(self.nodes.items()):
+                self.cache_trace.append({
+                    "request_id": req.request_id,
+                    "finished_ms": self.now,
+                    "node": tracked_node,
+                    "hot_prefix_resident_blocks": state.cache.prefix_len(
+                        self.tracked_prefix),
+                    "hot_prefix_total_blocks": len(self.tracked_prefix),
+                    "evictions": state.cache.evictions,
+                    "cache_blocks": len(state.cache.blocks),
+                })
         node.active = None
         self._start(node_id)
 
