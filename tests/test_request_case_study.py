@@ -2,7 +2,8 @@
 import unittest
 
 from scripts.request_case_study import (
-    select_cases, simulate, pair_requests, verify_archive)
+    select_cases, simulate, pair_requests, verify_archive,
+    sample_candidate_decisions)
 
 
 class RequestCaseStudyTests(unittest.TestCase):
@@ -18,6 +19,18 @@ class RequestCaseStudyTests(unittest.TestCase):
         cases=select_cases(rows)
         self.assertEqual([c[0] for c in cases],
                          ["regression","improvement"])
+
+    def test_sampled_decisions_preserve_one_policy_field(self):
+        params={"nodes":3,"requests":8,"shared_blocks":8,
+                "burst_gap_ms":2.0}
+        greedy=simulate(params,"greedy",3,1.,1.,24,4,0)
+        aware=simulate(params,"bandwidth_aware",3,1.,1.,24,4,1)
+        req_id=greedy.arrival_order[0]
+        rows=sample_candidate_decisions((greedy,aware),{req_id})
+        self.assertEqual(len(rows),6)
+        self.assertEqual({r["policy"] for r in rows},
+                         {"greedy","bandwidth_aware"})
+        self.assertTrue(all(r["request_id"]==req_id for r in rows))
 
     def test_replay_decomposition_and_archive_checks(self):
         params={"nodes":3,"requests":16,"shared_blocks":8,
