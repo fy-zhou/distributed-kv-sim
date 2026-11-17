@@ -345,3 +345,55 @@ git -c http.proxy=http://127.0.0.1:17890 push origin exp/cache-network-diagnosti
 
 The archive contains `README.md`, `compact.csv` and
 `manifest.json`. Raw event-level traces remain on the server.
+
+## Archived Request-Level Case Study (`exp/request-case-study`)
+
+This branch replays **two post-hoc selected extremes from the archived
+cache/network matrix** with an identical request trace and initial cache for
+Greedy and Bandwidth-Aware, then checks that the replayed P95, placement
+changes, source hot-prefix residency, and evictions match the archived
+condition-level results. It does **not** claim independent validation.
+
+- Regression case: seed 42, NIC 4 GiB/s, Fabric 4 GiB/s,
+  cache 256, burst width 1, lambda 1.
+- Improvement case: seed 45, NIC 2 GiB/s, Fabric 2 GiB/s,
+  cache 512, burst width 8, lambda 1.
+
+### Run and verify on the server
+
+```bash
+cd /state/partition/fyzhou/distributed-kv-sim
+git -c http.proxy=http://127.0.0.1:17890 fetch origin
+git switch --track origin/exp/request-case-study
+python3 -m unittest discover -s tests -v
+python3 scripts/request_case_study.py \
+  --archive experiments/cache-network-diagnostics-20261117 \
+  --out /state/partition/fyzhou/results/distributed-kv-sim/request-case-study
+```
+
+**Complete server-only traces** per case:
+`paired_requests.csv`, `greedy_decisions.csv`,
+`aware_decisions.csv`, `greedy_cache.csv`, `aware_cache.csv`.
+Also writes candidate-score and request samples, and a `summary.json`.
+A compact `case_summaries.json` is written to the run root.
+
+### Compact GitHub archive (max 1 MiB)
+
+```bash
+python3 scripts/archive_request_case_study.py \
+  --source /state/partition/fyzhou/results/distributed-kv-sim/request-case-study \
+  --destination experiments/request-case-study-20261117
+git add experiments/request-case-study-20261117
+git commit -m "Archive paired hotspot request-level case study"
+git -c http.proxy=http://127.0.0.1:17890 push origin exp/request-case-study
+```
+
+This stores selected request and all candidate-node decision records,
+decomposition tables, parameters and SHA-256 hashes of raw traces.
+Files that are too large stay on the server.
+
+**Interpretation warning:** two policies diverge into different runtime states
+after the first differing placement. Later candidate estimates cannot be
+interpreted as paired counterfactual outcomes at an identical cache/queue
+state. Establishing a causal mechanism requires controlled cache-admission,
+pinning or network penalty ablations, with held-out seeds.
