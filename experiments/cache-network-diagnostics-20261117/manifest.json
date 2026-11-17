@@ -1,0 +1,47 @@
+{
+  "simulation_only": true,
+  "parameter_config": {
+    "seeds": [
+      41,
+      42,
+      43,
+      44,
+      45
+    ],
+    "nics": [
+      1.0,
+      2.0,
+      4.0,
+      8.0
+    ],
+    "fabrics": [
+      1.0,
+      2.0,
+      4.0,
+      8.0,
+      16.0
+    ],
+    "cache_blocks": [
+      256,
+      512
+    ],
+    "bursts": [
+      1,
+      8
+    ],
+    "lambdas": [
+      0.0,
+      1.0
+    ],
+    "requests": 240,
+    "shared_blocks": 256,
+    "nodes": 4,
+    "burst_gap_ms": 2.0,
+    "warning": "Synthetic simulation. Cache tracing is observational."
+  },
+  "source_sha256": {
+    "diagnostics.csv": "73869bc4d3b4b8e9dc22726f72e871c5101cdb4b8e360a511f7a10bd0b9ac9d6",
+    "config.json": "0f6565f80df5782eee7305a5e0962214bb1d917f77b5c244a3166aabf0c10875"
+  },
+  "comparison_rows": 800
+}
