@@ -171,8 +171,7 @@ def main():
             sample[row["request_id"]]=row
         selected=set(sample)
         compact_decisions=[
-            dict(policy=policy,**r) for policy,sim in
-            (("greedy",greedy),("bandwidth_aware",aware))
+            dict(r) for sim in (greedy, aware)
             for r in sim.decisions if r["request_id"] in selected]
         save(folder/"sample_requests.csv",list(sample.values()))
         save(folder/"sample_decisions.csv",compact_decisions)
