@@ -94,8 +94,11 @@ def pair_requests(greedy, aware):
     return differences
 
 
-def selected_decisions(sim, case):
-    return [dict(case=case, **r) for r in sim.decisions if r["selected"]]
+def sample_candidate_decisions(simulators, selected_request_ids):
+    """Preserve existing policy field from each simulator's decision record."""
+    return [dict(row) for sim in simulators
+            for row in sim.decisions
+            if row["request_id"] in selected_request_ids]
 
 
 def hot_at_end(sim):
@@ -170,9 +173,8 @@ def main():
         for row in delta[:12]+changed[:12]:
             sample[row["request_id"]]=row
         selected=set(sample)
-        compact_decisions=[
-            dict(r) for sim in (greedy, aware)
-            for r in sim.decisions if r["request_id"] in selected]
+        compact_decisions=sample_candidate_decisions(
+            (greedy, aware), selected)
         save(folder/"sample_requests.csv",list(sample.values()))
         save(folder/"sample_decisions.csv",compact_decisions)
         summary=dict(
