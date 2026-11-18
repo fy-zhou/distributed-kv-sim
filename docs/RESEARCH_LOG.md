@@ -74,3 +74,27 @@ CSVs under `research-20261118-audit-{baseline,corrected}` in the results root.
 The old and corrected code ran in independent worktrees. The endpoint-count
 counterexample remains covered by a focused test even though these two strata
 do not exercise a behavior-changing instance.
+
+## Iteration 2 — admission equivalence and controlled mechanisms
+
+Hypothesis: oversized LRU admission makes remote destinations physically
+retain blocks but lose the root, so always/no_remote can differ in contents
+without differing in reusable prefix or execution outcomes. Persistent remote
+pins can protect the original source; the externality heuristic may indirectly
+keep assigning work to that expensive-but-hit-rich node.
+
+Implementation: an observation-only simulator subclass records actual cache
+admit return values, rejected blocks, before/after ordered cache fingerprints,
+physical vs contiguous hot residency, pin reference counts, every candidate
+score, queue histories, start-time plans and prediction residuals. An invariant
+test checks identical instrumented and plain simulator rows, caches and summary.
+No baseline cache behavior changes. 39 tests pass.
+
+Protocol: seeds 41–45 (exploratory); 240 requests, 4 nodes, 256 shared + 4
+suffix blocks, burst=1, NIC=Fabric=4 GiB/s. Paired admissions for both
+schedulers, then separate interventions: capacity=260, permanent source hot
+pinning, disallow remote reuse, NIC=16 only, Fabric=16 only, and force only
+the first differing placement to the Greedy choice. Complete traces for seed
+42, summary of every seed/control. These are mechanism interventions, not
+candidate performance estimates. The pin intervention is removed after run
+and checked for balanced transient reference counts.
