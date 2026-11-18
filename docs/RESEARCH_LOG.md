@@ -181,3 +181,12 @@ This failure to improve consistently over an action-matched baseline is
 retained. Candidate/protocol remains unchanged before evaluation seeds are run.
 Do not interpret bootstrap endpoints from two development seeds as reliable
 confidence intervals.
+
+Calibration validation caught a measurement-script resource bug: a Python
+loop variable retained one previous 64 MiB device tensor, making peak tensor
+allocation 192 MiB rather than the declared 128 MiB. Copy readback and timing
+completed, but the first run does not meet its stated allocation bound. Keep
+that raw run unchanged at `research-20261118-h2d`; explicitly release the loop
+reference, add a measured peak-allocation assertion, and rerun in a fresh
+`research-20261118-h2d-corrected` directory. This is a measurement-script fix,
+not a change to simulator coefficients or to the frozen scheduling candidate.

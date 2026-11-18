@@ -78,6 +78,7 @@ def main():
             # Validate first/last bytes without allocating a large readback.
             for i,tensor in enumerate(device):
                 assert tensor[0].item()==i+1 and tensor[-1].item()==i+1
+            del tensor  # Do not retain the previous cell through the loop variable.
             del host,device,streams
             torch.cuda.empty_cache()
             write_csv(out/'samples.csv',rows)
@@ -91,8 +92,10 @@ def main():
             aggregate_gib_s=total/2**30/(median/1000),
             old_single_copy_predictor_ms=1.684+71.210*total/2**30))
     write_csv(out/'summary.csv',summary)
+    peak_bytes=torch.cuda.max_memory_allocated()
+    assert peak_bytes <= 128*2**20, 'GPU tensor allocation exceeded declared bound'
     (out/'completion.json').write_text(json.dumps(dict(samples=len(rows),
-        peak_tensor_bytes=torch.cuda.max_memory_allocated(),
+        peak_tensor_bytes=peak_bytes,
         verified_readback=True,elapsed_seconds=25-(deadline-time.monotonic())),indent=2)+'\n')
     print(json.dumps(summary,indent=2))
 
