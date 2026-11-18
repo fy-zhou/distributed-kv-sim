@@ -1,0 +1,42 @@
+{
+  "parameters": {
+    "cases": [
+      {
+        "case": "regression",
+        "nic": 4.0,
+        "fabric": 4.0,
+        "cache": 256,
+        "burst": 1,
+        "archived_seed": 42,
+        "archived_greedy_p95": 2204.536385199998,
+        "archived_aware_p95": 6456.151112699991
+      },
+      {
+        "case": "improvement",
+        "nic": 2.0,
+        "fabric": 2.0,
+        "cache": 512,
+        "burst": 8,
+        "archived_seed": 45,
+        "archived_greedy_p95": 10326.11218353001,
+        "archived_aware_p95": 6240.443318199996
+      }
+    ],
+    "seeds": [
+      41,
+      42,
+      43,
+      44,
+      45
+    ],
+    "requests": 240,
+    "shared_blocks": 256,
+    "warning": "Synthetic, not a measured GPU/NIC experiment. no_remote suppresses admission for remote-reuse requests."
+  },
+  "source_sha256": {
+    "runs.csv": "908522a1398527f54b49672a41e0d6133272f7dd1d302961835f626b0d8346fc",
+    "pairs.csv": "d2fbd394fe594ca280dfd34365a006290a2aa7e9b93db1a65fd6403164d53ae4",
+    "config.json": "e7ce63abf2ad0eee76429965de05116afa467306106183aed06e93e65f9dd730"
+  },
+  "note": "Synthetic simulation, no measured hardware-level validation"
+}
