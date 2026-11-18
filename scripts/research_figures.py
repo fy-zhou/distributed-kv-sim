@@ -2,6 +2,10 @@
 """Small scientific SVG figures from retained CSVs; requires matplotlib only."""
 import argparse
 import csv
+import hashlib
+import json
+import platform
+import subprocess
 from pathlib import Path
 import statistics
 
@@ -15,6 +19,7 @@ def main():
     p.add_argument('--mechanisms',type=Path,required=True)
     p.add_argument('--evaluation',type=Path,required=True)
     p.add_argument('--out',type=Path,required=True)
+    p.add_argument('--preview',action='store_true')
     args=p.parse_args()
     import matplotlib
     matplotlib.use('Agg')
@@ -35,7 +40,9 @@ def main():
     axs[0].set_xlabel('Simulated P95 TTFT (ms)');axs[0].set_title('Seed 42: individual interventions')
     axs[1].set_xlabel('Simulated time (ms)');axs[1].set_ylabel('Reusable source hot-prefix blocks')
     axs[1].set_title('Source residency under reference policy');axs[1].legend(frameon=False)
-    fig.savefig(args.out/'mechanism.svg',metadata={'Date':None});plt.close(fig)
+    fig.savefig(args.out/'mechanism.svg',metadata={'Date':None})
+    if args.preview:fig.savefig(args.out/'mechanism.png',dpi=120)
+    plt.close(fig)
     pairs=read(args.evaluation/'pairs.csv')
     names=list(dict.fromkeys(r['scenario']for r in pairs))
     fig,axs=plt.subplots(1,2,figsize=(10,6),sharey=True,layout='constrained')
@@ -49,7 +56,16 @@ def main():
         ax.set_yticks(range(len(names)),names)
     axs[0].invert_yaxis()
     fig.suptitle('Held-out synthetic scenarios; dots: mean, whiskers: observed min–max\nFive seeds × two admissions per scenario; whiskers are not confidence intervals',fontsize=10)
-    fig.savefig(args.out/'evaluation.svg',metadata={'Date':None});plt.close(fig)
+    fig.savefig(args.out/'evaluation.svg',metadata={'Date':None})
+    if args.preview:fig.savefig(args.out/'evaluation.png',dpi=120)
+    plt.close(fig)
+    inputs=[args.mechanisms/'runs.csv',args.evaluation/'pairs.csv']+[
+        args.mechanisms/('seed42-%s-always'%pol)/'snapshots.csv' for pol in ('greedy','bandwidth_aware')]
+    (args.out/'manifest.json').write_text(json.dumps(dict(
+        code_commit=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
+        script_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+        matplotlib=matplotlib.__version__,python=platform.python_version(),
+        inputs={str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in inputs}),indent=2)+'\n')
     print('Saved SVGs to',args.out)
 
 
