@@ -1,0 +1,84 @@
+{
+  "code_commit": "1a7f6af1ca449a553c8ddf71ee17ebbf49c73b42",
+  "python": "3.8.10",
+  "config": {
+    "seeds": [
+      41,
+      42,
+      43,
+      44,
+      45
+    ],
+    "requests": 240,
+    "shared_blocks": 256,
+    "suffix_blocks": 4,
+    "burst_width": 1,
+    "burst_gap_ms": 2.0,
+    "nodes": 4,
+    "nic": 4.0,
+    "fabric": 4.0,
+    "capacity": 256,
+    "controls": [
+      {
+        "name": "reference"
+      },
+      {
+        "name": "capacity260",
+        "capacity": 260
+      },
+      {
+        "name": "source_pin",
+        "source_pin": true
+      },
+      {
+        "name": "no_fetch",
+        "allow_remote": false
+      },
+      {
+        "name": "nic16",
+        "nic": 16.0
+      },
+      {
+        "name": "fabric16",
+        "fabric": 16.0
+      }
+    ],
+    "interpretation": "Mechanism study on previously inspected seeds; not held-out evaluation."
+  },
+  "synthetic": true,
+  "note": "Configured fluid network and illustrative compute; no hardware speedup claim.",
+  "raw_sha256": {
+    "config.json": "e3b6846a5500fe32255167b3f2836e0bbaf75d91e12e4fe86f5a1e7f28da4a8d",
+    "equivalence.csv": "7b44359f6eadbbd6d65ff8a6be095b4d025e0627b5aef42b6a7b4d000abf58e6",
+    "first_divergence.csv": "33ef30579f8ec621d42739ea3f4982364cd712dfe56c9945488e7297d08170f2",
+    "runs.csv": "ea24459b8ce60276a2ddb8d24e72f68bdaaa1aaca7564d65bc3801075b34b57f",
+    "seed42-bandwidth_aware-always/admissions.csv": "c2f03f989277b39aff5faf6d2ef04ff11df64e612dac08dfb510e7b10a0cdcdc",
+    "seed42-bandwidth_aware-always/decisions.csv": "4af4f8da10e02e0bc73f778cc426832f747a82449b2d102155727edd543a652d",
+    "seed42-bandwidth_aware-always/execution_plans.csv": "c2c798ff8c1f2a0a94dc44a5eec1fd21af7fa35e74c53dded63871464a656c08",
+    "seed42-bandwidth_aware-always/final_caches.json": "8f8d5127916b86a5e2595640055123955810b210963504bf5e6160b782932c85",
+    "seed42-bandwidth_aware-always/requests.csv": "8fd5a27c3bb3db951e50a8247f8db5acd3ebc1375d9bb1d585f81915323379a9",
+    "seed42-bandwidth_aware-always/residuals.csv": "ae3bfdd3baf3dde31f01aac8f871808d14849883d4bf6008d0f3e84194992d08",
+    "seed42-bandwidth_aware-always/snapshots.csv": "77ec8f8050073deea9a421f92918e507e94c9542f09dfe82a923b01f7239c663",
+    "seed42-bandwidth_aware-no_remote/admissions.csv": "1f5890d0fc6c7140f2313ec08e644f0278d8bf4368df6ff683be64448eb7ae35",
+    "seed42-bandwidth_aware-no_remote/decisions.csv": "4af4f8da10e02e0bc73f778cc426832f747a82449b2d102155727edd543a652d",
+    "seed42-bandwidth_aware-no_remote/execution_plans.csv": "c2c798ff8c1f2a0a94dc44a5eec1fd21af7fa35e74c53dded63871464a656c08",
+    "seed42-bandwidth_aware-no_remote/final_caches.json": "6f452b220b1264e18aca875a5627c3072901ac9ce2a3556be641bd8e27a12f1d",
+    "seed42-bandwidth_aware-no_remote/requests.csv": "8fd5a27c3bb3db951e50a8247f8db5acd3ebc1375d9bb1d585f81915323379a9",
+    "seed42-bandwidth_aware-no_remote/residuals.csv": "ae3bfdd3baf3dde31f01aac8f871808d14849883d4bf6008d0f3e84194992d08",
+    "seed42-bandwidth_aware-no_remote/snapshots.csv": "b045a8264b41b359b1040bb85e6be22aaf904bc350a4cad0c9b5e379348a6f13",
+    "seed42-greedy-always/admissions.csv": "ea0d6cb5d4d4db488d2ed67d57eb96f900a3bbdc495b4684ff29fc69f783d7a3",
+    "seed42-greedy-always/decisions.csv": "c74114dbc2397bee8915966525e1ac6d48369d9e58d1aacfa2d4d8ae784c8017",
+    "seed42-greedy-always/execution_plans.csv": "0aed01429e0f5853d9f69d91dbdf11ac8fb5947e572021920dcf92dff37bb2d0",
+    "seed42-greedy-always/final_caches.json": "cf2a2f115fac7e82d6a3bcb0151d0fd2457c0870735b13bbe3b8fa5290dd0534",
+    "seed42-greedy-always/requests.csv": "aceede6826ef061aae2dbb682c295d6a7211110287109c599a9fbc4dd266cd2e",
+    "seed42-greedy-always/residuals.csv": "992b2bce2de31d4131f68d29945b93a560b4438a0a1a4f5a27e2d4fdbbe6a8a3",
+    "seed42-greedy-always/snapshots.csv": "cad0818180fb5534ea68a882f645445116ef96f2a1390c42169ec491a3da79c2",
+    "seed42-greedy-no_remote/admissions.csv": "0f853fae2d5e5f3b4c52184af2979b5b9d1990d6ffa54cc7fba067844c098550",
+    "seed42-greedy-no_remote/decisions.csv": "c74114dbc2397bee8915966525e1ac6d48369d9e58d1aacfa2d4d8ae784c8017",
+    "seed42-greedy-no_remote/execution_plans.csv": "0aed01429e0f5853d9f69d91dbdf11ac8fb5947e572021920dcf92dff37bb2d0",
+    "seed42-greedy-no_remote/final_caches.json": "cf2a2f115fac7e82d6a3bcb0151d0fd2457c0870735b13bbe3b8fa5290dd0534",
+    "seed42-greedy-no_remote/requests.csv": "aceede6826ef061aae2dbb682c295d6a7211110287109c599a9fbc4dd266cd2e",
+    "seed42-greedy-no_remote/residuals.csv": "992b2bce2de31d4131f68d29945b93a560b4438a0a1a4f5a27e2d4fdbbe6a8a3",
+    "seed42-greedy-no_remote/snapshots.csv": "f402a184be8bff0cca0c94437100bf74504ab583fe325434d1f90602a4ffc47e"
+  }
+}

@@ -98,3 +98,25 @@ the first differing placement to the Greedy choice. Complete traces for seed
 42, summary of every seed/control. These are mechanism interventions, not
 candidate performance estimates. The pin intervention is removed after run
 and checked for balanced transient reference counts.
+
+Iteration 2 result: 80 runs completed. Seed 42 actual admission attempts differ
+(17940 inserted remote-request blocks for Aware/always vs zero/no_remote), but
+each remote destination finishes with zero contiguous request prefix. All
+five seeds have identical execution outcomes across admissions, while some
+cache contents differ. All 133 Aware source completions see the hot prefix
+fully pinned, yielding 532 rejected suffix insertions and no source eviction.
+Greedy's first unpinned completion at 355.060 ms evicts the first four hot
+blocks. Exactly 69 × 0.4375 GiB explains Aware's entire 30.1875 GiB traffic.
+
+Falsification: source protection alone makes Greedy P95 6697.88 ms (was
+2204.54); disabling remote reuse gives both policies 1271.63 ms; force only
+the first divergence gives Aware 3483.40 ms (was 6456.15). Capacity 260 hurts
+Greedy (5239.01 ms); cache capacity benefits are not monotone under mandatory
+reuse. NIC-only/Fabric-only increases are inconclusive because the unchanged
+4 GiB/s constraint remains. Full findings and negative interventions:
+`experiments/research-mechanisms-20261118/ANALYSIS.md`.
+
+Modeled service costs expose the next hypothesis: for a 4160-token request,
+cold compute 30.059 ms < local reuse 35.506 ms < isolated remote 145.031 ms.
+This is a model observation, not hardware calibration. Greedy decision-time
+TTFT bias −499.03 ms vs Aware +730.42 ms illustrates queue/cache uncertainty.

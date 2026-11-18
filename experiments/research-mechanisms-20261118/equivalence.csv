@@ -1,0 +1,11 @@
+seed,policy,request_outcomes_equal,candidate_decisions_equal,final_caches_equal,final_cache_equal_by_node,different_post_admission_states,remote_requests
+41,greedy,True,,True,"[true, true, true, true]",,3
+41,bandwidth_aware,True,,True,"[true, true, true, true]",,3
+42,greedy,True,True,True,"[true, true, true, true]",3,3
+42,bandwidth_aware,True,True,False,"[true, true, false, true]",69,69
+43,greedy,True,,True,"[true, true, true, true]",,6
+43,bandwidth_aware,True,,True,"[true, true, true, true]",,3
+44,greedy,True,,True,"[true, true, true, true]",,3
+44,bandwidth_aware,True,,True,"[true, true, true, true]",,3
+45,greedy,True,,True,"[true, true, true, true]",,3
+45,bandwidth_aware,True,,True,"[true, true, true, true]",,3
