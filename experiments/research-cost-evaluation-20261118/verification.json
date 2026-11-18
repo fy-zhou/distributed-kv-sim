@@ -1,0 +1,12 @@
+{
+  "verified_runs": 980,
+  "ignored_fields": [
+    "decision_mean_us",
+    "decision_max_us"
+  ],
+  "compared": "Every other field including per-request outcomes and final cache hashes.",
+  "evaluation_code_commit": "b3e64c2807d418813d9d494dbcd08eca3cf5bcf2",
+  "replay_code_commit": "d7fc0e3b263cffed8e39183da9f4a11170d8c9a8",
+  "replay_runs_sha256": "6125aaed806b1991155846b1904b1bf9d59aff7da9674bfb88b7dd633163a2f5",
+  "evaluation_runs_sha256": "2f43189dd378429a884b0620505c9a1c38d9690114949aec54ec84416cef3269"
+}

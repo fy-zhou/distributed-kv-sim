@@ -444,3 +444,50 @@ git -c http.proxy=http://127.0.0.1:17890 push origin exp/cache-admission-ablatio
 
 The source and archive scripts require only Python's standard library.
 The model remains synthetic; measured GPU/NIC calibration is pending.
+
+## Continuous research checkpoint (2026-11-18)
+
+Branch `research/iterative-scheduler` completes three initial research
+iterations: correctness fixes, controlled admission/regression diagnostics,
+and an explicit recompute/local/remote service-cost candidate. See the
+[research log](docs/RESEARCH_LOG.md) for commit provenance and next experiments.
+
+- [Correctness replay](experiments/research-correctness-20261118/): two bugs
+  fixed; all 40 historical scheduler/admission outcomes remain identical.
+- [Mechanism evidence](experiments/research-mechanisms-20261118/ANALYSIS.md):
+  remote admission really changes cache contents, but oversized sequential
+  admission destroys reusable prefix roots. Source pinning can preserve an
+  expensive remote-fetch cycle.
+- [Held-out evaluation](experiments/research-cost-evaluation-20261118/ANALYSIS.md):
+  980 runs plus 980 deterministic replays. Cost-aware improves over Greedy
+  in 140/140 paired conditions, but fails to consistently beat an
+  action-matched Round Robin control. This is a service-cost improvement
+  under illustrative compute, not evidence of a superior placement scheduler.
+- [Physical H2D measurements](experiments/research-h2d-verified-20261118/):
+  bounded single-host copies; CPU socket affinity matters. Distinct from
+  layered KV loading and inter-node NIC performance; defaults stay unchanged.
+- [Externality microcase](experiments/research-externality-replay-20261118/):
+  finite-flow replay exposes the current approximation's size-blindness.
+
+The optional policies `cost_aware` and `round_robin_cost` use a separate
+reuse-action planner. All five legacy placement/service behaviors remain
+available. Try them with the existing CLI:
+
+```bash
+python3 -m unittest discover -s tests -v
+python3 scripts/run.py --requests 120 --policy greedy bandwidth_aware cost_aware round_robin_cost --out /state/partition/fyzhou/results/distributed-kv-sim/new-smoke
+```
+
+Reproduce research runs into **fresh** output/archive directories:
+
+```bash
+python3 scripts/research_mechanisms.py --out /state/partition/fyzhou/results/distributed-kv-sim/new-mechanisms --archive experiments/new-mechanisms
+python3 scripts/research_evaluate.py --split development --out /state/partition/fyzhou/results/distributed-kv-sim/new-development --archive experiments/new-development
+python3 scripts/research_evaluate.py --split evaluation --out /state/partition/fyzhou/results/distributed-kv-sim/new-evaluation --archive experiments/new-evaluation
+python3 scripts/research_evaluate.py --split evaluation --out /state/partition/fyzhou/results/distributed-kv-sim/new-replay --verify-against /state/partition/fyzhou/results/distributed-kv-sim/new-evaluation/runs.csv
+```
+
+Evaluation seeds 101–105 are now consumed evidence: future methods must use
+fresh holdouts. Simulation/research runners use Python 3.8 and the standard
+library. Optional plotting uses matplotlib; the bounded physical H2D script
+requires an existing CUDA-enabled torch environment and an idle GPU.

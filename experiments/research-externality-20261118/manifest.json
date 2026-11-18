@@ -1,0 +1,20 @@
+{
+  "code_commit": "1157f3868dd9c661cdf6c58ed8d9d7e273d9adf0",
+  "python": "3.8.10",
+  "config": {
+    "setup_ms": 0.0,
+    "nic_bytes_per_ms": 100.0,
+    "fabric_bytes_per_ms": 1000.0,
+    "incumbent_src": 0,
+    "incumbent_dst": 1,
+    "candidate_src": 0,
+    "candidate_dst": 2,
+    "interpretation": "Isolates finite flow duration. No queues, cache evolution, or future arrivals."
+  },
+  "synthetic": true,
+  "note": "Configured fluid network and illustrative compute; no hardware speedup claim.",
+  "raw_sha256": {
+    "config.json": "e78f6ed1484b0ba06300906a657d302a83e080a26e8e5683aed926c26fb30561",
+    "externality.csv": "ff89a5420eb8356122e917b1e54433ec99f5d04bea9a138e2650bbe6220157f6"
+  }
+}

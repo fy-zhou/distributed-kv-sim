@@ -1,0 +1,12 @@
+{
+  "code_commit": "aa42a1c9ae865f2b3370b063fd5fef02cc408835",
+  "script_sha256": "7135d556e8c15436dfdb3dc33285d8890ed601fc52f8316b155c555ead8ee30e",
+  "matplotlib": "3.11.2",
+  "python": "3.12.15",
+  "inputs": {
+    "/state/partition/fyzhou/results/distributed-kv-sim/research-20261118-mechanisms/runs.csv": "ea24459b8ce60276a2ddb8d24e72f68bdaaa1aaca7564d65bc3801075b34b57f",
+    "/state/partition/fyzhou/results/distributed-kv-sim/research-20261118-cost-evaluation/pairs.csv": "422a19422e9e80dee38dc51ed4a20b84500180639211e298f2be4d6b21e1482c",
+    "/state/partition/fyzhou/results/distributed-kv-sim/research-20261118-mechanisms/seed42-greedy-always/snapshots.csv": "cad0818180fb5534ea68a882f645445116ef96f2a1390c42169ec491a3da79c2",
+    "/state/partition/fyzhou/results/distributed-kv-sim/research-20261118-mechanisms/seed42-bandwidth_aware-always/snapshots.csv": "77ec8f8050073deea9a421f92918e507e94c9542f09dfe82a923b01f7239c663"
+  }
+}

@@ -1,0 +1,8 @@
+policy,mean_decision_us
+round_robin,1.2684544642857143
+shortest_queue,2.820316845238095
+max_hit,28.635068571428572
+greedy,1170.08374875
+bandwidth_aware,1233.875490297619
+cost_aware,1301.573585654762
+round_robin_cost,1.328262619047619

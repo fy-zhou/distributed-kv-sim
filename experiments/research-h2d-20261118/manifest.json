@@ -1,0 +1,301 @@
+{
+  "code_commit": "1157f3868dd9c661cdf6c58ed8d9d7e273d9adf0",
+  "python": "3.8.10",
+  "config": {
+    "runs": [
+      {
+        "directory": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261118-h2d",
+        "config": {
+          "code_commit": "92f832ebbb56989aef45eacf3debccb7f5d37f93",
+          "python": "3.12.15",
+          "config": {
+            "kind": "single_host_contiguous_pinned_H2D",
+            "gpu": 0,
+            "samples": 15,
+            "warmups": 3,
+            "sizes_mib": [
+              0.0625,
+              1,
+              16,
+              64
+            ],
+            "streams": [
+              1,
+              2
+            ],
+            "max_gpu_tensor_bytes": 134217728,
+            "max_host_pinned_bytes": 134217728,
+            "time_limit_seconds": 25,
+            "gpu_before": "GPU-3634c867-2ea8-acac-8282-385c03ced06f, NVIDIA GeForce RTX 4090, 590.44.01, 00000000:41:00.0, 17, 0",
+            "torch": "2.13.0+cu132",
+            "cuda_runtime": "13.2",
+            "device_name": "NVIDIA GeForce RTX 4090",
+            "note": "No model or KV scatter; device event makespan includes launch gaps. No NIC measurement."
+          },
+          "synthetic": false,
+          "note": "Configured fluid network and illustrative compute; no hardware speedup claim."
+        },
+        "completion": {
+          "samples": 120,
+          "peak_tensor_bytes": 201326592,
+          "verified_readback": true,
+          "elapsed_seconds": 1.2073466926813126
+        },
+        "sha256": {
+          "config.json": "2dec4f6cccc1a9fe4bd550c4b7f9f1b40cd6387abd9984054064e94fa5362df2",
+          "summary.csv": "f16b342eb965ce4578b9f8da46ad2e797d787c4a880e63aca94937cb9e3dc2b8",
+          "completion.json": "d8ab078c1ad10c13ebf6cf874b7d92bb6310db61b8eddb914afb1ec08ad9dcd7",
+          "samples.csv": "d8a452715cc4c446b2ef4a00c52fffdbfac7dd8ac165f0bd4b2cf411a5a2c9c9"
+        }
+      },
+      {
+        "directory": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261118-h2d-corrected",
+        "config": {
+          "code_commit": "d7fc0e3b263cffed8e39183da9f4a11170d8c9a8",
+          "python": "3.12.15",
+          "config": {
+            "kind": "single_host_contiguous_pinned_H2D",
+            "gpu": 0,
+            "samples": 15,
+            "warmups": 3,
+            "sizes_mib": [
+              0.0625,
+              1,
+              16,
+              64
+            ],
+            "streams": [
+              1,
+              2
+            ],
+            "max_gpu_tensor_bytes": 134217728,
+            "max_host_pinned_bytes": 134217728,
+            "time_limit_seconds": 25,
+            "gpu_before": "GPU-3634c867-2ea8-acac-8282-385c03ced06f, NVIDIA GeForce RTX 4090, 590.44.01, 00000000:41:00.0, 17, 0",
+            "torch": "2.13.0+cu132",
+            "cuda_runtime": "13.2",
+            "device_name": "NVIDIA GeForce RTX 4090",
+            "note": "No model or KV scatter; device event makespan includes launch gaps. No NIC measurement."
+          },
+          "synthetic": false,
+          "note": "Configured fluid network and illustrative compute; no hardware speedup claim."
+        },
+        "completion": {
+          "samples": 120,
+          "peak_tensor_bytes": 134217728,
+          "verified_readback": true,
+          "elapsed_seconds": 1.3473051339387894
+        },
+        "sha256": {
+          "config.json": "5969aae562c80ec908e0cc5d1115545e6741198008c01314f3105762ee1f964c",
+          "summary.csv": "e03074b31bea1e774c8ee3510980f2d7f898a6783dd7ecd994a20c6d5b0312f2",
+          "completion.json": "d6db000ce59c875a26db8dbb47e70bd8b0cd9c0340cd80995feb19497afef8ee",
+          "samples.csv": "428bea72fe487fad5b5b61bc86b732b61e13d397fecf357f6964760fe558fbf6"
+        }
+      },
+      {
+        "directory": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261118-h2d-affinity-0-cpu16",
+        "config": {
+          "code_commit": "1157f3868dd9c661cdf6c58ed8d9d7e273d9adf0",
+          "python": "3.12.15",
+          "config": {
+            "kind": "single_host_contiguous_pinned_H2D",
+            "gpu": 0,
+            "samples": 15,
+            "warmups": 3,
+            "sizes_mib": [
+              0.0625,
+              1,
+              16,
+              64
+            ],
+            "streams": [
+              1,
+              2
+            ],
+            "max_gpu_tensor_bytes": 134217728,
+            "max_host_pinned_bytes": 134217728,
+            "time_limit_seconds": 25,
+            "gpu_before": "GPU-3634c867-2ea8-acac-8282-385c03ced06f, NVIDIA GeForce RTX 4090, 590.44.01, 00000000:41:00.0, 17, 0",
+            "torch": "2.13.0+cu132",
+            "cuda_runtime": "13.2",
+            "device_name": "NVIDIA GeForce RTX 4090",
+            "cpu_affinity": [
+              16
+            ],
+            "topology": "\t\u001b[4mGPU0\tGPU1\tCPU Affinity\tNUMA Affinity\tGPU NUMA ID\u001b[0m\nGPU0\t X \tSYS\t0-63,128-191\t0\t\tN/A\nGPU1\tSYS\t X \t64-127,192-255\t1\t\tN/A\n\nLegend:\n\n  X    = Self\n  SYS  = Connection traversing PCIe as well as the SMP interconnect between NUMA nodes (e.g., QPI/UPI)\n  NODE = Connection traversing PCIe as well as the interconnect between PCIe Host Bridges within a NUMA node\n  PHB  = Connection traversing PCIe as well as a PCIe Host Bridge (typically the CPU)\n  PXB  = Connection traversing multiple PCIe bridges (without traversing the PCIe Host Bridge)\n  PIX  = Connection traversing at most a single PCIe bridge\n  NV#  = Connection traversing a bonded set of # NVLinks\n",
+            "note": "No model or KV scatter; device event makespan includes launch gaps. No NIC measurement."
+          },
+          "synthetic": false,
+          "note": "Configured fluid network and illustrative compute; no hardware speedup claim."
+        },
+        "completion": {
+          "samples": 120,
+          "peak_tensor_bytes": 134217728,
+          "verified_readback": true,
+          "elapsed_seconds": 2.9725865852087736
+        },
+        "sha256": {
+          "config.json": "48ac954fb6003cc8526b89dd12716ef7f3a4137a56e6b6e3ec3188f7f926875d",
+          "summary.csv": "b9cc1a2c0a6f869b259a71aa4de5d82ed9ec72bf7f89b9b84d6e71d58c8098db",
+          "completion.json": "808b43ee2be0010a89b336d2d6446180365442eb9ada58c4e845957a7b4fbf17",
+          "samples.csv": "02f6cceb33ec8756d1028a0c2897c604d194ff2db645f3c34542819aec1098de"
+        }
+      },
+      {
+        "directory": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261118-h2d-affinity-1-cpu80",
+        "config": {
+          "code_commit": "1157f3868dd9c661cdf6c58ed8d9d7e273d9adf0",
+          "python": "3.12.15",
+          "config": {
+            "kind": "single_host_contiguous_pinned_H2D",
+            "gpu": 0,
+            "samples": 15,
+            "warmups": 3,
+            "sizes_mib": [
+              0.0625,
+              1,
+              16,
+              64
+            ],
+            "streams": [
+              1,
+              2
+            ],
+            "max_gpu_tensor_bytes": 134217728,
+            "max_host_pinned_bytes": 134217728,
+            "time_limit_seconds": 25,
+            "gpu_before": "GPU-3634c867-2ea8-acac-8282-385c03ced06f, NVIDIA GeForce RTX 4090, 590.44.01, 00000000:41:00.0, 17, 0",
+            "torch": "2.13.0+cu132",
+            "cuda_runtime": "13.2",
+            "device_name": "NVIDIA GeForce RTX 4090",
+            "cpu_affinity": [
+              80
+            ],
+            "topology": "\t\u001b[4mGPU0\tGPU1\tCPU Affinity\tNUMA Affinity\tGPU NUMA ID\u001b[0m\nGPU0\t X \tSYS\t0-63,128-191\t0\t\tN/A\nGPU1\tSYS\t X \t64-127,192-255\t1\t\tN/A\n\nLegend:\n\n  X    = Self\n  SYS  = Connection traversing PCIe as well as the SMP interconnect between NUMA nodes (e.g., QPI/UPI)\n  NODE = Connection traversing PCIe as well as the interconnect between PCIe Host Bridges within a NUMA node\n  PHB  = Connection traversing PCIe as well as a PCIe Host Bridge (typically the CPU)\n  PXB  = Connection traversing multiple PCIe bridges (without traversing the PCIe Host Bridge)\n  PIX  = Connection traversing at most a single PCIe bridge\n  NV#  = Connection traversing a bonded set of # NVLinks\n",
+            "note": "No model or KV scatter; device event makespan includes launch gaps. No NIC measurement."
+          },
+          "synthetic": false,
+          "note": "Configured fluid network and illustrative compute; no hardware speedup claim."
+        },
+        "completion": {
+          "samples": 120,
+          "peak_tensor_bytes": 134217728,
+          "verified_readback": true,
+          "elapsed_seconds": 3.319183863699436
+        },
+        "sha256": {
+          "config.json": "682ff1f82ae6afc4cf4ae5ab8adb8b96deb13ac7e34a9f857cc0252154c46723",
+          "summary.csv": "5ac17551785070dde3946d3063305b65040f9691baed2743554635e1d46812ae",
+          "completion.json": "b88f9944326e1e5ecb61b5c68c9886ea2b7c2436302d8e16493c3345cb80f0d3",
+          "samples.csv": "4eae7ff4ac3577223463b183ca975d2a073eb2fa717e24d1ccda1770f5a76a89"
+        }
+      },
+      {
+        "directory": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261118-h2d-affinity-2-cpu80",
+        "config": {
+          "code_commit": "1157f3868dd9c661cdf6c58ed8d9d7e273d9adf0",
+          "python": "3.12.15",
+          "config": {
+            "kind": "single_host_contiguous_pinned_H2D",
+            "gpu": 0,
+            "samples": 15,
+            "warmups": 3,
+            "sizes_mib": [
+              0.0625,
+              1,
+              16,
+              64
+            ],
+            "streams": [
+              1,
+              2
+            ],
+            "max_gpu_tensor_bytes": 134217728,
+            "max_host_pinned_bytes": 134217728,
+            "time_limit_seconds": 25,
+            "gpu_before": "GPU-3634c867-2ea8-acac-8282-385c03ced06f, NVIDIA GeForce RTX 4090, 590.44.01, 00000000:41:00.0, 17, 0",
+            "torch": "2.13.0+cu132",
+            "cuda_runtime": "13.2",
+            "device_name": "NVIDIA GeForce RTX 4090",
+            "cpu_affinity": [
+              80
+            ],
+            "topology": "\t\u001b[4mGPU0\tGPU1\tCPU Affinity\tNUMA Affinity\tGPU NUMA ID\u001b[0m\nGPU0\t X \tSYS\t0-63,128-191\t0\t\tN/A\nGPU1\tSYS\t X \t64-127,192-255\t1\t\tN/A\n\nLegend:\n\n  X    = Self\n  SYS  = Connection traversing PCIe as well as the SMP interconnect between NUMA nodes (e.g., QPI/UPI)\n  NODE = Connection traversing PCIe as well as the interconnect between PCIe Host Bridges within a NUMA node\n  PHB  = Connection traversing PCIe as well as a PCIe Host Bridge (typically the CPU)\n  PXB  = Connection traversing multiple PCIe bridges (without traversing the PCIe Host Bridge)\n  PIX  = Connection traversing at most a single PCIe bridge\n  NV#  = Connection traversing a bonded set of # NVLinks\n",
+            "note": "No model or KV scatter; device event makespan includes launch gaps. No NIC measurement."
+          },
+          "synthetic": false,
+          "note": "Configured fluid network and illustrative compute; no hardware speedup claim."
+        },
+        "completion": {
+          "samples": 120,
+          "peak_tensor_bytes": 134217728,
+          "verified_readback": true,
+          "elapsed_seconds": 3.0911617763340473
+        },
+        "sha256": {
+          "config.json": "682ff1f82ae6afc4cf4ae5ab8adb8b96deb13ac7e34a9f857cc0252154c46723",
+          "summary.csv": "b152d2b6bf982f5f3a02f5bd7ba68c4c0e3fc7c42ee9554be0eced351d5dafbc",
+          "completion.json": "edb638f4d8ed55dc28d5e81ed80b35cd160f24e90675ea3babab814a500f46cf",
+          "samples.csv": "7b5b083c532756a42b9af56bca1ec7c79a4554d9ace82811e0119dacc9e0e2a2"
+        }
+      },
+      {
+        "directory": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261118-h2d-affinity-3-cpu16",
+        "config": {
+          "code_commit": "1157f3868dd9c661cdf6c58ed8d9d7e273d9adf0",
+          "python": "3.12.15",
+          "config": {
+            "kind": "single_host_contiguous_pinned_H2D",
+            "gpu": 0,
+            "samples": 15,
+            "warmups": 3,
+            "sizes_mib": [
+              0.0625,
+              1,
+              16,
+              64
+            ],
+            "streams": [
+              1,
+              2
+            ],
+            "max_gpu_tensor_bytes": 134217728,
+            "max_host_pinned_bytes": 134217728,
+            "time_limit_seconds": 25,
+            "gpu_before": "GPU-3634c867-2ea8-acac-8282-385c03ced06f, NVIDIA GeForce RTX 4090, 590.44.01, 00000000:41:00.0, 17, 0",
+            "torch": "2.13.0+cu132",
+            "cuda_runtime": "13.2",
+            "device_name": "NVIDIA GeForce RTX 4090",
+            "cpu_affinity": [
+              16
+            ],
+            "topology": "\t\u001b[4mGPU0\tGPU1\tCPU Affinity\tNUMA Affinity\tGPU NUMA ID\u001b[0m\nGPU0\t X \tSYS\t0-63,128-191\t0\t\tN/A\nGPU1\tSYS\t X \t64-127,192-255\t1\t\tN/A\n\nLegend:\n\n  X    = Self\n  SYS  = Connection traversing PCIe as well as the SMP interconnect between NUMA nodes (e.g., QPI/UPI)\n  NODE = Connection traversing PCIe as well as the interconnect between PCIe Host Bridges within a NUMA node\n  PHB  = Connection traversing PCIe as well as a PCIe Host Bridge (typically the CPU)\n  PXB  = Connection traversing multiple PCIe bridges (without traversing the PCIe Host Bridge)\n  PIX  = Connection traversing at most a single PCIe bridge\n  NV#  = Connection traversing a bonded set of # NVLinks\n",
+            "note": "No model or KV scatter; device event makespan includes launch gaps. No NIC measurement."
+          },
+          "synthetic": false,
+          "note": "Configured fluid network and illustrative compute; no hardware speedup claim."
+        },
+        "completion": {
+          "samples": 120,
+          "peak_tensor_bytes": 134217728,
+          "verified_readback": true,
+          "elapsed_seconds": 3.0897546969354153
+        },
+        "sha256": {
+          "config.json": "48ac954fb6003cc8526b89dd12716ef7f3a4137a56e6b6e3ec3188f7f926875d",
+          "summary.csv": "1d5caa73213abd05ab2bf8d9115706e76378c6df1a5000d7a600e561051c658c",
+          "completion.json": "fb2301c03653af067ac66d250d9ff91f4fbe8b7a46d87bbb52428b52525e613f",
+          "samples.csv": "6a25ccb8af3a5b183f935ef0f839b4096505814e04c53a88a017e8814e89ed39"
+        }
+      }
+    ],
+    "measurement": "Physical single-host CUDA pinned H2D; not simulated and not a multi-node network."
+  },
+  "synthetic": true,
+  "note": "Configured fluid network and illustrative compute; no hardware speedup claim.",
+  "raw_sha256": {
+    "config.json": "21c31201de2532ffeeafa99f25531492dae0fc83406e68b7358afc5ba42d1f27",
+    "summary_all_attempts.csv": "ed0b92fcc9c4147cddb8df253899dd1e9f47c9fb7fc69aefb2f5619685cee94d"
+  }
+}

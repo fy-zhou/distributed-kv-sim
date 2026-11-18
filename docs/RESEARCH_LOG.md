@@ -233,3 +233,73 @@ generic simulator `synthetic: true` wrapper despite correct physical labels
 in every nested run. Preserve that initial archive with a correction note;
 fix the exporter to label physical measurements explicitly and produce a
 separate verified re-export. No raw observations or historical archives change.
+
+Iteration 3 result: 980 held-out runs completed, then all 980 independently
+replayed. Every deterministic field matches, including full per-request
+outcome hashes and final ordered-cache hashes. Only decision_mean_us and
+decision_max_us (actual host wall time) are excluded. Evaluation code commit
+`b3e64c2`; replay code commit `d7fc0e3`. The later `2666704` trace-only fix
+is outside the placement/execution paths exercised in these runs. Final
+49-test suite and a seven-policy CLI smoke pass on the current tree.
+
+Held-out candidate versus Greedy: 140 improve / 0 neutral / 0 regress;
+mean paired P95 +72.174%. Whole-seed bootstrap endpoints +70.610 to +73.686%
+are descriptive with five clusters. Versus action-matched Round Robin:
+7 improve / 120 neutral / 13 regress, mean −0.119%, endpoints −0.672 to
++0.433%. Thus the evidence supports a service-cost gate under this model,
+not a superior placement scheduler. Candidate overhead averages 1301.574 us
+per placement across condition-level means on the shared CPU host; the
+Round Robin timer excludes its later execution-time reuse planning.
+
+Failure: compute_heavy / seed 102 / always has P95 2923.569 ms versus
+2239.768 ms for action-matched Round Robin (30.53% worse), despite fewer
+network bytes. Candidate assigns 72/120 requests to node 0 versus 30 each;
+mean queue rises 1164.271→1378.499 ms, while H2D/compute means are equal.
+Long-prefix seed 105 regresses 4.05% with zero network traffic on both
+sides. Keep these failures; do not tune on evaluation seeds 101–105.
+
+Evidence: `experiments/research-cost-evaluation-20261118/ANALYSIS.md`,
+`compact_runs.csv`, `pairs.csv`, `by_scenario.csv`, `verification.json` and
+`evaluation.svg`. The mechanism SVG is in the mechanism archive; raw PNG
+review previews and matplotlib environment stay outside Git. All new archives
+are below 1 MiB (largest approximately 0.81 MiB).
+
+### Completed checkpoints
+
+| Milestone | Implementation commit | Evidence commit / directory | Verification |
+|---|---|---|---|
+| Correctness | 192c94a | 0da4649 / research-correctness-20261118 | 38 tests, 40 before/after runs identical |
+| Mechanisms | 1a7f6af | 976c6cc / research-mechanisms-20261118 | 39 tests, 80 controlled runs |
+| Service-cost candidate | 6b38df8, compact protocol 21a7416 | b3e64c2 development; research-cost-evaluation-20261118 | 392 development + 980 evaluation + 980 replay runs |
+| Diagnostic trace correction | 2666704 | documented above | final 49 tests + seven-policy CLI smoke |
+| Auxiliary measurements | 92f832e, memory fix d7fc0e3, affinity 1157f38 | research-h2d-verified-20261118 | 720 samples; all failures retained |
+| Externality probe | 70f6771 | research-externality-replay-20261118 | exact committed-code CSV replay |
+
+### Resume plan and limits
+
+The first three requested iterations are complete. This is a resumable
+checkpoint, not a finished research-quality serving system. Next highest
+priority: improve placement under the *same* service-action space. Falsify
+whether a shadow FIFO/cache rollout removes compute-bound source overload;
+compare against action-matched Round Robin on development seeds, then fresh
+held-out seeds 201–205. Profile and bound queue-estimation CPU overhead.
+A finite-flow externality replay is another isolated candidate, but must
+handle setup/queued starts and must not be advertised as future-state truth.
+
+Hardware next: pin CPU affinity, independently inspect pinned page locality,
+repeat transfer concurrency and actual KV scatter, then isolate real GPU
+prefill kernels across reused lengths. Existing lab service-time fits include
+loading and cannot be relabeled compute. Do not measure an inter-node network
+using the two GPUs of this host. None of those future tasks is claimed done.
+Input validation for arbitrary NaN/Inf configs, duplicate request IDs and
+adversarial external traces remains incomplete; the audited synthetic traces
+are finite, deterministic and have unique IDs.
+
+Full results root: `/state/partition/fyzhou/results/distributed-kv-sim/`.
+All directories beginning `research-20261118-` are immutable run attempts;
+replay and corrected pilots use separate directories. The detached baseline
+worktree is retained at `research-20261118-baseline-code` for exact resumption.
+No historical experiment archive was modified. The user's original
+`.gitignore` edit remains uncommitted and unchanged. No GPUs/models/system
+packages were installed; plotting dependencies exist only in a new results-side
+virtual environment. GPU 1 was never used by these measurements.
