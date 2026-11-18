@@ -1,0 +1,67 @@
+# Continuous simulator research
+
+All latency/traffic results below are synthetic model outputs. No physical
+multi-node NIC or GPU performance validation is claimed.
+
+## Iteration 1 — correctness audit (2026-11-18)
+
+Question: are pathological traffic and admission equivalence artifacts of an
+incorrect event/network model? Starting verified commit: `41d2f12` (32 tests).
+Branch: `research/iterative-scheduler`; pre-existing `.gitignore` edit retained
+outside research commits. All historical archives remain unchanged.
+
+Confirmed bugs, separated from algorithm changes:
+
+- Candidate transfer estimates divided both NICs by the union of send/receive
+  competitors. Two disjoint incumbent flows plus a bridging candidate provide
+  a counterexample (predicted 1/3 NIC vs actual 1/2 NIC). Use independent
+  endpoint counts matching the existing fluid allocator.
+- Flow completion tolerance scaled with all historical traffic; after 1 TB,
+  an entirely unfinished 1000-byte flow could be accepted. Scale tolerance
+  to that flow's initial size with a small absolute float allowance.
+
+No scheduling algorithm or cache admission semantics changed in this iteration.
+Six focused tests added; 38 tests pass. The network model explicitly uses
+independent send/receive budgets (full duplex) and conservative equal shares;
+unused bandwidth redistribution is not implemented.
+
+Audit coverage and limits:
+
+1. Events use `(time, insertion sequence)`; arrivals inserted first take
+   precedence over completions at the same time. Deterministic, no zero-time
+   cache visibility guarantee. Stale flow events use a global generation.
+2. Remaining compute uses scheduled finish; transfer remaining uses current
+   rate and includes setup. Queued work uses present caches and unshared
+   transfer rates: an approximation, not an exact FIFO forecast.
+3. Explicit setup precedes flow creation; pins cover setup and transfer.
+   A node processes one entire request at a time. Endpoint/fabric conservation
+   and equal-time flow completions covered by closed-form tests.
+4. CPU cache is separate from active GPU KV; local blocks need no CPU pin
+   after snapshot because active KV is abstracted. Remote blocks are pinned
+   by reference counts, then unpinned at transfer completion. Remote reads
+   do not update source LRU. Partial physical prefix residency is allowed;
+   only contiguous prefix from root is reusable.
+5. Oversized sequential LRU admission can remove a request's own prefix root.
+   This is current cache policy behavior, not silently corrected here.
+6. Externality assumes adding a transfer immediately and keeping all current
+   rates for each incumbent's remaining lifetime. It ignores candidate size,
+   queued start time, setup, future flows and early completions. It is an
+   approximation and can overestimate finite-flow damage; not a physical
+   marginal-cost measurement.
+7. TTFT decomposes into queue + setup/transfer + H2D + compute. Token/byte
+   conservation, final empty flows/queues/active jobs/pins tested.
+8. Execution rechecks caches; decision-time hits and sources are forecasts.
+   Arrival bursts/family draws use local seeded RNG. Percentiles interpolate
+   at `(n-1)*p`; seed/config comparisons are correlated. Mean paired percent
+   change differs from percent change of aggregate means.
+
+Initial exact replay (seed 42, NIC=Fabric=4, capacity=256, burst=1):
+Greedy P95 2204.5363852 ms, 3 remote requests, 1.3125 GiB;
+Aware P95 6456.1511127 ms, 69 remote requests, 30.1875 GiB.
+Both admissions produce these exact figures. Aware source has zero evictions
+and 532 rejected block admissions; Greedy source has 21584 evictions and
+36 rejections. This motivates instrumentation, not a causal claim alone.
+
+Next: repeat 40 archived scheduler/admission runs before/after fixes, preserve
+all changed outcomes, then trace actual admission effects and run controlled
+capacity/pinning/transfer-cost interventions.

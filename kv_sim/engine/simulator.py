@@ -148,9 +148,7 @@ class Simulator:
         if remote:
             competing = sum(1 for f in self.network.flows.values()
                             if f.src == source or f.dst == node_id)
-            rate = min(self.network.nic[source] / (competing + 1),
-                       self.network.nic[node_id] / (competing + 1),
-                       self.network.fabric / (len(self.network.flows) + 1))
+            rate = self.network.prospective_rate(source, node_id)
             remote_ms = self.transfer_predictor.predict_ms(payload, rate)
         h2d_ms = self._h2d_time(length)
         compute_ms = self._compute_time(req, length)

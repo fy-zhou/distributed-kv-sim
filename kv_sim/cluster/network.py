@@ -15,6 +15,7 @@ class Flow:
     dst: int
     remaining_bytes: float
     rate_bytes_per_ms: float = 0.0
+    initial_bytes: float = 0.0
 
 
 class FluidNetwork:
@@ -51,6 +52,17 @@ class FluidNetwork:
                 self.fabric / n,
             )
 
+    def prospective_rate(self, src, dst):
+        """Immediate equal-share rate if one flow were added now.
+
+        Send and receive NIC budgets are independent (full duplex). This
+        predicts the current state, not future flow arrivals/completions.
+        """
+        senders = sum(f.src == src for f in self.flows.values()) + 1
+        receivers = sum(f.dst == dst for f in self.flows.values()) + 1
+        return min(self.nic[src] / senders, self.nic[dst] / receivers,
+                   self.fabric / (len(self.flows) + 1))
+
     def start(self, now, src, dst, size_bytes):
         if src == dst:
             raise ValueError("network transfer needs distinct nodes")
@@ -58,7 +70,8 @@ class FluidNetwork:
             raise ValueError("transfer size must be positive")
         self.advance(now)
         self.next_id += 1
-        flow = Flow(self.next_id, src, dst, float(size_bytes))
+        flow = Flow(self.next_id, src, dst, float(size_bytes),
+                    initial_bytes=float(size_bytes))
         self.flows[flow.flow_id] = flow
         self.total_bytes += size_bytes
         self.recalculate()
@@ -67,7 +80,7 @@ class FluidNetwork:
     def finish(self, now, flow_id):
         self.advance(now)
         f = self.flows[flow_id]
-        if f.remaining_bytes > 1e-5 * max(1.0, self.total_bytes):
+        if f.remaining_bytes > 1e-5 + 1e-12 * f.initial_bytes:
             raise RuntimeError("flow finished prematurely")
         del self.flows[flow_id]
         self.recalculate()
