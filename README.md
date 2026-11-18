@@ -397,3 +397,50 @@ after the first differing placement. Later candidate estimates cannot be
 interpreted as paired counterfactual outcomes at an identical cache/queue
 state. Establishing a causal mechanism requires controlled cache-admission,
 pinning or network penalty ablations, with held-out seeds.
+
+## Scheduler × Cache Admission Ablation
+
+The archived request-level case study suggests that high network traffic and
+queueing—not GPU prefill alone—accompany the severe P95 regression. This
+branch tests a **controlled admission ablation**, not a new optimized policy.
+
+Each trace and initial cache is reused across four runs:
+`greedy/always`, `greedy/no_remote`,
+`bandwidth_aware/always`, `bandwidth_aware/no_remote`.
+The `no_remote` admission policy avoids caching a completed request's
+blocks whenever remote KV blocks were fetched. It does **not** pin any hot
+prefix, and the result is not automatically a better scheduler.
+
+Original archive P95 is checked in the two selected case/seed combinations,
+so a changed model or workload is detected.
+
+### Run on 4090-02
+
+```bash
+cd /state/partition/fyzhou/distributed-kv-sim
+git -c http.proxy=http://127.0.0.1:17890 fetch origin
+git switch --track origin/exp/cache-admission-ablation
+python3 -m unittest discover -s tests -v
+python3 scripts/cache_admission_ablation.py \
+  --seeds 41 42 43 44 45 \
+  --archive experiments/cache-network-diagnostics-20261117 \
+  --out /state/partition/fyzhou/results/distributed-kv-sim/cache-admission-ablation
+```
+
+Expected outputs: `runs.csv`, `pairs.csv`, `config.json`.
+Both selected scenario strata are reused; the seed variation is reported
+rather than cherry-picking the original extreme seed.
+
+### Archive (under 1 MiB)
+
+```bash
+python3 scripts/archive_cache_admission.py \
+  --source /state/partition/fyzhou/results/distributed-kv-sim/cache-admission-ablation \
+  --destination experiments/cache-admission-ablation-20261118
+git add experiments/cache-admission-ablation-20261118
+git commit -m "Archive scheduler cache admission ablation"
+git -c http.proxy=http://127.0.0.1:17890 push origin exp/cache-admission-ablation
+```
+
+The source and archive scripts require only Python's standard library.
+The model remains synthetic; measured GPU/NIC calibration is pending.
