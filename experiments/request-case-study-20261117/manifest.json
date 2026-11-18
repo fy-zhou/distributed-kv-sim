@@ -1,0 +1,20 @@
+{
+  "synthetic": true,
+  "source_trace_sha256": {
+    "regression/paired_requests.csv": "fa56796d705df824adabdcdb6ebac0b08778eb5a211dba440a39c35fef57789f",
+    "regression/greedy_decisions.csv": "c74114dbc2397bee8915966525e1ac6d48369d9e58d1aacfa2d4d8ae784c8017",
+    "regression/aware_decisions.csv": "4af4f8da10e02e0bc73f778cc426832f747a82449b2d102155727edd543a652d",
+    "regression/greedy_cache.csv": "821a816ad51094ecd0856fd2fb5a995d8fc02f63cda1cbfb8761bfc4b47b85dc",
+    "regression/aware_cache.csv": "70a263fccfafcef208d1f1fceb39b42bc1fe21c94d5e327566e419b2b56030dc",
+    "improvement/paired_requests.csv": "698795032463fbfb131c40d47fce601d6ae1f450b85552d7649a33abc56a0f34",
+    "improvement/greedy_decisions.csv": "945369755e83e4cb178c6fc151f949534e8aaa28b4dfceb56b2315e44c222caa",
+    "improvement/aware_decisions.csv": "63f05b79f9d23454220d2eaec0620b8751b1455914947dad832d671a404d3200",
+    "improvement/greedy_cache.csv": "df332d9b85cd13c4d178d56e853d25cda83abf11d5e0966f52cdb61a655870b9",
+    "improvement/aware_cache.csv": "3415cd0b15a1e03c7fcf179e5e1a6323a15b27cac43600e4a508a5e87159ae3b"
+  },
+  "cases": [
+    "regression",
+    "improvement"
+  ],
+  "note": "Full request and decision traces are kept server-side; GitHub holds small selected samples only."
+}
