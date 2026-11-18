@@ -190,3 +190,14 @@ that raw run unchanged at `research-20261118-h2d`; explicitly release the loop
 reference, add a measured peak-allocation assertion, and rerun in a fresh
 `research-20261118-h2d-corrected` directory. This is a measurement-script fix,
 not a change to simulator coefficients or to the frozen scheduling candidate.
+
+Corrected microbenchmark passes measured 128 MiB tensor-peak bound. However,
+64 MiB one-stream transfer changes from 2.627 ms in the over-bound pilot to
+5.200 ms in the corrected run; both raw observations are retained. This large
+between-process variability precludes a new default calibration. Topology
+shows GPU 0 attached to NUMA 0, GPU 1 to NUMA 1; unrestricted CPU affinity
+allows first-touch allocation on either socket. A falsifiable follow-up uses
+identical corrected copies with CPU 16 (NUMA 0) vs CPU 80 (NUMA 1), in an
+ABBA sequence (near, far, far, near), without touching the occupied GPU 1.
+Record topology and affinity for every fresh process. This is an auxiliary
+hardware experiment, independent of the frozen simulator evaluation.

@@ -40,6 +40,8 @@ def main():
         max_gpu_tensor_bytes=128*2**20,max_host_pinned_bytes=128*2**20,
         time_limit_seconds=25,gpu_before=sample,torch=torch.__version__,
         cuda_runtime=torch.version.cuda,device_name=torch.cuda.get_device_name(0),
+        cpu_affinity=sorted(os.sched_getaffinity(0)),
+        topology=subprocess.check_output(['nvidia-smi','topo','-m'],universal_newlines=True),
         note='No model or KV scatter; device event makespan includes launch gaps. No NIC measurement.'))
     config['synthetic']=False
     (out/'config.json').write_text(json.dumps(config,indent=2)+'\n')
