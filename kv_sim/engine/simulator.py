@@ -178,7 +178,7 @@ class Simulator:
 
     def _externality_ms(self, req, node_id):
         """First-order added completion delay to active flows, no full replay."""
-        local, source, length = self._best_source(req, node_id)
+        local, source, length = self._reuse_choice(req, node_id)
         if source is None or length <= local or not self.network.flows:
             return 0.0
         flows = list(self.network.flows.values())

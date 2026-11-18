@@ -62,6 +62,15 @@ class CostAwareTests(unittest.TestCase):
         self.assertEqual(row['remote_hit_tokens'],96)
         self.assertEqual(sim.network.total_bytes,96*sim.cfg.kv_bytes_per_token)
 
+    def test_diagnostic_externality_follows_the_selected_service_action(self):
+        req=Request.from_tokens('r',0,list(range(4096)))
+        sim=Simulator([NodeSpec(i,512,.1) for i in range(3)],
+                      Config(policy='cost_aware',fabric_gib_s=.1))
+        sim.seed_cache(2,req.hashes)
+        sim.network.start(0,2,1,1000000)
+        self.assertEqual(sim._reuse_choice(req,0),(0,None,0))
+        self.assertEqual(sim._externality_ms(req,0),0.)
+
     def test_popularity_option_keeps_default_trace(self):
         a,_=make_hotspot_workload(count=12,shared_blocks=8,seed=9)
         b,_=make_hotspot_workload(count=12,shared_blocks=8,seed=9,hot_probability=.85)

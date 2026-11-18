@@ -219,3 +219,11 @@ throughput varies 10.46/18.92 GiB/s. CPU affinity is controlled; actual pinned
 page placement is not independently observed. Two replicates per affinity
 and shared-host operation prevent strong generalization. All six attempts
 (720 measurements, including the initial memory-bound failure) are archived.
+
+Post-evaluation diagnostic-only correction: optional candidate traces must
+compute externality for the selected reuse action, rather than the legacy
+mandatory-longest-prefix action. A recompute action now reports zero network
+externality even if a source prefix exists. Neither new policy uses that
+penalty for placement; evaluation has trace_decisions=False. Thus simulated
+outcomes and the frozen candidate are unaffected. A focused test guards the
+trace consistency; 49 tests pass. Full evaluation replay remains required.
