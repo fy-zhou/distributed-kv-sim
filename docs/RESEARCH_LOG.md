@@ -201,3 +201,21 @@ identical corrected copies with CPU 16 (NUMA 0) vs CPU 80 (NUMA 1), in an
 ABBA sequence (near, far, far, near), without touching the occupied GPU 1.
 Record topology and affinity for every fresh process. This is an auxiliary
 hardware experiment, independent of the frozen simulator evaluation.
+
+Externality microcase: exact fluid counterfactuals isolate the finite-flow
+assumption. A 1-byte candidate sharing a 100 byte/ms source with a 1000-byte
+incumbent delays it by 0.01 ms; the current externality predicts 10 ms
+(1000×). Candidate sizes 10/100 bytes give 100×/10× overestimates; at
+1000/10000 bytes the approximation is exact in this two-flow topology.
+This tests an acknowledged approximation, not an undisclosed model change.
+The first probe ran before its runner was committed; retain the pilot and
+append exact runner provenance plus independently committed-code replay.
+
+H2D ABBA results: all four processes pass 128 MiB tensor peak, copy readback,
+and time limits (2.97–3.32 seconds of bounded measurement each). CPU 16
+(GPU-local NUMA 0) one-stream 64 MiB throughput is 22.41/22.28 GiB/s;
+CPU 80 (NUMA 1) is 10.18/10.24 GiB/s. Far-socket two-stream aggregate
+throughput varies 10.46/18.92 GiB/s. CPU affinity is controlled; actual pinned
+page placement is not independently observed. Two replicates per affinity
+and shared-host operation prevent strong generalization. All six attempts
+(720 measurements, including the initial memory-bound failure) are archived.

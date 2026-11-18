@@ -27,8 +27,11 @@ def digest(value):
 
 
 def provenance(config):
+    root = Path(__file__).resolve().parents[1]
+    paths = sorted(list((root/'kv_sim').rglob('*.py')) + list((root/'scripts').glob('research*.py')))
     return dict(code_commit=subprocess.check_output(
         ['git', 'rev-parse', 'HEAD'], universal_newlines=True).strip(),
+        source_sha256={str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest() for p in paths},
         python=platform.python_version(), config=config,
         synthetic=True, note='Configured fluid network and illustrative compute; no hardware speedup claim.')
 
