@@ -32,9 +32,11 @@ def main():
                     declared_memory_bound_met=completion['peak_tensor_bytes']<=128*2**20,**row))
     out=new_directory(args.out)
     write_csv(out/'summary_all_attempts.csv',rows)
-    (out/'config.json').write_text(json.dumps(provenance(dict(runs=sources,
-        measurement='Physical single-host CUDA pinned H2D; not simulated and not a multi-node network.')),
-        indent=2)+'\n')
+    metadata=provenance(dict(runs=sources,
+        measurement='Physical single-host CUDA pinned H2D; not simulated and not a multi-node network.'))
+    metadata['synthetic']=False
+    metadata['note']='Physical single-host H2D measurements; no inter-node NIC measurement or simulator calibration replacement.'
+    (out/'config.json').write_text(json.dumps(metadata,indent=2)+'\n')
     archive(out,args.archive,['summary_all_attempts.csv'],
         '# Bounded H2D and CPU-affinity experiments\n\n'
         'Physical single-host RTX4090 measurements, distinct from simulator results.\n'

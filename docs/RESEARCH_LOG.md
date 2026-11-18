@@ -227,3 +227,9 @@ externality even if a source prefix exists. Neither new policy uses that
 penalty for placement; evaluation has trace_decisions=False. Thus simulated
 outcomes and the frozen candidate are unaffected. A focused test guards the
 trace consistency; 49 tests pass. Full evaluation replay remains required.
+
+Hardware archive metadata check: the initial summary exporter inherited a
+generic simulator `synthetic: true` wrapper despite correct physical labels
+in every nested run. Preserve that initial archive with a correction note;
+fix the exporter to label physical measurements explicitly and produce a
+separate verified re-export. No raw observations or historical archives change.
