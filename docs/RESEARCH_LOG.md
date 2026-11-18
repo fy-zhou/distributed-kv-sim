@@ -65,3 +65,12 @@ and 532 rejected block admissions; Greedy source has 21584 evictions and
 Next: repeat 40 archived scheduler/admission runs before/after fixes, preserve
 all changed outcomes, then trace actual admission effects and run controlled
 capacity/pinning/transfer-cost interventions.
+
+Iteration 1 result: all 40 original scheduler × admission × stratum × seed
+runs replay exactly before and after the fixes; every retained per-policy
+metric is identical. The archived failures are not explained by these two
+bugs. Evidence: `experiments/research-correctness-20261118/`; raw before/after
+CSVs under `research-20261118-audit-{baseline,corrected}` in the results root.
+The old and corrected code ran in independent worktrees. The endpoint-count
+counterexample remains covered by a focused test even though these two strata
+do not exercise a behavior-changing instance.

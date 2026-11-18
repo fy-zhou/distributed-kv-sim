@@ -1,0 +1,87 @@
+{
+  "code_commit": "192c94a4fdb09cfcc2dbd08c112f0b01591a0c45",
+  "python": "3.8.10",
+  "config": {
+    "baseline_commit": "41d2f12",
+    "corrected_model_commit": "192c94a",
+    "baseline": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261118-audit-baseline",
+    "corrected": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261118-audit-corrected",
+    "baseline_config": {
+      "cases": [
+        {
+          "case": "regression",
+          "nic": 4.0,
+          "fabric": 4.0,
+          "cache": 256,
+          "burst": 1,
+          "archived_seed": 42,
+          "archived_greedy_p95": 2204.536385199998,
+          "archived_aware_p95": 6456.151112699991
+        },
+        {
+          "case": "improvement",
+          "nic": 2.0,
+          "fabric": 2.0,
+          "cache": 512,
+          "burst": 8,
+          "archived_seed": 45,
+          "archived_greedy_p95": 10326.11218353001,
+          "archived_aware_p95": 6240.443318199996
+        }
+      ],
+      "seeds": [
+        41,
+        42,
+        43,
+        44,
+        45
+      ],
+      "requests": 240,
+      "shared_blocks": 256,
+      "original_archive": "experiments/cache-network-diagnostics-20261117",
+      "warning": "Synthetic, not a measured GPU/NIC experiment. no_remote suppresses admission for remote-reuse requests."
+    },
+    "corrected_config": {
+      "cases": [
+        {
+          "case": "regression",
+          "nic": 4.0,
+          "fabric": 4.0,
+          "cache": 256,
+          "burst": 1,
+          "archived_seed": 42,
+          "archived_greedy_p95": 2204.536385199998,
+          "archived_aware_p95": 6456.151112699991
+        },
+        {
+          "case": "improvement",
+          "nic": 2.0,
+          "fabric": 2.0,
+          "cache": 512,
+          "burst": 8,
+          "archived_seed": 45,
+          "archived_greedy_p95": 10326.11218353001,
+          "archived_aware_p95": 6240.443318199996
+        }
+      ],
+      "seeds": [
+        41,
+        42,
+        43,
+        44,
+        45
+      ],
+      "requests": 240,
+      "shared_blocks": 256,
+      "original_archive": "experiments/cache-network-diagnostics-20261117",
+      "warning": "Synthetic, not a measured GPU/NIC experiment. no_remote suppresses admission for remote-reuse requests."
+    }
+  },
+  "synthetic": true,
+  "note": "Configured fluid network and illustrative compute; no hardware speedup claim.",
+  "raw_sha256": {
+    "config.json": "1d821343bbe23ccdb2f850bf45a31ab51276c0bc7d8e22cbc091b815ff255909",
+    "paired_model_correction.csv": "84f5e6e6a3ad23e3c70a5bafa118d9b3d3486884821884e1ab1f8752dd2cecd3",
+    "summary.json": "33711ef0c4db6606db774e42811613562e23ce3ae6c4c82b589088c75caa8a8c"
+  }
+}
