@@ -13,7 +13,7 @@ from ..cache.prefix_hash import prefix_hashes
 def make_hotspot_workload(count=240, block_size=16, shared_blocks=256,
                           suffix_blocks=4, burst_width=8,
                           burst_gap_ms=2.0, within_burst_ms=0.02,
-                          seed=42, namespace="qwen3-0.6b"):
+                          seed=42, namespace="qwen3-0.6b", hot_probability=.85):
     """Burst arrivals with a shared long prefix and unique suffix per request.
 
     A small fraction of requests take one of several alternate prefixes.
@@ -24,6 +24,8 @@ def make_hotspot_workload(count=240, block_size=16, shared_blocks=256,
         raise ValueError("count, block_size, shared_blocks and burst_width > 0")
     if suffix_blocks < 0 or burst_gap_ms < 0 or within_burst_ms < 0:
         raise ValueError("invalid suffix or timing parameter")
+    if not 0 <= hot_probability <= 1:
+        raise ValueError("hot_probability must lie in [0,1]")
     rng = random.Random(seed)
     hot = [500000 + j for j in range(block_size * shared_blocks)]
     alternate = [
@@ -32,7 +34,7 @@ def make_hotspot_workload(count=240, block_size=16, shared_blocks=256,
     ]
     requests = []
     for i in range(count):
-        family = 0 if rng.random() < .85 else (1 + rng.randrange(2))
+        family = 0 if rng.random() < hot_probability else (1 + rng.randrange(2))
         prefix = hot if family == 0 else alternate[family - 1]
         suffix = [20000000 + i * 100000 + j
                   for j in range(suffix_blocks * block_size)]

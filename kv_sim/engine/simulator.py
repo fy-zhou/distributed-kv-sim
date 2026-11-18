@@ -12,7 +12,7 @@ from ..cluster.node import Node, NodeSpec
 from ..cluster.network import FluidNetwork
 from ..cluster.gpu import is_gpu_idle
 from ..predictor import ComputePredictor, H2DPredictor, TransferPredictor
-from ..scheduler import choose_node
+from ..scheduler import choose_node, choose_reuse
 from ..metrics.collector import summarize
 from .events import (Request, Job, EVENT_ARRIVAL, EVENT_FLOW_START,
                      EVENT_FLOW_DONE, EVENT_JOB_DONE)
@@ -104,6 +104,9 @@ class Simulator:
                     best, best_len = source, n
         return local, best, best_len
 
+    def _reuse_choice(self, req, node_id, isolated=False):
+        return choose_reuse(self, req, node_id, isolated=isolated)
+
     def _compute_time(self, req, hit_blocks):
         h = min(req.length_tokens, hit_blocks * self.cfg.block_size)
         return self.compute_predictor.predict_ms(req.length_tokens, h)
@@ -140,7 +143,7 @@ class Simulator:
     def _estimate_breakdown(self, req, node_id):
         """Estimated waiting, transfer and compute costs for one candidate."""
         node = self.nodes[node_id]
-        local, source, length = self._best_source(req, node_id)
+        local, source, length = self._reuse_choice(req, node_id)
         remote = length - local if source is not None else 0
         payload = remote * self.cfg.block_size * self.cfg.kv_bytes_per_token
         competing = 0
@@ -154,7 +157,7 @@ class Simulator:
         compute_ms = self._compute_time(req, length)
         waiting = self._remaining_active_ms(node)
         for pending in node.queue:
-            plocal, psource, pn = self._best_source(pending, node_id)
+            plocal, psource, pn = self._reuse_choice(pending, node_id, isolated=True)
             premote = pn - plocal if psource is not None else 0
             if premote:
                 pbytes = premote * self.cfg.block_size * self.cfg.kv_bytes_per_token
@@ -229,7 +232,7 @@ class Simulator:
         if not is_gpu_idle(node) or not node.queue:
             return
         req = node.queue.popleft()
-        local, source, longest = self._best_source(req, node_id)
+        local, source, longest = self._reuse_choice(req, node_id)
         local_keys = req.hashes[:local]
         node.cache.touch(local_keys)
         job = Job(req, node_id, self.now, self.now-req.arrival_ms,

@@ -120,3 +120,37 @@ Modeled service costs expose the next hypothesis: for a 4160-token request,
 cold compute 30.059 ms < local reuse 35.506 ms < isolated remote 145.031 ms.
 This is a model observation, not hardware calibration. Greedy decision-time
 TTFT bias −499.03 ms vs Aware +730.42 ms illustrates queue/cache uncertainty.
+
+## Iteration 3 — explicit recompute/local/remote cost choice
+
+Hypothesis: avoiding remote or local reuse when its full network + H2D +
+prefill cost exceeds recomputation removes a central failure mode without
+requiring a globally tuned externality weight.
+
+Candidate interface: optional reuse planners, separate from placement;
+`cost_aware` uses Greedy node placement with a minimum-service planner;
+`round_robin_cost` uses exactly that planner with Round Robin placement.
+Legacy policies still use longest-prefix reuse. The planner compares cold
+recompute, maximum local reuse and each remote source's maximum prefix,
+including endpoint/fabric sharing and setup/H2D/compute. It replans at job
+start from actual cache state. Queued forecasts use isolated link rates,
+matching the previous estimator's assumption. No oracle cache lookahead.
+Comparing per-source endpoints is justified only under the present compute
+curve (service between hit endpoints is concave); it is not a claim of optimal
+partial reuse for arbitrary fitted models.
+
+This changes both the service action space and node placement: gains over
+legacy policies cannot be attributed to placement alone. Action-matched Round
+Robin exposes this distinction. No new admission policy is introduced.
+
+Protocol frozen in `scripts/research_evaluate.py`: development seeds 11/12,
+evaluation 101–105; 14 declared scenarios × two admissions × seven policies,
+120 requests each. Includes capacities 256/260/512/1024, 2/4/8 nodes,
+asymmetric NIC/Fabric, burst/arrival rate, prefix lengths 64/256/512,
+85%/50% popularity, flat/skewed Zipf traces, and 8× compute cost. Development
+runs precede evaluation; no lambda or other parameter selection. Aggregate
+uncertainty resamples entire seed clusters, preserving all correlated
+scenario/admission outcomes; five clusters are too few for strong inference.
+Per-request outcomes and final cache hashes must match independent replay;
+wall-clock decision time is intentionally excluded from deterministic replay.
+47 unit/integration tests pass before the first development run.
