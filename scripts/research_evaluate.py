@@ -164,7 +164,9 @@ def main():
             ignored_fields=['decision_mean_us','decision_max_us'],
             compared='Every other field including per-request outcomes and final cache hashes.'),indent=2)+'\n')
     if args.archive:
-        archive(out,args.archive,['runs.csv','pairs.csv','by_scenario.csv','seed_cluster_summary.csv'],
+        # Full per-request replay hashes remain in raw runs.csv and its manifest digest.
+        write_csv(out/'compact_runs.csv', [{k:v for k,v in r.items() if not k.endswith('_hash')} for r in rows])
+        archive(out,args.archive,['compact_runs.csv','pairs.csv','by_scenario.csv','seed_cluster_summary.csv'],
             '# Cost-aware service and scheduling experiment\n\n'
             '%d paired synthetic runs; split: %s; seeds: %s.\n'
             'All baselines use unchanged mandatory longest-prefix reuse. Candidate expands the service action space.\n'
