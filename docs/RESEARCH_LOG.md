@@ -170,3 +170,14 @@ occupied and will not be used. Hard limits: 25 seconds after initialization,
 15 samples + 3 warmups for four sizes and one/two streams. Busy GPU detection
 aborts, and readback validates copies. This measures a different transfer
 layout than 28-layer KV loading and cannot directly replace that fit.
+
+Development completed: 392 runs (14 scenarios × 2 seeds × 2 admissions × 7
+policies), archived at `experiments/research-cost-development-20261118/`.
+Candidate vs Greedy: 56/56 P95 improvements, mean paired +72.25%.
+But versus action-matched Round Robin: 7 improvements, 5 regressions, 44
+neutral; mean −0.20%. The apparent large legacy-baseline gains therefore
+mostly reflect service-action choice, not established placement superiority.
+This failure to improve consistently over an action-matched baseline is
+retained. Candidate/protocol remains unchanged before evaluation seeds are run.
+Do not interpret bootstrap endpoints from two development seeds as reliable
+confidence intervals.
