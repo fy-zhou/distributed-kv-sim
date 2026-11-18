@@ -154,3 +154,19 @@ scenario/admission outcomes; five clusters are too few for strong inference.
 Per-request outcomes and final cache hashes must match independent replay;
 wall-clock decision time is intentionally excluded from deterministic replay.
 47 unit/integration tests pass before the first development run.
+
+Auxiliary calibration preparation: existing lab fit provenance verified from
+`cpu-kv-20261105-detailed/{configuration.json,figures/fits.json}`. The imported
+1.684 ms + 71.210 ms/GiB coefficients match the lab's H2D CUDA-event fit
+(54 cells, payload range 0.02734375–4.270751953125 GiB), measured on a
+contended RTX4090 with pinned CPU buffers. Its separate prefill-service fit
+includes CPU loading/scatter and host costs, so importing those coefficients
+as pure GPU compute or subtracting medians would be unsound. Defaults stay
+unchanged. No pure GPU-prefill calibration is claimed.
+
+A bounded contiguous H2D microbenchmark is prepared for idle GPU 0; GPU 1 is
+occupied and will not be used. Hard limits: 25 seconds after initialization,
+128 MiB GPU tensors and 128 MiB pinned host tensors (plus CUDA context),
+15 samples + 3 warmups for four sizes and one/two streams. Busy GPU detection
+aborts, and readback validates copies. This measures a different transfer
+layout than 28-layer KV loading and cannot directly replace that fit.
