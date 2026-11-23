@@ -1042,3 +1042,12 @@ planning and combined wall time separately. Tests cover cold and
 warm cases. Development 2300–2301 and holdout 2201–2205 are in progress.
 The default remains the original execution selector. The 81-test
 suite passes at this checkpoint.
+
+The 64-run event-index development pilot passes exact deterministic parity.
+AB/BA ratios on 120-request stress cases are 0.962–1.016×, consistent with
+the microbenchmark isolating a larger effect only on much larger unread
+heaps. The 128-run execution certificate development pilot passes exact
+result and forecast parity. RR-cost reference execution-planning ratio
+is 7.831× and short-prefix 2.756×. In compute-heavy the unsuccessful
+certificate adds CPU work (RR-cost combined ratio 0.845×). The longer
+prefix shape similarly has no stable benefit. Both holdouts are running.
