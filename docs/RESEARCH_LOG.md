@@ -648,3 +648,14 @@ Analytical tests verify the same winner after pruning a late node, plus
 live-state and future-arrival independence for full rollout. AB/BA wall
 timing and deterministic parity are being tested on development seeds
 81–82 and independent holdouts 801–805.
+
+The 501–505 private LRU holdout completed 120 runs. All deterministic
+fields match the original shortcut across both timing orders. Median
+paired speed ratios are 1.00× reference, 1.19× compute-heavy and 1.57×
+long-prefix. Mean CPU costs remain regime-specific, and no change to
+P95 is claimed for this equivalent implementation. All 68 unit tests
+and the eight-policy CLI smoke pass. Raw CLI output is in
+research-20261124-efficiency-cli-smoke. The new runners can reuse a
+paired immutable workload and initial-cache snapshot, which reduces
+experiment setup time. Each simulated run still builds private cache
+and queue state and hashes the inputs for comparison.
