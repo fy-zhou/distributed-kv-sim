@@ -428,3 +428,42 @@ must still be accounted, particularly for variable-length Zipf requests.
 No such fast path was added to the frozen candidates or current evaluation.
 The bound is specific to the current illustrative curve, not an empirical GPU
 property. Diagnostic CSV and provenance are appended to the diagnostics archive.
+
+Held-out evaluation complete (replay still in progress): 1400 runs, untouched
+seeds 201–205. Full rollout vs action-matched RR: 24 improve / 116 neutral /
+0 regress; mean paired P95 +1.8843%, seed-bootstrap descriptive endpoints
+[+1.3410,+2.4870]%. Bounded rollout: 20/116/4, mean +1.7635%, endpoints
+[+1.2449,+2.3804]%. Frozen-cache control: 7/116/17, mean −0.5462%.
+All three variants are reported, not selected on these results.
+
+Relative to cost_aware, full rollout still regresses in two cases (18 improve,
+120 neutral), mean +1.6348%. Strongest negative case: compute_heavy seed201,
+no_remote, P95 3271.876 ms vs cost_aware 2932.538 ms (−11.5715% improvement).
+This is not universal dominance. Full-rollout source load is 61/120 (vs 70),
+but network mean grows 36.481→45.598 ms and mean queue grows
+1614.925→1666.035 ms while mean H2D and compute are equal. More balanced
+request counts alone are insufficient. Full rollout has 21 remote-action
+forecast mismatches (cost_aware 19); hot-000059 predicts remote reuse and
+1668.983 ms TTFT but actually recomputes and finishes at 2446.059 ms.
+This exposes forecast uncertainty under admission/network interactions;
+isolated-link and frozen-other-cache/pin assumptions remain hypotheses for
+controlled follow-up, not a uniquely proven cause.
+
+Across seeds, compute-heavy/always mean P95 improves RR 3038.068→full
+2044.042 ms; largest-node share changes cost_aware .598→full .298. Long-prefix
+mean P95 improves RR 2105.349→2083.978 ms; full queue forecast MAE is near
+floating-point zero, versus cost_aware 144.262 ms. In compute-heavy/no_remote,
+full queue MAE (189.198 ms) is worse than cost_aware (175.471 ms), preserving
+a failure of the prediction hypothesis in that regime.
+
+Fair mean total planning time (placement + actual execution service planning)
+is RR-cost 70.940 us, cost_aware 1271.055 us, full shadow 7025.943 us,
+bounded shadow 4674.566 us. This improves diagnostic validity over the prior
+placement-only comparison, but exposes substantial implementation overhead.
+No serving speedup including scheduler CPU saturation is established; CPU
+planning latency is not part of this event model's simulated TTFT.
+
+All per-condition results, uncertainty, absolute metrics and per-candidate
+failures are in experiments/research-shadow-evaluation-20261124/ANALYSIS.md.
+SVG outcome/timing figures were rendered and PNG previews visually reviewed;
+only small SVGs are committed. Full raw traces and previews stay outside Git.
