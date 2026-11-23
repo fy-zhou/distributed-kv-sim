@@ -665,3 +665,28 @@ field. Paired comparison and summary CSVs are byte-identical. Evaluation and
 replay commits and result hashes are in the evaluation archive's verification
 record. The SVG compares each regime's observed P95 ranges against RR-cost and
 reports the time split between placement and execution replanning.
+
+### Stress holdouts and follow-up
+
+Known-transfer-only stress holdout 601–605 completed 200 runs. The candidate
+improves P95 by mean +1.083% relative to cache shortcut with 17 improvements,
+14 ties and 9 regressions in 40 pairs. Whole-seed bootstrap endpoints are
+−7.705% and +8.258%. The ordinary-matrix gain does not establish robust
+dominance in contention stress. An independent replay is running.
+
+Full cluster rollout stress holdout 701–705 completed 160 runs. Against
+RR-cost, simulated P95 mean improvement was +40.390%, 36 improvement and
+4 regression cases, with whole-seed descriptive endpoints +38.282% and
++42.669%. Against known-flow replay it achieved mean +26.087%, 35 improvement
+and 5 regression cases. Full cluster mean queue MAE was 2.236 ms versus
+1533.785 ms for active-flow replay, but fair host planning time was
+28.210 ms/request. This matrix deliberately stresses reuse and contention.
+The model does not charge planning CPU until the separate sensitivity run.
+Full-stress replay and CPU ingress sensitivity are running.
+
+Cluster cold-work bypass skips the fork only if no live transfers or
+setup jobs remain and all candidate/queued work in scope is certified cold.
+It accumulates absolute timestamps to match the regular cluster forecast.
+It otherwise falls back to the pruned rollout. The protocol uses fresh
+91–92 and 901–905 seeds. Focused queue checks, bounded hardware CLI
+compilation, and the complete 69-test suite pass.
