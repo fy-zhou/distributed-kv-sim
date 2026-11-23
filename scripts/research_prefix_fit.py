@@ -10,6 +10,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from scripts.research_common import archive, new_directory, provenance, write_csv
 from scripts.research_shadow import TIMING_FIELDS, inputs, summaries, trial
 
+ZIPF_SEEDS = {'development': (2100, 2101), 'evaluation': (2001, 2002, 2003, 2004, 2005)}
+ZIPF = (
+    dict(name='zipf_flat_cliff', kind='zipf', skew=0., capacity=256, shared=256),
+    dict(name='zipf_skewed_cliff', kind='zipf', skew=2., capacity=256, shared=256),
+    dict(name='zipf_long_cliff', kind='zipf', skew=1.2, capacity=512, shared=512),
+)
 HETEROGENEOUS_SEEDS = {'development': (1990, 1991),
                        'evaluation': (1901, 1902, 1903, 1904, 1905)}
 HETEROGENEOUS = (
@@ -52,6 +58,8 @@ def main():
                           help='Cross finite-flow placement with capacity-fit admission')
     protocol.add_argument('--heterogeneous', action='store_true',
                           help='Cross both interventions with asymmetric NIC capacities')
+    protocol.add_argument('--zipf-stress', action='store_true',
+                          help='Use variable suffixes and multiple Zipf prefix families')
     args = parser.parse_args()
     scenarios, seeds, admissions = SCENARIOS, SEEDS, ADMISSIONS
     policies = POLICIES
@@ -70,13 +78,16 @@ def main():
         admissions = ('always', 'prefix_fit')
         comparisons = (('prefix_fit', 'always'),)
     out = new_directory(args.out)
-    if args.joint_stress or args.heterogeneous:
+    if args.joint_stress or args.heterogeneous or args.zipf_stress:
         from scripts.research_rollout_efficiency import STRESS
         scenarios, seeds = STRESS, JOINT_SEEDS
         if args.heterogeneous:
             seeds = HETEROGENEOUS_SEEDS
             scenarios = tuple(dict(shape, compute_scale=16., fabric=8., capacity=256,
                                    burst=12) for shape in HETEROGENEOUS)
+        if args.zipf_stress:
+            seeds = ZIPF_SEEDS
+            scenarios = tuple(dict(shape, compute_scale=8., fabric=4.) for shape in ZIPF)
         policies = ('round_robin_cost', 'shadow_cluster_lru', 'shadow_cluster_finite')
         admissions = ('always', 'prefix_fit')
         comparisons = (('prefix_fit', 'always'),)
@@ -132,7 +143,7 @@ def main():
         dict(policy=policy, **r) for policy in policies
         for r in summaries([p for p in pairs if p['policy'] == policy])])
     archived = ['runs.csv', 'pairs.csv', 'summary.csv']
-    if args.joint_stress or args.heterogeneous:
+    if args.joint_stress or args.heterogeneous or args.zipf_stress:
         matched = {}
         for row in rows:
             grouped = matched.setdefault((row['scenario'], row['seed'], row['admission']), {})
