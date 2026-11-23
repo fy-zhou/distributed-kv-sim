@@ -149,3 +149,23 @@ class ForecastEfficiencyTests(unittest.TestCase):
             sim._start(node.spec.node_id)
         self.assertEqual(cold_forecasts(sim, req, sim.nodes),
                          forecasts(sim, req, sim.nodes))
+
+    def test_efficiency_runner_keeps_prepared_workload_out_of_results(self):
+        import csv
+        from pathlib import Path
+        import tempfile
+        from unittest.mock import patch
+        from scripts import research_rollout_efficiency as runner
+
+        scenario = dict(name='small', nodes=2, shared=4, capacity=16)
+        with tempfile.TemporaryDirectory() as temp:
+            out = Path(temp)/'fresh'
+            with patch.object(runner, 'SCENARIOS', [scenario]), \
+                 patch.object(runner, 'SEEDS', {'development': (31,)}), \
+                 patch('sys.argv', ['runner', '--split', 'development', '--out', str(out)]):
+                runner.main()
+            with (out/'runs.csv').open(newline='') as handle:
+                rows = list(csv.DictReader(handle))
+            self.assertEqual(len(rows), 10)
+            self.assertNotIn('prepared', rows[0])
+            self.assertLess((out/'runs.csv').stat().st_size, 16000)
