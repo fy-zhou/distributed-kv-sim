@@ -477,3 +477,61 @@ cost after evaluation or relabel this as an engine bug. A separately calibrated
 spill model and repeated common baselines are required for physical validation.
 The evaluated candidates have not changed. Detailed limitations are appended
 as LIMITATIONS.md in the new evaluation archive, preserving generated findings.
+
+### Iteration 4 verified checkpoint
+
+All 1400 held-out runs independently replayed successfully. Every non-wall-time
+field matches, including prediction residuals, full per-request outcome hashes
+and final ordered-cache hashes. Only placement mean/max, execution-planning
+mean and combined planning mean wall times are excluded. Full-precision pairs
+and summary CSVs are byte-identical between evaluation and replay. Evaluation
+source commit: 6269517; replay source commit: 0460dd2. No candidate/model code
+changed between them; only diagnostics, reporting and documentation were added.
+Verification and exact source/result hashes are retained in the evaluation
+archive's verification.json.
+
+Final checks: 59 unit/integration tests pass, compileall and git diff --check
+pass, ten-policy CLI smoke completes, 196 legacy cases match authentic old
+results, all 560 development optimization cases match, and all 1400 held-out
+cases match independent replay. Thirty raw-file hashes across the four new
+archives were checked. All new archives remain below 1 MiB; the largest is
+about 0.62 MiB. Every historical archive present at 5d05886 is unchanged.
+Original .gitignore edit remains uncommitted. No GPU or model execution and
+no package installation was performed in this iteration.
+
+| Checkpoint | Commit / evidence |
+|---|---|
+| Optional shadow planners + frozen protocol | 3731624 |
+| Unoptimized development evidence, including CPU-cost failure | 1e034f4 |
+| Private-cache batch equivalence, exhaustive LRU tests | 0393a74 |
+| 560-case development equivalence before evaluation | 6269517 / research-shadow-development-optimized-20261124 |
+| 196-case old-policy gate and same-state first divergence | b3401cb / research-shadow-diagnostics-20261124 |
+| Fresh held-out comparisons, costs, figures, negative cases | 777d857 / research-shadow-evaluation-20261124 |
+| Physical/model limitations | c6814c4 |
+| Full replay proof | research-shadow-evaluation-20261124/verification.json |
+
+The next research question is now narrower than the November 18 checkpoint:
+can we retain the demonstrated conditional placement gain without paying
+~7 ms/request planner cost or worsening no_remote's network-sensitive tails?
+The CPU boundary is unresolved, not hidden by the simulated TTFT result.
+
+Resume in research/shadow-rollout. Prioritize a provably guarded cache-update
+bypass for recompute-dominated requests and/or incremental queue/cache forecast
+maintenance with explicit cache/pin version invalidation. Preserve full queued
+work and test exact score/outcome equivalence before judging runtime. The
+current concavity-derived bound is valid only for this predictor family;
+future measured non-concave curves need their own certified lower bounds.
+
+Separately falsify whether accounting for already known setup transfers and
+active-flow completion reduces the no_remote failures. It must not read future
+arrivals, change minimum_service execution actions, or pretend frozen remote
+caches/pins are exact. Compare against RR-cost, cost_aware and this full-shadow
+checkpoint. Use development seeds for changes, then fresh holdouts 301–305;
+201–205 are consumed evaluation data. All future physical claims require GPU
+prefill, actual KV scatter and computed-KV materialization/D2H calibration plus
+repeated common baselines. No such calibration is claimed in this checkpoint.
+
+Immutable raw attempt directories are under
+/state/partition/fyzhou/results/distributed-kv-sim/research-20261124-*, including
+both development timing attempts, baseline gate, profile, paired microbench,
+first-divergence probe, service bounds, evaluation, replay and final validation.

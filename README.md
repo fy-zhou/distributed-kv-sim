@@ -533,3 +533,9 @@ python3 scripts/research_shadow.py --split evaluation --out /state/partition/fyz
 
 Seeds 201–205 are now consumed evaluation data. Reserve fresh seeds 301–305
 for the next method; do not re-label 101–105 or 201–205 as untouched holdouts.
+
+The independent replay verified all 1,400 cases in every non-wall-time field,
+including per-request outcomes and final cache hashes; see
+[verification](experiments/research-shadow-evaluation-20261124/verification.json).
+59 tests and the ten-policy CLI smoke pass. The 196-case historical baseline
+gate and the 560-case optimization-equivalence check also pass.

@@ -1,0 +1,17 @@
+{
+  "verified_runs": 1400,
+  "ignored_fields": [
+    "decision_mean_us",
+    "decision_max_us",
+    "execution_plan_mean_us",
+    "total_planning_mean_us"
+  ],
+  "reference": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261124-shadow-evaluation/runs.csv",
+  "reference_sha256": "e22f2757779cd8c741cd085d454470c4149746fc410429575c1603af1d6721c2",
+  "compared": "Every remaining metric, per-request outcome hash and final ordered-cache hash.",
+  "evaluation_code_commit": "626951797a26f40e81f7e0b557aa6f9e76bdd050",
+  "replay_code_commit": "0460dd2de8058753e8ea05d775bb40bc1e8d94de",
+  "evaluation_runs_sha256": "e22f2757779cd8c741cd085d454470c4149746fc410429575c1603af1d6721c2",
+  "replay_runs_sha256": "e55316d7f90215c860dbd25cf7d7bfbea457aa9a4441dbdb7188abd920171562",
+  "pairs_and_summary_byte_identical": true
+}
