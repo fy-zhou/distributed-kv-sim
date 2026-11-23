@@ -5,6 +5,7 @@ rates; active work uses the engine's remaining-work estimate. Existing outgoing
 pins are conservatively retained throughout the local forecast. This is a
 local rollout approximation, not a cluster event replay or oracle.
 """
+from collections import OrderedDict
 from ..cache import BlockCache, admitted_blocks
 from .reuse import minimum_service
 
@@ -43,6 +44,26 @@ def _service(view, req, target, isolated):
                 service_ms=network_ms+h2d_ms+compute_ms)
 
 
+def complete_cache(cache, request, remote, local, admission):
+    """Exact ordered contents for a private forecast; discard unused counters.
+
+    With no pins, sequential admission's final LRU order is untouched old
+    keys followed by the admitted keys in last-touch order, capped at capacity.
+    Every consumed local key is included in full-request admission, so its
+    preceding touch cannot change this final order. Pinned cases and empty
+    admissions use the original implementation. This never touches live caches.
+    """
+    keys = admitted_blocks(request.hashes, remote, admission)
+    if cache.pins or not keys:
+        cache.touch(request.hashes[:local])
+        cache.admit(keys)
+        return
+    unique = list(dict.fromkeys(reversed(keys)))[::-1]
+    incoming = set(unique)
+    order = [key for key in cache.blocks if key not in incoming] + unique
+    cache.blocks = OrderedDict.fromkeys(order[-cache.capacity:])
+
+
 def forecast(sim, req, node_id, horizon=None):
     """Predict completion after known FIFO work; never mutate live state.
 
@@ -61,8 +82,7 @@ def forecast(sim, req, node_id, horizon=None):
     def complete(request, remote, local):
         nonlocal updates
         if horizon is None or updates < horizon:
-            cache.touch(request.hashes[:local])
-            cache.admit(admitted_blocks(request.hashes, remote, sim.cfg.admission))
+            complete_cache(cache, request, remote, local, sim.cfg.admission)
             updates += 1
 
     if node.active is not None:

@@ -73,3 +73,31 @@ class ShadowTests(unittest.TestCase):
         predicted=forecast(sim,req,0)
         self.assertEqual(predicted['local_blocks'],0)
         self.assertEqual(predicted['remote_blocks'],10)
+
+
+class PrivateBatchLRUTests(unittest.TestCase):
+    def test_batch_contents_match_sequential_admission_including_duplicates(self):
+        import itertools
+        from kv_sim.cache import BlockCache,admitted_blocks
+        from kv_sim.scheduler.shadow import complete_cache
+        for capacity in (1,2,3):
+            for length in range(6):
+                for keys in itertools.product(('a','b','c'),repeat=length):
+                    a,b=BlockCache(capacity),BlockCache(capacity)
+                    for cache in (a,b):cache.admit(('x','a','b'))
+                    req=Request('x',0,keys,max(1,len(keys))*16)
+                    a.touch(req.hashes[:1]);a.admit(admitted_blocks(req.hashes,0,'always'))
+                    complete_cache(b,req,0,1,'always')
+                    self.assertEqual(tuple(a.blocks),tuple(b.blocks))
+
+    def test_pinned_and_no_remote_paths_preserve_exact_state(self):
+        from kv_sim.cache import BlockCache,admitted_blocks
+        from kv_sim.scheduler.shadow import complete_cache
+        for policy in ('always','no_remote'):
+            for remote in (0,2):
+                a,b=BlockCache(3,policy),BlockCache(3,policy)
+                req=Request('r',0,('a','b','c','d'),64)
+                for cache in (a,b):cache.admit(('a','b','z'));cache.pin(('a','b'))
+                a.touch(('a',));a.admit(admitted_blocks(req.hashes,remote,policy))
+                complete_cache(b,req,remote,1,policy)
+                self.assertEqual(a,b)

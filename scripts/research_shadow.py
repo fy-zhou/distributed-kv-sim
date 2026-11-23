@@ -3,6 +3,7 @@
 import argparse
 import csv
 import gzip
+import hashlib
 import json
 from pathlib import Path
 import random
@@ -204,6 +205,7 @@ def main():
     write_csv(out/'pairs.csv',pairs);write_csv(out/'summary.csv',summaries(pairs))
     if args.verify_against:
         (out/'verification.json').write_text(json.dumps(dict(verified_runs=len(rows),ignored_fields=TIMING_FIELDS,
+            reference=str(args.verify_against),reference_sha256=hashlib.sha256(args.verify_against.read_bytes()).hexdigest(),
             compared='Every remaining metric, per-request outcome hash and final ordered-cache hash.'),indent=2)+'\n')
     if args.archive:
         # Rounded derived compact table; complete precision/hashes remain in raw runs.csv.
