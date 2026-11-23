@@ -982,3 +982,12 @@ source blobs match a reconstructed commit `7ff5589` on branch
 `research/lru-timing-source`. The original manifest and raw runs were
 preserved. SOURCE_PROVENANCE.json links the reconstruction and a separate
 timing replication from that exact committed tree is running.
+
+The joint stress result has a complete independent replay of all 120 cases.
+Both admission and placement comparison tables and summaries are byte-identical.
+The separate asymmetry protocol uses fixed per-node NIC rates for slow source,
+fast source, slow destination and asymmetric pairs at 256-block capacity.
+It crosses the same admission and finite-flow placement choices with new
+development seeds 1990–1991 and holdout 1901–1905. Source `f11bf00`,
+79 tests pass. The protocol is running, along with the finite CPU replay
+and exact-source LRU timing replication. No additional GPU data are available.
