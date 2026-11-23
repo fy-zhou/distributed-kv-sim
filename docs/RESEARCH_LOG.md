@@ -716,3 +716,20 @@ failed at schema comparison. Fix `4262642` and focused output regression
 test `fc0734a` remove the internal object from output. Original failed
 directories are preserved outside Git. Four affected runs have been
 launched into fresh directories. No scheduling logic changed.
+
+### Equivalent cluster optimizations
+
+On 801–805, all 160 pruning runs retain exact predictions and outcomes.
+Median paired speed ratios range from 0.994× on pin pressure to 1.064×
+on replica pressure, with endpoint and fabric at 1.020× and 1.031×.
+Basic pruning alone makes little difference under these queue shapes.
+
+On 901–905, all 120 cold-bypass runs retain exact predictions and outcomes.
+The paired median ratio is 117.87× in the reference shape (raw medians
+22.93 ms vs 0.206 ms). Long-prefix and compute-heavy ratios are 0.976×
+and 1.017×. The cold bypass solves a particular wasted-work regime and
+leaves the reuse-sensitive bottleneck. The next exact optimization uses
+a private constant-time LRU victim path within the cluster fork when
+no blocks are pinned. It preserves live admission and pin semantics
+(source `21992d7`). AB/BA timing on stress workloads uses fresh test seeds
+1001–1005 and has started. The local 71-test suite passes.
