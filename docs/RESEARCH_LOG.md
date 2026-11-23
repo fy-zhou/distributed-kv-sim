@@ -754,3 +754,27 @@ original BlockCache remains the live data path. Exhaustive short
 operations on partially and fully pinned caches compare counters and
 ordered contents, passing with the 72-test suite. The 120–121 development
 and 1101–1105 stress timing batches are running. Source `e9434db`.
+
+### Cluster controller sensitivity
+
+All 320 stress CPU ingress cases completed. Service rates were fixed from
+cluster development data (full rollout 26.933 ms/request, known-flow replay
+17.220 ms, shortcut 16.568 ms, RR-cost 0.169 ms at scale 1). Under the
+serial pre-dispatch sensitivity model, full cluster rollout improves paired
+P95 vs known-flow replay by +14.882% at one-quarter rates of CPU time
+and regresses −10.371% at full CPU time. The full-time comparisons have
+20 improvements and 20 regressions. It still averages +23.726% vs RR-cost
+in these simulated stress cells. Policy-dependent ingress changes arrival
+timing and can reduce overlapping network demand. These results depend on
+the pooled controller approximation and do not establish real throughput.
+Every absolute latency, regression and seed-level pair is retained.
+
+A lower-cost placement control now charges queued work as cold prefill
+while pricing the incoming service with current prefixes. It uses the
+unchanged execution planner and active-work estimate. This is an
+approximation that can overcharge queued work with reusable KV. Comparing
+it against RR-cost, Cost-Aware and exact-cluster control separates
+planning expense from forecast accuracy. Development seeds 130–131 and
+stress holdout 1201–1205 were frozen in `9ffd31f`, followed by a
+predeclared CPU ingress sensitivity on the same held-out traces. The
+73-test suite passes.
