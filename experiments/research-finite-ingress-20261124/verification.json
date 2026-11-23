@@ -1,0 +1,30 @@
+{
+  "verified_runs": 240,
+  "ignored_fields": [
+    "decision_max_us",
+    "decision_mean_us",
+    "execution_plan_mean_us",
+    "total_planning_mean_us"
+  ],
+  "compared": "All deterministic run fields and byte-identical paired and summary CSVs.",
+  "original": {
+    "path": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261124-finite-ingress",
+    "code_commit": "0dde831ed7276b43659f3d2b4ad4cb8958d75cc2",
+    "sha256": {
+      "config.json": "a4c6049538a7774a93d482ced0dc2ffd1a0e78f132449594c32da8226dc369d1",
+      "runs.csv": "8a6b0b90c9089ac12cf18e59a00b41ceb2919ac299bd3e3561aee90ff9b62ea6",
+      "pairs.csv": "e2590ae76ec97b9a953f219149b7f6227a4442bd3f4096e6c8aac54cf0910cfa",
+      "summary.csv": "a92a649eb34d1f921233876f317f2ce504e6d272bd062a21279b6a8515fea5e6"
+    }
+  },
+  "replay": {
+    "path": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261124-finite-ingress-replay",
+    "code_commit": "0fdc7251a6ff28f83b873cec54f1d4b00b9da103",
+    "sha256": {
+      "config.json": "118381839582fc1de2ded2f2455dd879171055f123fd5e0701127e03afdf883b",
+      "runs.csv": "c0612cde88f278d26356e408e077ec2e2cef14ed0cf28b6836fffb7e9e2b992e",
+      "pairs.csv": "e2590ae76ec97b9a953f219149b7f6227a4442bd3f4096e6c8aac54cf0910cfa",
+      "summary.csv": "a92a649eb34d1f921233876f317f2ce504e6d272bd062a21279b6a8515fea5e6"
+    }
+  }
+}

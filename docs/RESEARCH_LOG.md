@@ -991,3 +991,15 @@ It crosses the same admission and finite-flow placement choices with new
 development seeds 1990–1991 and holdout 1901–1905. Source `f11bf00`,
 79 tests pass. The protocol is running, along with the finite CPU replay
 and exact-source LRU timing replication. No additional GPU data are available.
+
+Finite-service CPU ingress replay verified all 240 runs and byte-identical
+compare tables. The reconstructed LRU timing source replay verified all 120
+deterministic rows against the original and preserved new wall times.
+Its paired speed ratios are 1.019× reference, 1.165× compute-heavy, 1.519×
+long-prefix, consistent with the original direction in the reuse-sensitive
+regimes. Exact source is available on `research/lru-timing-source`.
+The multi-family Zipf test freezes flat/skewed/long-prefix capacity cliffs,
+variable suffix lengths and Poisson arrivals. It repeats the admission and
+finite placement cross with fresh seeds 2100–2101 / 2001–2005 so the
+single-hotspot stress conclusions can be tested under interleaved families.
+Source `722c49c`, running.
