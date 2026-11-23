@@ -8,7 +8,7 @@ from pathlib import Path
 import statistics
 import sys
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
-from scripts.research_common import new_directory,provenance
+from scripts.research_common import new_directory,provenance,write_csv
 
 
 def read(path):
@@ -53,15 +53,31 @@ def main():
                 lines.append('| %s | %s | %s | %.3f | %.3f | %.3f | %.3f |'%((scenario,admission,policy)+tuple(values)))
     failures=sorted([r for r in pairs if r['baseline']=='round_robin_cost' and r['outcome']=='regress'],key=lambda r:float(r['p95_improvement_pct']))
     lines+=['','## Retained failures','',
-        'These cases are selected post-hoc for diagnosis, not unbiased representative workloads. Every comparison remains in compact_pairs.csv.','',
+        'Up to four worst regressions per candidate are selected post-hoc for diagnosis, not unbiased representative workloads. Every comparison remains in compact_pairs.csv.','',
         '| Candidate | Scenario | Seed | Admission | Candidate P95 ms | Control P95 ms | Improvement % |','|---|---|---:|---|---:|---:|---:|']
-    for r in failures[:12]:
+    retained=[]
+    for candidate in ('shadow_cache','shadow_bounded','shadow_frozen'):
+        retained.extend([r for r in failures if r['candidate']==candidate][:4])
+    for r in retained:
         lines.append('| %s | %s | %s | %s | %.3f | %.3f | %+.3f |'%(r['candidate'],r['scenario'],r['seed'],r['admission'],float(r['candidate_p95_ms']),float(r['baseline_p95_ms']),float(r['p95_improvement_pct'])))
     if not failures:lines+=['','No regressions against the primary comparator in this particular matrix; this is not universal dominance.']
     lines+=['','## Approximation limits and interpretation','',
         'The rollout changes forecasts only. Real execution uses the shared planner and live caches. Forecasts roll only a target node, freeze other caches, assume isolated future transfer rates, and retain outgoing pins for the forecast lifetime. Full rollout does not make those assumptions exact; bounded rollout also freezes cache state after eight completions while still charging all tail work. Frozen-cache ablation isolates the effect of cache evolution within this shared forecast model.','',
         'An improved queue forecast does not alone establish improved tail latency or aggregate-system cost. Service latency is still illustrative, and CPU planning overhead is reported separately rather than charged to arrivals. No GPU-prefill, KV-scatter or multi-machine NIC calibration was added in this iteration. Future candidate changes must use fresh held-out seeds; this run consumes its declared evaluation seeds.','']
     (out/'ANALYSIS.md').write_text('\n'.join(lines))
+    grouped={}
+    for r in pairs:
+        grouped.setdefault((r['candidate'],r['baseline'],r['scenario'],r['admission']),[]).append(r)
+    variability=[]
+    for key,rr in sorted(grouped.items()):
+        values=[float(r['p95_improvement_pct'])for r in rr]
+        variability.append(dict(candidate=key[0],baseline=key[1],scenario=key[2],admission=key[3],
+            seeds=len(values),mean_improvement_pct=statistics.mean(values),
+            sd_improvement_pct=statistics.stdev(values)if len(values)>1 else 0.,
+            min_improvement_pct=min(values),max_improvement_pct=max(values),
+            improve=sum(r['outcome']=='improve'for r in rr),
+            neutral=sum(r['outcome']=='neutral'for r in rr),regress=sum(r['outcome']=='regress'for r in rr)))
+    write_csv(out/'by_scenario.csv',variability)
     meta=provenance(dict(source=str(args.source),input_sha256={name:hashlib.sha256((args.source/name).read_bytes()).hexdigest()for name in ('runs.csv','pairs.csv','summary.csv','config.json')}))
     if args.plot:
         import matplotlib
