@@ -1,0 +1,12 @@
+{
+  "verified_runs": 120,
+  "excluded_wall_time_fields": [
+    "decision_mean_us",
+    "decision_max_us",
+    "execution_plan_mean_us",
+    "total_planning_mean_us"
+  ],
+  "original_runs_sha256": "33929d19d655f3daa0ccf01129c1a74cd28b7bf2bac14ef76c551a49a409cb7c",
+  "replay_runs_sha256": "1440d9d817ecefd9291050d6a3d219b081ff06885361cd00c2e5a89458b0ce85",
+  "verified_source_snapshot_commit": "7ff558904272da4f4144d1fc906a56bc3819aa86"
+}
