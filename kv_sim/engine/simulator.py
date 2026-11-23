@@ -145,9 +145,9 @@ class Simulator:
 
     def _estimate_breakdown(self, req, node_id):
         """Estimated waiting, transfer and compute costs for one candidate."""
-        from ..scheduler.shadow import POLICIES, forecast, horizon
+        from ..scheduler.shadow import POLICIES, forecasts
         if self.cfg.policy in POLICIES:
-            return forecast(self, req, node_id, horizon(self))
+            return forecasts(self, req, (node_id,))[node_id]
         node = self.nodes[node_id]
         local, source, length = self._reuse_choice(req, node_id)
         remote = length - local if source is not None else 0

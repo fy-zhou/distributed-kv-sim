@@ -6,10 +6,14 @@ pins are conservatively retained throughout the local forecast. This is a
 local rollout approximation, not a cluster event replay or oracle.
 """
 from collections import OrderedDict
+import math
+from ..predictor import ComputePredictor, H2DPredictor, TransferPredictor
+from .shadow_network import active_remaining
 from ..cache import BlockCache, admitted_blocks
 from .reuse import minimum_service
 
-POLICIES = ('shadow_frozen', 'shadow_cache', 'shadow_bounded')
+POLICIES = ('shadow_frozen', 'shadow_cache', 'shadow_bounded',
+            'shadow_fast', 'shadow_network')
 
 
 class _LocalView:
@@ -64,7 +68,57 @@ def complete_cache(cache, request, remote, local, admission):
     cache.blocks = OrderedDict.fromkeys(order[-cache.capacity:])
 
 
-def forecast(sim, req, node_id, horizon=None):
+def _cold_cost(sim, req):
+    """Return a cache-independent cost only if reuse strictly loses."""
+    compute, h2d, transfer = sim.compute_predictor, sim.h2d_predictor, sim.transfer_predictor
+    if (type(compute) is not ComputePredictor or type(h2d) is not H2DPredictor
+            or type(transfer) is not TransferPredictor):
+        return None
+    coefficients = (compute.fixed_ms, compute.ms_per_new_token,
+                    compute.ms_per_causal_pair, h2d.fixed_ms,
+                    h2d.ms_per_gib, h2d.kv_bytes_per_token, transfer.setup_ms)
+    if not all(math.isfinite(x) and x >= 0 for x in coefficients):
+        return None
+    if sim.cfg.kv_bytes_per_token <= 0 or sim.cfg.block_size <= 0:
+        return None
+    cold = sim._compute_time(req, 0)
+    if not req.hashes:
+        return cold
+    # For positive hits the cost curve is concave. Check both endpoints.
+    full = len(req.hashes)
+    ends = [sim._h2d_time(h) + sim._compute_time(req, h) for h in (1, full)]
+    # Leave numerical near-ties to the unmodified planner, which prefers local reuse.
+    margin = max(abs(cold), *map(abs, ends), 1.) * 1e-12
+    if min(ends) > cold + margin:
+        return cold
+    return None
+
+
+def _cold_forecast(sim, req, node, horizon, waiting, memo):
+    def cost(request):
+        key = (request.length_tokens, len(request.hashes))
+        if key not in memo:
+            memo[key] = _cold_cost(sim, request)
+        return memo[key]
+
+    compute = cost(req)
+    if compute is None:
+        return None
+    for pending in node.queue:
+        service = cost(pending)
+        if service is None:
+            return None
+        waiting += service
+    jobs = len(node.queue) + int(node.active is not None)
+    return dict(node=node.spec.node_id, local_blocks=0, remote_blocks=0,
+                total_hit_blocks=0, source=None, payload_bytes=0,
+                competing_flows=0, active_network_flows=len(sim.network.flows),
+                network_ms=0., h2d_ms=0., compute_ms=compute, queue_ms=waiting,
+                estimated_ms=waiting+compute, rollout_jobs=jobs,
+                cache_updates=jobs if horizon is None else min(jobs, horizon))
+
+
+def forecast(sim, req, node_id, horizon=None, *, cold_memo=None, remaining=None):
     """Predict completion after known FIFO work; never mutate live state.
 
     horizon limits cache updates, not accounted queue work. Tail jobs are
@@ -72,11 +126,15 @@ def forecast(sim, req, node_id, horizon=None):
     None means full local FIFO; zero is the frozen-cache ablation.
     """
     node = sim.nodes[node_id]
+    waiting = sim._remaining_active_ms(node) if remaining is None else remaining
+    if cold_memo is not None:
+        prediction = _cold_forecast(sim, req, node, horizon, waiting, cold_memo)
+        if prediction is not None:
+            return prediction
     cache = BlockCache(node.cache.capacity, node.cache.admission)
     cache.blocks = node.cache.blocks.copy()
     cache.pins = node.cache.pins.copy()
     view = _LocalView(sim, node_id, cache)
-    waiting = sim._remaining_active_ms(node)
     updates = 0
 
     def complete(request, remote, local):
@@ -108,7 +166,15 @@ def horizon(sim):
 
 
 def select(sim, req):
-    predictions = {i: forecast(sim, req, i, horizon(sim)) for i in sim.nodes}
+    predictions = forecasts(sim, req, sim.nodes)
     # Exposed for observation after select; never used across later decisions.
     sim.shadow_last_forecast = (req.request_id, predictions)
     return min(sim.nodes, key=lambda i: (predictions[i]['estimated_ms'], i))
+
+
+def forecasts(sim, req, nodes):
+    policy = sim.cfg.policy
+    memo = {} if policy in ('shadow_fast', 'shadow_network') else None
+    remaining = active_remaining(sim) if policy == 'shadow_network' else {}
+    return {node: forecast(sim, req, node, horizon(sim), cold_memo=memo,
+                           remaining=remaining.get(node)) for node in nodes}

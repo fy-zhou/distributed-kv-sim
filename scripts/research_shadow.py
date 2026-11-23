@@ -2,6 +2,7 @@
 """Action-matched shadow placement evaluation with fair planner accounting."""
 import argparse
 import csv
+from dataclasses import replace
 import gzip
 import hashlib
 import json
@@ -19,7 +20,7 @@ from scripts.research_evaluate import SCENARIOS,DEFAULTS,POLICIES as LEGACY
 from scripts.research_common import (AuditSimulator,archive,assert_invariants,digest,
     metrics,new_directory,provenance,write_csv)
 
-POLICIES=LEGACY+SHADOW
+POLICIES=LEGACY+('shadow_frozen','shadow_cache','shadow_bounded')
 SEEDS={'development':[21,22],'evaluation':[201,202,203,204,205]}
 CANDIDATES=('shadow_cache','shadow_bounded','shadow_frozen')
 BASELINES=('round_robin_cost','cost_aware','shadow_frozen')
@@ -91,13 +92,29 @@ def inputs(scenario,seed,count):
     return params,specs,reqs,hot,initial
 
 
-def trial(scenario,seed,admission,policy,count=120):
+def trial(scenario,seed,admission,policy,count=120,*,ingress_ms=0.):
+    """Optional serial controller sensitivity model, in simulated milliseconds."""
     params,specs,reqs,hot,initial=inputs(scenario,seed,count)
     sim=MeasuredSimulator(specs,Config(policy=policy,admission=admission,
         fabric_gib_s=params['fabric'],gpu_ms_per_new_token=.003*params['compute_scale'],
         gpu_ms_per_attention_pair=1.8e-6*params['compute_scale'],shadow_cache_updates=8),hot=hot,audit=False)
     for node,keys in initial.items():sim.seed_cache(node,keys)
-    sim.run(reqs);assert_invariants(sim)
+    dispatched = reqs
+    if ingress_ms:
+        available = 0.
+        dispatched = []
+        for req in sorted(reqs, key=lambda request: request.arrival_ms):
+            available = max(available, req.arrival_ms) + ingress_ms
+            dispatched.append(replace(req, arrival_ms=available))
+    sim.run(dispatched);assert_invariants(sim)
+    if ingress_ms:
+        original = {r.request_id: r.arrival_ms for r in reqs}
+        for row in sim.rows:
+            delay = row['arrival_ms'] - original[row['request_id']]
+            row['arrival_ms'] -= delay
+            row['queue_ms'] += delay
+            row['ttft_ms'] += delay
+        assert_invariants(sim)
     assert len(sim.execution_plan_ns)==len(reqs)==len(sim.residuals)
     row=dict(scenario=scenario['name'],seed=seed,
         trace_hash=digest([r.__dict__ for r in reqs]),initial_cache_hash=digest(initial),
