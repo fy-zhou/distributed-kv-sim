@@ -43,8 +43,8 @@ def main():
     parser.add_argument('--cluster-stress', action='store_true')
 
     args = parser.parse_args()
-    if sum(bool(x) for x in (args.network_stress, args.cluster_stress, args.ingress)) > 1:
-        parser.error('choose one separate stress or ingress experiment')
+    if args.network_stress and (args.cluster_stress or args.ingress):
+        parser.error('network stress is a separate experiment')
     out = new_directory(args.out)
     scenarios = STRESS if args.network_stress else SCENARIOS
     seed_set = STRESS_SEEDS if args.network_stress else SEEDS
@@ -63,13 +63,14 @@ def main():
         import statistics
         with args.ingress.open(newline='') as handle:
             development = list(csv.DictReader(handle))
-        if {int(r['seed']) for r in development} != set(SEEDS['development']):
+        if {int(r['seed']) for r in development} != set(seed_set['development']):
             parser.error('ingress rates require the declared development seeds')
         rates = {p: statistics.mean(float(r['total_planning_mean_us'])
                                      for r in development if r['policy'] == p) / 1000
                  for p in policies}
-        scenarios = [s for s in scenarios if s['name'] in
-                     ('reference', 'compute_heavy', 'long_prefix', 'slow_arrivals')]
+        if not args.cluster_stress:
+            scenarios = [s for s in scenarios if s['name'] in
+                         ('reference', 'compute_heavy', 'long_prefix', 'slow_arrivals')]
         scales = (.25, 1.)
     (out/'config.json').write_text(json.dumps(provenance(dict(
         split=args.split, seeds=seed_set[args.split], scenarios=scenarios, policies=policies,
