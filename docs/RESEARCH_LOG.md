@@ -690,3 +690,29 @@ It accumulates absolute timestamps to match the regular cluster forecast.
 It otherwise falls back to the pruned rollout. The protocol uses fresh
 91–92 and 901–905 seeds. Focused queue checks, bounded hardware CLI
 compilation, and the complete 69-test suite pass.
+
+The calibration/spill holdout completed 450 runs using seeds 401–405.
+Shadow shortcut vs RR-cost paired P95 changes depend materially on the
+profile. Across the three selected shapes, means were +8.350% for the
+illustrative control, +8.691% for fitted cold service, +3.259% when using
+worker-load costs, and +6.880% / +6.294% with assumed 16 / 32 GiB/s serial
+spill. The worker-load profile regressed in 5/30 conditions. Nonmonotonic
+spill outcomes are possible because the scheduler changes placement and
+cache states. These assumptions were set before evaluation, and the
+comparison retains all rates and regressions. The result is synthetic,
+with measured inputs used only as proxies. Replaying all 450 runs.
+
+The new cold cluster shortcut's development timing passed exact parity.
+Median AB/BA planning ratios were 121.28× for the cold reference, 0.95× for
+long prefix, and 1.04× for compute heavy. This contrast is expected because
+the latter two regimes rarely satisfy the bypass guard. The separate
+901–905 repetition is running.
+
+A workload-input reuse refactor accidentally serialized the internal
+prepared workload into the result row. The ordinary 700-run holdout and
+its 700-run proof predate that regression. The later ingress attempt was
+terminated after oversized raw outputs appeared, and stress verification
+failed at schema comparison. Fix `4262642` and focused output regression
+test `fc0734a` remove the internal object from output. Original failed
+directories are preserved outside Git. Four affected runs have been
+launched into fresh directories. No scheduling logic changed.
