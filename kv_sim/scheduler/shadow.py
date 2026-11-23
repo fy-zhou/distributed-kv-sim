@@ -58,7 +58,8 @@ def complete_cache(cache, request, remote, local, admission):
     preceding touch cannot change this final order. Pinned cases and empty
     admissions use the original implementation. This never touches live caches.
     """
-    keys = admitted_blocks(request.hashes, remote, admission, capacity=cache.capacity)
+    keys = admitted_blocks(request.hashes, remote, admission, capacity=cache.capacity,
+                           pins=cache.pins)
     if cache.pins or not keys:
         cache.touch(request.hashes[:local])
         cache.admit(keys)
@@ -71,7 +72,8 @@ def complete_cache(cache, request, remote, local, admission):
 
 def complete_unpinned_lru(cache, request, remote, local, admission):
     """Update the existing ordered dictionary with constant-time victims."""
-    keys = admitted_blocks(request.hashes, remote, admission, capacity=cache.capacity)
+    keys = admitted_blocks(request.hashes, remote, admission, capacity=cache.capacity,
+                           pins=cache.pins)
     if cache.pins or not keys:
         complete_cache(cache, request, remote, local, admission)
         return

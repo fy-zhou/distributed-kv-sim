@@ -297,7 +297,8 @@ class Simulator:
             raise RuntimeError("job completion without active job")
         req = job.req
         node.cache.admit(admitted_blocks(req.hashes, job.remote_blocks,
-                                         self.cfg.admission, capacity=node.cache.capacity))
+                                         self.cfg.admission, capacity=node.cache.capacity,
+                                         pins=node.cache.pins))
         ttft = self.now - req.arrival_ms
         self.rows.append({
             "request_id": req.request_id,
