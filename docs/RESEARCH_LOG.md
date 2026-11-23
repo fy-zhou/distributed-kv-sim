@@ -578,3 +578,47 @@ The forecast sees remaining spill for known active work, while future queued
 spill is not charged. Prefill and spill timings stay distinct in raw rows.
 Evaluation will use fresh seeds 401–405 after development 41–42, with
 three action-matched policies and both existing admission policies.
+
+### Rollout efficiency held-out checkpoint
+
+The ordinary 301–305 evaluation completed 700 runs. For all 140 paired
+conditions, the cold shortcut matches full Shadow in every deterministic
+field including outcomes, prediction residual aggregates and final ordered
+cache. Host planning averages 6.833 ms/request for full Shadow and 1.972 ms
+for the shortcut, a 3.47× ratio. RR-cost averages 0.066 ms. The shortcut
+preserves full Shadow's placement outcomes, including regressions on six
+conditions relative to RR-cost. Average paired P95 improvement is 1.935%,
+with 22 improvements and 112 ties.
+
+Known-transfer replay averages 2.009 ms/request. Against the shortcut,
+it changes six of 140 P95 outcomes, all improvements, with a mean paired
+improvement of 0.366% and a five-seed descriptive bootstrap range of
+[0.046%, 0.737%]. Mean queue MAE is 7.614 ms versus 9.884 ms for the
+shortcut. Against RR-cost it averages +2.205% with 22/112/6 outcomes.
+The result is conditional on the chosen synthetic scenarios.
+Full independent replay and the paired CPU ingress sensitivity are running.
+
+The serial-spill development matrix completed 180 runs. Across 12 paired
+conditions, its Shadow vs RR-cost average P95 improvements were 6.07%
+(illustrative), 9.97% (cold proxy), 7.31% (worker-load proxy), and 6.29% /
+7.68% (16 / 32 GiB/s serial spill). This narrower workload matrix is not
+comparable to the aggregate across the 14 efficiency shapes.
+The 401–405 holdout and replay are running.
+
+The incremental private LRU development check completed 48 cases with
+exact deterministic equivalence. In AB/BA wall-time pairs, median speed
+ratios for incremental versus previous implementation were 0.91× for the
+cold-shortcut reference, 1.22× for compute-heavy, and 1.47× for long-prefix.
+The 501–505 evaluation is running. The previous policies remain controls
+in these experiments. A separate 601–605 stress matrix covers sender NIC,
+fabric, cache/pin and replica pressure to test known-transfer replay.
+A 701–705 follow-up evaluates a full cluster rollout of already assigned
+jobs. It copies only internal flow/job events and captures each candidate's
+ready-time state. The eventual incoming transfer uses instantaneous shares.
+This candidate uses the same service action chooser and does not insert
+future arrivals into the fork. Source `955d224`.
+
+The bounded physical copy CLI now accepts --direction d2h. The first
+implementation contained a syntax error, fixed and compiled in `9591079`.
+Both devices subsequently triggered the busy guard before CUDA setup.
+No new D2H timings were collected.
