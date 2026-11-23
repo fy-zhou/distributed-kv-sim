@@ -361,3 +361,27 @@ Shared-server wall timings remain descriptive, not isolated CPU benchmarks.
 A separate 196-run gate uses consumed seed 101 only on the seven old policies
 and compares every prior deterministic metric/hash to the November 18 archive;
 new candidates are not selected or tuned using that historical seed.
+
+Development pilot complete: 560 runs. Full rollout versus action-matched Round
+Robin: 12 improve, 44 neutral, zero regress, mean paired P95 +2.283%; bounded
+rollout +1.986% with the same counts. Both still regress in two conditions
+against cost_aware, and frozen-cache rollout regresses six times against RR.
+These development failures are retained. 196 consumed-seed legacy comparisons
+all match every historical deterministic metric and outcome/cache hash.
+
+Fair planning cost in the initial shared-host development attempt averages
+83.00 us RR-cost, 1624.78 us cost-aware, 11145.87 us full shadow, 7574.19 us
+bounded shadow. Accurate local prediction is too expensive in this form.
+A development-only cProfile of long_prefix/seed21/full shadow identifies
+private cache completion as the dominant cost (3.159/3.941 seconds profiled
+placement time); admit/touch repeatedly manipulate hundreds of blocks and
+make 921456 LRU-victim calls. Raw profile retained outside Git. Profiler time
+is instrumented and not a normal timing benchmark.
+
+Before held-out evaluation, attempt a semantics-preserving optimization:
+for unpinned private forecast caches, batch the final LRU order of completed
+request admission. Pinned caches retain the exact original path. No live
+cache, admission or service decision changes. Discarded private eviction
+counters are not reported or used by the planner. Prove final ordered-cache
+contents against sequential admission, then replay every development case
+against pilot full-precision results. Do not optimize against 201–205.
