@@ -659,3 +659,9 @@ research-20261124-efficiency-cli-smoke. The new runners can reuse a
 paired immutable workload and initial-cache snapshot, which reduces
 experiment setup time. Each simulated run still builds private cache
 and queue state and hashes the inputs for comparison.
+
+The efficiency holdout's 700 independent replays passed for every non-wall-time
+field. Paired comparison and summary CSVs are byte-identical. Evaluation and
+replay commits and result hashes are in the evaluation archive's verification
+record. The SVG compares each regime's observed P95 ranges against RR-cost and
+reports the time split between placement and execution replanning.

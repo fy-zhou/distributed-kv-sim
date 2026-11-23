@@ -1,0 +1,15 @@
+{
+  "verified_runs": 700,
+  "ignored": [
+    "decision_mean_us",
+    "decision_max_us",
+    "execution_plan_mean_us",
+    "total_planning_mean_us"
+  ],
+  "reference": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261124-efficiency-eval/runs.csv",
+  "reference_sha256": "35c93535ff7b5a1c263e3a6b2dfc1db63170c0722588371c30f51ac24048609c",
+  "evaluation_commit": "8011e55bd6fb06d636eca7e5e1d275fb40485220",
+  "replay_commit": "959107900ef37db2e76b1f135765b9a2ea4d3727",
+  "replay_runs_sha256": "8a9f731186645f61c7cbc33ed935aad8f7ae7dc079871c4d3d1e349bc948170b",
+  "pairs_and_summary_exact": true
+}
