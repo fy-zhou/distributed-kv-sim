@@ -10,7 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from scripts.research_common import archive, new_directory, provenance, write_csv
 from scripts.research_shadow import TIMING_FIELDS, inputs, summaries, trial
 
-HETEROGENEOUS_SEEDS = {'development': (200, 201),
+HETEROGENEOUS_SEEDS = {'development': (1990, 1991),
                        'evaluation': (1901, 1902, 1903, 1904, 1905)}
 HETEROGENEOUS = (
     dict(name='slow_source', nic_by_node=(1., 8., 8., 8.)),
