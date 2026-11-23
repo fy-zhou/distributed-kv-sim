@@ -32,3 +32,22 @@ class PrefixAdmissionTests(unittest.TestCase):
                          ('a', 'b'))
         self.assertEqual(admitted_blocks(blocks, 1, 'prefix_fit_no_remote', capacity=2), ())
         self.assertEqual(admitted_blocks(blocks, 1, 'prefix_fit', capacity=2), ('a', 'b'))
+
+    def test_joint_protocol_uses_resolved_capacity_for_defaulted_shapes(self):
+        import csv
+        from pathlib import Path
+        import tempfile
+        from unittest.mock import patch
+        from scripts import research_prefix_fit, research_rollout_efficiency
+
+        scenario = dict(name='small', nodes=2, shared=4)
+        with tempfile.TemporaryDirectory() as temp:
+            out = Path(temp)/'fresh'
+            with patch.object(research_rollout_efficiency, 'STRESS', (scenario,)), \
+                 patch.object(research_prefix_fit, 'JOINT_SEEDS', {'development': (190,)}), \
+                 patch('sys.argv', ['runner', '--split', 'development', '--joint-stress',
+                                    '--out', str(out)]):
+                research_prefix_fit.main()
+            with (out/'runs.csv').open(newline='') as handle:
+                self.assertEqual(len(list(csv.DictReader(handle))), 6)
+            self.assertTrue((out/'placement_pairs.csv').exists())
