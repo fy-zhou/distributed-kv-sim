@@ -10,6 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from scripts.research_common import archive, new_directory, provenance, write_csv
 from scripts.research_shadow import TIMING_FIELDS, inputs, summaries, trial
 
+JOINT_SEEDS = {'development': (190, 191), 'evaluation': (1801, 1802, 1803, 1804, 1805)}
 RATE_SEEDS = {'development': (170, 171), 'evaluation': (1601, 1602, 1603, 1604, 1605)}
 FACTORIAL_SEEDS = {'development': (160, 161), 'evaluation': (1501, 1502, 1503, 1504, 1505)}
 SEEDS = {'development': (140, 141), 'evaluation': (1301, 1302, 1303, 1304, 1305)}
@@ -39,6 +40,8 @@ def main():
                           help='Cross clipping with suppressing remote admission')
     protocol.add_argument('--rate-sweep', action='store_true',
                           help='Cross clipping with four fixed offered loads')
+    protocol.add_argument('--joint-stress', action='store_true',
+                          help='Cross finite-flow placement with capacity-fit admission')
     args = parser.parse_args()
     scenarios, seeds, admissions = SCENARIOS, SEEDS, ADMISSIONS
     policies = POLICIES
@@ -57,6 +60,12 @@ def main():
         admissions = ('always', 'prefix_fit')
         comparisons = (('prefix_fit', 'always'),)
     out = new_directory(args.out)
+    if args.joint_stress:
+        from scripts.research_rollout_efficiency import STRESS
+        scenarios, seeds = STRESS, JOINT_SEEDS
+        policies = ('round_robin_cost', 'shadow_cluster_lru', 'shadow_cluster_finite')
+        admissions = ('always', 'prefix_fit')
+        comparisons = (('prefix_fit', 'always'),)
     (out/'config.json').write_text(json.dumps(provenance(dict(
         seeds=seeds[args.split], policies=policies, admissions=admissions,
         scenarios=scenarios, comparisons=comparisons, requests=120,
@@ -108,8 +117,29 @@ def main():
     write_csv(out/'summary.csv', [
         dict(policy=policy, **r) for policy in policies
         for r in summaries([p for p in pairs if p['policy'] == policy])])
+    archived = ['runs.csv', 'pairs.csv', 'summary.csv']
+    if args.joint_stress:
+        matched = {}
+        for row in rows:
+            grouped = matched.setdefault((row['scenario'], row['seed'], row['admission']), {})
+            grouped[row['policy']] = row
+        placement_pairs = []
+        for (scenario, seed, admission), group in matched.items():
+            candidate = group['shadow_cluster_finite']
+            for baseline in policies[:-1]:
+                a, b = candidate['p95_ttft_ms'], group[baseline]['p95_ttft_ms']
+                delta = 100*(1-a/b)
+                label = 'improve' if delta > 1e-7 else 'regress' if delta < -1e-7 else 'neutral'
+                placement_pairs.append(dict(scenario=scenario, seed=seed, admission=admission,
+                    candidate=candidate['policy'], baseline=baseline, candidate_p95_ms=a,
+                    baseline_p95_ms=b, p95_improvement_pct=delta, outcome=label))
+        write_csv(out/'placement_pairs.csv', placement_pairs)
+        write_csv(out/'placement_summary.csv', [dict(admission=admission, **r)
+            for admission in admissions for r in summaries(
+                [p for p in placement_pairs if p['admission'] == admission])])
+        archived.extend(['placement_pairs.csv', 'placement_summary.csv'])
     if args.archive:
-        archive(out, args.archive, ['runs.csv', 'pairs.csv', 'summary.csv'],
+        archive(out, args.archive, archived,
                 '# Prefix-fit admission experiment\n\n'
                 'Synthetic evaluation. Read pairs within the same placement policy. '
                 'P95, traffic and reusable hot-prefix metrics cover every declared case. '

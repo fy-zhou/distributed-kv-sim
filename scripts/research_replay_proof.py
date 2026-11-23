@@ -32,7 +32,10 @@ def main():
     replay = deterministic(after/'runs.csv')
     assert len(original) == len(replay) == args.runs
     assert original == replay, 'deterministic fields differ'
-    for name in ('pairs.csv', 'summary.csv'):
+    comparison_files = ['pairs.csv', 'summary.csv']
+    comparison_files += [name for name in ('placement_pairs.csv', 'placement_summary.csv')
+                         if (before/name).exists() or (after/name).exists()]
+    for name in comparison_files:
         assert sha(before/name) == sha(after/name), 'paired evidence differs: '+name
     record = dict(verified_runs=args.runs, ignored_fields=sorted(TIMING),
                   compared='All deterministic run fields and byte-identical paired and summary CSVs.')
@@ -40,7 +43,7 @@ def main():
         record[label] = dict(path=str(directory),
             code_commit=json.loads((directory/'config.json').read_text())['code_commit'],
             sha256={name:sha(directory/name) for name in
-                    ('config.json', 'runs.csv', 'pairs.csv', 'summary.csv')})
+                    ['config.json', 'runs.csv'] + comparison_files})
     with args.out.open('x') as handle:
         json.dump(record, handle, indent=2)
         handle.write('\n')
