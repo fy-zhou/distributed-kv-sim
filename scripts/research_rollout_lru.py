@@ -14,6 +14,7 @@ from scripts.research_shadow import TIMING_FIELDS, inputs, trial
 SEEDS = {'development': (51, 52), 'evaluation': (501, 502, 503, 504, 505)}
 POLICIES = ('shadow_fast', 'shadow_fast_lru')
 SHAPES = ('reference', 'compute_heavy', 'long_prefix')
+COLD_SEEDS = {'development': (91, 92), 'evaluation': (901, 902, 903, 904, 905)}
 PRUNE_SEEDS = {'development': (81, 82), 'evaluation': (801, 802, 803, 804, 805)}
 
 
@@ -22,13 +23,17 @@ def main():
     parser.add_argument('--split', choices=SEEDS, required=True)
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--archive', type=Path, required=True)
-    parser.add_argument('--cluster-pruning', action='store_true')
+    variants = parser.add_mutually_exclusive_group()
+    variants.add_argument('--cluster-pruning', action='store_true')
+    variants.add_argument('--cluster-cold', action='store_true')
     args = parser.parse_args()
     scenarios, seeds, policies = SCENARIOS, SEEDS, POLICIES
     if args.cluster_pruning:
         from scripts.research_rollout_efficiency import STRESS
         scenarios = STRESS
         seeds, policies = PRUNE_SEEDS, ('shadow_cluster', 'shadow_cluster_pruned')
+    if args.cluster_cold:
+        seeds, policies = COLD_SEEDS, ('shadow_cluster_pruned', 'shadow_cluster_fast')
     shapes = tuple(s['name'] for s in scenarios if args.cluster_pruning or s['name'] in SHAPES)
     out = new_directory(args.out)
     (out/'config.json').write_text(json.dumps(provenance(dict(
@@ -68,8 +73,7 @@ def main():
         median_paired_ratio=statistics.median(r['original_over_incremental'] for r in group))
         for name in shapes for group in [[r for r in pairs if r['scenario'] == name]]])
     archive(out, args.archive, ['runs.csv', 'pairs.csv', 'summary.csv'],
-            ('# Cluster forecast pruning timing\n\n' if args.cluster_pruning
-             else '# Incremental private LRU timing\n\n') +
+            '# Paired equivalent forecast timing\n\n'
             'Outcome, cache and forecast metrics must match the unoptimized comparator exactly. '
             'Wall-clock measurements on shared host, with paired AB/BA ordering.')
 

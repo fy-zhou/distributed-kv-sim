@@ -14,7 +14,7 @@ from .reuse import minimum_service
 
 POLICIES = ('shadow_frozen', 'shadow_cache', 'shadow_bounded',
             'shadow_fast', 'shadow_network', 'shadow_fast_lru', 'shadow_cluster',
-            'shadow_cluster_pruned')
+            'shadow_cluster_pruned', 'shadow_cluster_fast')
 
 
 class _LocalView:
@@ -192,9 +192,13 @@ def select(sim, req):
 
 def forecasts(sim, req, nodes):
     policy = sim.cfg.policy
-    if policy in ('shadow_cluster', 'shadow_cluster_pruned'):
-        from .shadow_cluster import forecasts as cluster_forecasts
-        prune = policy == 'shadow_cluster_pruned' and all(
+    if policy in ('shadow_cluster', 'shadow_cluster_pruned', 'shadow_cluster_fast'):
+        from .shadow_cluster import cold_forecasts, forecasts as cluster_forecasts
+        if policy == 'shadow_cluster_fast':
+            cold = cold_forecasts(sim, req, nodes)
+            if cold is not None:
+                return cold
+        prune = policy != 'shadow_cluster' and all(
             coefficient >= 0 for coefficient in (
                 sim.cfg.gpu_fixed_ms, sim.cfg.gpu_ms_per_new_token,
                 sim.cfg.gpu_ms_per_attention_pair, sim.cfg.h2d_fixed_ms,

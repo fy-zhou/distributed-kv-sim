@@ -32,6 +32,46 @@ def _fork(sim):
     return shadow
 
 
+def cold_forecasts(sim, req, nodes):
+    """Predict exact ready times without a fork if every queued job is cold."""
+    from .shadow import _cold_cost
+
+    if sim.network.flows:
+        return None
+    memo = {}
+
+    def cost(request):
+        key = (request.length_tokens, len(request.hashes))
+        if key not in memo:
+            memo[key] = _cold_cost(sim, request)
+        return memo[key]
+
+    compute = cost(req)
+    if compute is None:
+        return None
+    predictions = {}
+    for node_id in nodes:
+        node = sim.nodes[node_id]
+        finish = sim.now
+        if node.active:
+            finish = node.active.expected_finish_ms
+            if finish is None:
+                return None
+        for pending in node.queue:
+            service = cost(pending)
+            if service is None:
+                return None
+            # Mirror absolute timestamp accumulation and tie-breaking in _start_compute.
+            finish += service
+        waiting = finish - sim.now
+        predictions[node_id] = dict(node=node_id, local_blocks=0, remote_blocks=0,
+            total_hit_blocks=0, source=None, payload_bytes=0, competing_flows=0,
+            active_network_flows=0, network_ms=0., h2d_ms=0., compute_ms=compute,
+            queue_ms=waiting, estimated_ms=waiting+compute,
+            rollout_jobs=len(node.queue)+int(node.active is not None))
+    return predictions
+
+
 def forecasts(sim, req, nodes, *, prune=False):
     """Score service on the forecast state when each candidate becomes idle.
 

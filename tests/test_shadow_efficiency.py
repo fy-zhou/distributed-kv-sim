@@ -138,3 +138,14 @@ class ForecastEfficiencyTests(unittest.TestCase):
         winner = lambda plans: min(plans, key=lambda i: (plans[i]['estimated_ms'], i))
         self.assertEqual(winner(full), winner(pruned))
         self.assertEqual(full[1], pruned[1])
+
+    def test_cluster_cold_shortcut_matches_absolute_event_timestamps(self):
+        from kv_sim.scheduler.shadow_cluster import cold_forecasts, forecasts
+        sim = Simulator([NodeSpec(i, 32) for i in range(2)], Config(policy='shadow_cluster_fast'))
+        req = Request.from_tokens('r', .14, list(range(4160)))
+        sim.now = .14
+        for node in sim.nodes.values():
+            node.queue.extend([req]*3)
+            sim._start(node.spec.node_id)
+        self.assertEqual(cold_forecasts(sim, req, sim.nodes),
+                         forecasts(sim, req, sim.nodes))
