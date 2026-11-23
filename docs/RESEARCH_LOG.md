@@ -1183,3 +1183,20 @@ The opt-in network sharing study is in `research/network-sharing`
 and the fabric-only parity control. A separate 72-request CLI smoke
 trace produced byte-identical request and summary CSVs for eight
 policies under the previous and current default allocators.
+
+## Lazy private fork for immediately ready candidates
+
+Source `dc765f9`. Read idle candidates directly from the current state.
+Instantiate the private cluster only if a candidate needs future ready
+state. A test prohibits cloning in a warm idle fixture; another checks
+mixed readiness and pending setup without mutating any live event.
+87 tests pass.
+
+The 160-run held-out AB/BA comparison on seeds 3901–3905 matches all
+deterministic outputs and tracked forecast summaries. A separate
+160-run replay also matches. Median speed ratios versus indexed finite
+rollout are 2.31× for sparse warm and 2.63× for sparse long warm. The
+replay ratios are 2.33× and 2.66×. Sparse cold, which already used the
+certificate, and warm bursts have ratios about 1.00× in both runs.
+This is a CPU planning wall-time effect on an exact equivalent, with
+no simulated TTFT effect. The backlog cases still need a private fork.

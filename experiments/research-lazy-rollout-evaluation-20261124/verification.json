@@ -1,0 +1,26 @@
+{
+  "verified_runs": 160,
+  "ignored_fields": [
+    "decision_max_us",
+    "decision_mean_us",
+    "execution_plan_mean_us",
+    "total_planning_mean_us"
+  ],
+  "compared": "All deterministic run fields. Timing CSVs may vary.",
+  "original": {
+    "path": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261124-lazy-rollout-evaluation",
+    "code_commit": "dc765f9f537ff34bfce273a32fa68015e3c950a1",
+    "sha256": {
+      "config.json": "8e505c93029156d4dfb3e70570012032266f5d3edcd61e778d4bfe41ecc0188e",
+      "runs.csv": "a68bfd88e071de38c9d39be5b371c0efb8eed62c40fb5b594457fd5d75a3f2ba"
+    }
+  },
+  "replay": {
+    "path": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261124-lazy-rollout-replay",
+    "code_commit": "dc765f9f537ff34bfce273a32fa68015e3c950a1",
+    "sha256": {
+      "config.json": "8e505c93029156d4dfb3e70570012032266f5d3edcd61e778d4bfe41ecc0188e",
+      "runs.csv": "dfb4c0c9a793e3ae01901eed98e8a6b40ec6f4042651220e69d84470508fef28"
+    }
+  }
+}
