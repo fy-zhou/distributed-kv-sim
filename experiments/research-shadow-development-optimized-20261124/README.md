@@ -1,0 +1,3 @@
+# Shadow FIFO/cache rollout placement
+
+Synthetic, unchanged compute/network model. All candidates and action-matched baselines share minimum_service execution actions. Full and bounded (8 cache updates) local rollouts plus frozen-cache ablation. No future arrival events accessed. Other caches frozen, queued links isolated, outgoing pins retained. Whole-seed bootstrap is descriptive with few seed clusters. All candidates and failures reported; no held-out parameter selection. Compact floats rounded to six decimals; raw full precision/hashes/traces remain server-side. Timings fairly sum placement plus execution replanning, exclude observer/I/O, and are not added to simulated TTFT.

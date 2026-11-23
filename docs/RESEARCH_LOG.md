@@ -404,3 +404,13 @@ runtime snapshot; no future requests are read. Actual execution outcomes with
 the extra probe match an ordinary full-rollout run exactly. This identifies
 a decision mechanism, not exact global timing: known setup transfers and later
 contention are still approximated by the remaining-work/isolated-link model.
+
+Private-LRU optimization gate complete: all 560 development runs replay
+exactly against the unoptimized pilot in every non-wall-time field, including
+queue/TTFT prediction errors, every request outcome hash and final cache hash.
+No scheduling scores or outcomes changed. Full precision verification is in
+research-20261124-shadow-development-optimized/verification.json. Both pilot
+and optimized timing attempts are preserved; order/load differed, so their
+end-to-end wall-time difference is descriptive, not a controlled speedup.
+59 tests pass. The model/candidate/horizon are frozen before any 201–205 run.
+Next: execute the 1400 held-out cases (14×5×2×10) and independent full replay.
