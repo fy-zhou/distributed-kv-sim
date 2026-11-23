@@ -24,3 +24,11 @@ class PrefixAdmissionTests(unittest.TestCase):
         score = forecast(sim, req, 0)
         self.assertEqual(score['total_hit_blocks'], 2)
         self.assertFalse(sim.nodes[0].cache.blocks)
+
+    def test_fit_and_skip_remote_compose_independently(self):
+        from kv_sim.cache.admission import admitted_blocks
+        blocks = ('a', 'b', 'c')
+        self.assertEqual(admitted_blocks(blocks, 0, 'prefix_fit_no_remote', capacity=2),
+                         ('a', 'b'))
+        self.assertEqual(admitted_blocks(blocks, 1, 'prefix_fit_no_remote', capacity=2), ())
+        self.assertEqual(admitted_blocks(blocks, 1, 'prefix_fit', capacity=2), ('a', 'b'))

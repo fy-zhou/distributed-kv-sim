@@ -57,7 +57,7 @@ class BlockCache:
         Insert only after the current request finishes using KV; active request
         KV storage is separate from this persistent CPU-cache abstraction.
         """
-        if remote and self.admission == "no_remote":
+        if remote and self.admission in ("no_remote", "prefix_fit_no_remote"):
             return 0
         inserted = 0
         for key in keys:

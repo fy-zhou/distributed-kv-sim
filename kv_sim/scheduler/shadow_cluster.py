@@ -31,7 +31,7 @@ class _ForecastIndexedCache(_ForecastCache):
     """Maintain the order of unpinned victims during one private admission."""
 
     def admit(self, keys, *, remote=False):
-        if not self.pins or (remote and self.admission == 'no_remote'):
+        if not self.pins or (remote and self.admission in ('no_remote', 'prefix_fit_no_remote')):
             return super().admit(keys, remote=remote)
         from collections import OrderedDict
 
@@ -60,7 +60,7 @@ class _ForecastGatedCache(_ForecastIndexedCache):
     """Build an index only when repeated head scans look more expensive."""
 
     def admit(self, keys, *, remote=False):
-        if not self.pins or (remote and self.admission == 'no_remote'):
+        if not self.pins or (remote and self.admission in ('no_remote', 'prefix_fit_no_remote')):
             return _ForecastCache.admit(self, keys, remote=remote)
         keys = tuple(keys)
         if not keys:
