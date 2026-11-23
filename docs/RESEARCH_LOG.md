@@ -778,3 +778,8 @@ planning expense from forecast accuracy. Development seeds 130–131 and
 stress holdout 1201–1205 were frozen in `9ffd31f`, followed by a
 predeclared CPU ingress sensitivity on the same held-out traces. The
 73-test suite passes.
+
+All 450 calibration/spill holdout cases independently replayed with exact
+deterministic result fields, including request and cache hashes. Full pair
+and summary CSVs are byte-identical. Both source commits and all result
+checksums are retained in research-spill-eval-20261124/verification.json.
