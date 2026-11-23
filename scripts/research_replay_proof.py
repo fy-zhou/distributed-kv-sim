@@ -26,20 +26,27 @@ def main():
     parser.add_argument('--replay', type=Path, required=True)
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--runs', type=int, required=True)
+    parser.add_argument('--timing-study', action='store_true',
+                        help='Compare deterministic run fields only when paired CSVs contain wall time')
     args = parser.parse_args()
     before, after = args.original, args.replay
     original = deterministic(before/'runs.csv')
     replay = deterministic(after/'runs.csv')
     assert len(original) == len(replay) == args.runs
     assert original == replay, 'deterministic fields differ'
-    comparison_files = ['pairs.csv', 'summary.csv']
-    comparison_files += [name for name in ('placement_pairs.csv', 'placement_summary.csv',
-                                      'admission_pairs.csv', 'admission_summary.csv')
-                         if (before/name).exists() or (after/name).exists()]
+    comparison_files = []
+    if not args.timing_study:
+        comparison_files = ['pairs.csv', 'summary.csv']
+        comparison_files += [name for name in ('placement_pairs.csv', 'placement_summary.csv',
+                                               'admission_pairs.csv', 'admission_summary.csv',
+                                               'segments.csv')
+                             if (before/name).exists() or (after/name).exists()]
     for name in comparison_files:
         assert sha(before/name) == sha(after/name), 'paired evidence differs: '+name
     record = dict(verified_runs=args.runs, ignored_fields=sorted(TIMING),
-                  compared='All deterministic run fields and byte-identical paired and summary CSVs.')
+                  compared=('All deterministic run fields. Timing CSVs may vary.'
+                            if args.timing_study else
+                            'All deterministic run fields and byte-identical comparison CSVs.'))
     for label, directory in (('original', before), ('replay', after)):
         record[label] = dict(path=str(directory),
             code_commit=json.loads((directory/'config.json').read_text())['code_commit'],
