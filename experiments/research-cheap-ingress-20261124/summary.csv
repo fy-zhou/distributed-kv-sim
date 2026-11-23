@@ -1,0 +1,7 @@
+ingress_scale,candidate,baseline,conditions,seed_clusters,mean_p95_improvement_pct,seed_bootstrap_p025,seed_bootstrap_p975,improve,neutral,regress
+0.25,shadow_cold_queue,cost_aware,40,5,-20.192060973010555,-25.003643008883678,-14.238886961172568,10,0,30
+0.25,shadow_cold_queue,round_robin_cost,40,5,0.7424848678639306,-2.451085362752935,3.674180984296999,22,0,18
+0.25,shadow_cold_queue,shadow_cluster_lru,40,5,-116.96712739938455,-126.0179450077856,-108.66787643137359,4,0,36
+1.0,shadow_cold_queue,cost_aware,40,5,-25.670899505584472,-34.05080043647031,-18.080677765562122,10,0,30
+1.0,shadow_cold_queue,round_robin_cost,40,5,-5.648936106983526,-9.443672452918792,-1.803555624994271,13,0,27
+1.0,shadow_cold_queue,shadow_cluster_lru,40,5,-72.05748112253681,-79.21864750586101,-65.53577873591058,2,0,38

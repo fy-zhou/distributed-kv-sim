@@ -822,3 +822,22 @@ holdout and independent replay are running. Source `d1de301`,
 runner `bb0966e`, fit-control parity gate `f0854ad`.
 75 tests pass, including closed-form own-root displacement and
 action-consistent shadow forecast checks. CLI smoke covers the policy.
+
+The cheap queue-placement holdout completed 160 raw and 320 controller
+sensitivity runs on seeds 1201–1205. Its host planning averaged 0.401 ms
+vs Cluster-LRU 18.734 ms with ingress disabled, but its queue forecasting
+error averaged 2535.99 ms vs 1.35 ms. Relative to RR-cost, paired P95
+averaged −3.379% with zero controller cost and −5.649% with full controller
+cost (13 improvements, 27 regressions). Against Cluster-LRU it averaged
+−93.430% with no ingress and −72.057% with full cost, where 38/40
+conditions were worse. This variant is a recorded negative result.
+Observed wall CPU for Cluster-LRU under full modeled ingress drops to
+5.861 ms as slower dispatch changes queue sizes. The fixed ingress proxy
+does not feed this lower cost back into its controller. Replays are running.
+
+The private unpinned cluster-LRU holdout completed 160 runs with exact
+deterministic parity. Median paired speed ratios are 1.080× endpoint,
+1.097× fabric, 1.933× pin pressure and 1.051× replica pressure. Pin-pressure
+raw medians are 35.23→17.82 ms/request. Thus the fork's unpinned eviction
+path is materially inefficient in that regime. This finding is about host
+CPU work, not simulated P95. Indexed pinned-victim holdout is still running.
