@@ -1104,3 +1104,19 @@ The event index is now being compared over real 128-, 512- and
 per burst and large inter-burst interval. This tests full paired CPU
 cost and exact outcomes beyond a static heap, using development
 2600–2601 and holdouts 2501–2505. It is not a saturated-load benchmark.
+
+The long-sequence event-index holdout completed 120 measured runs
+(60 AB/BA pairs) with exact deterministic equality. Median paired ratios
+are 1.137× at 128 requests, 1.035× at 512 and 1.308× at 2048. These are
+shared-host wall-clock measurements with 1200 ms inter-burst gaps.
+The largest result supports a sequence-length effect in this bounded
+backlog fixture, with nonmonotonic ratios at the two smaller lengths.
+
+The Zipf holdout independently replayed all 90 runs. The admission
+and placement comparison files also match byte for byte.
+
+The 72-run development spill-admission experiment shows improvement in
+all 36 same-policy pairs and ranges of +38.35–39.94% (RR-cost),
++51.63–54.79% (Cost-Aware) and +57.20–59.12% (Shadow-Fast) mean paired
+P95 across the measured worker-load proxy and the two serial spill
+assumptions. Holdout and independent replay are separate.
