@@ -414,3 +414,17 @@ and optimized timing attempts are preserved; order/load differed, so their
 end-to-end wall-time difference is descriptive, not a controlled speedup.
 59 tests pass. The model/candidate/horizon are frozen before any 201–205 run.
 Next: execute the 1400 held-out cases (14×5×2×10) and independent full replay.
+
+Development-only cost-bound diagnostic: 24/28 scenario/seed cells (12 of 14
+shapes) have cold recomputation strictly cheaper than even full local reuse
+for every request. Exhaustive enumeration verifies 611022 positive block-hit
+points in those requests. Under the present nonnegative causal-pair and H2D
+fixed coefficients, positive-hit service is concave in hit length; if its two
+endpoints are above cold cost, no interior hit can win. Remote transfer adds
+nonnegative cost. Thus many private-cache mutations cannot influence predicted
+service cost in this matrix. This explains wasted forecast work and suggests
+a provably guarded cache-rollout bypass in a future implementation; queue work
+must still be accounted, particularly for variable-length Zipf requests.
+No such fast path was added to the frozen candidates or current evaluation.
+The bound is specific to the current illustrative curve, not an empirical GPU
+property. Diagnostic CSV and provenance are appended to the diagnostics archive.
