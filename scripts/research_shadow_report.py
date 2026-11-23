@@ -51,15 +51,16 @@ def main():
                 group=[r for r in rows if r['scenario']==scenario and r['admission']==admission and r['policy']==policy]
                 values=[statistics.mean(float(r[f])for r in group)for f in ('p95_ttft_ms','network_gib','mean_abs_queue_error_ms','max_node_load_fraction')]
                 lines.append('| %s | %s | %s | %.3f | %.3f | %.3f | %.3f |'%((scenario,admission,policy)+tuple(values)))
-    failures=sorted([r for r in pairs if r['baseline']=='round_robin_cost' and r['outcome']=='regress'],key=lambda r:float(r['p95_improvement_pct']))
+    failures=sorted([r for r in pairs if r['baseline']in ('round_robin_cost','cost_aware') and r['outcome']=='regress'],key=lambda r:float(r['p95_improvement_pct']))
     lines+=['','## Retained failures','',
-        'Up to four worst regressions per candidate are selected post-hoc for diagnosis, not unbiased representative workloads. Every comparison remains in compact_pairs.csv.','',
-        '| Candidate | Scenario | Seed | Admission | Candidate P95 ms | Control P95 ms | Improvement % |','|---|---|---:|---|---:|---:|---:|']
+        'Up to four worst regressions per candidate/comparator are selected post-hoc for diagnosis, not unbiased representative workloads. Every comparison remains in compact_pairs.csv.','',
+        '| Candidate | Baseline | Scenario | Seed | Admission | Candidate P95 ms | Control P95 ms | Improvement % |','|---|---|---|---:|---|---:|---:|---:|']
     retained=[]
     for candidate in ('shadow_cache','shadow_bounded','shadow_frozen'):
-        retained.extend([r for r in failures if r['candidate']==candidate][:4])
+        for baseline in ('round_robin_cost','cost_aware'):
+            retained.extend([r for r in failures if r['candidate']==candidate and r['baseline']==baseline][:4])
     for r in retained:
-        lines.append('| %s | %s | %s | %s | %.3f | %.3f | %+.3f |'%(r['candidate'],r['scenario'],r['seed'],r['admission'],float(r['candidate_p95_ms']),float(r['baseline_p95_ms']),float(r['p95_improvement_pct'])))
+        lines.append('| %s | %s | %s | %s | %s | %.3f | %.3f | %+.3f |'%(r['candidate'],r['baseline'],r['scenario'],r['seed'],r['admission'],float(r['candidate_p95_ms']),float(r['baseline_p95_ms']),float(r['p95_improvement_pct'])))
     if not failures:lines+=['','No regressions against the primary comparator in this particular matrix; this is not universal dominance.']
     lines+=['','## Approximation limits and interpretation','',
         'The rollout changes forecasts only. Real execution uses the shared planner and live caches. Forecasts roll only a target node, freeze other caches, assume isolated future transfer rates, and retain outgoing pins for the forecast lifetime. Full rollout does not make those assumptions exact; bounded rollout also freezes cache state after eight completions while still charging all tail work. Frozen-cache ablation isolates the effect of cache evolution within this shared forecast model.','',
