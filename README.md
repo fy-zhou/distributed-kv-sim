@@ -491,3 +491,45 @@ Evaluation seeds 101–105 are now consumed evidence: future methods must use
 fresh holdouts. Simulation/research runners use Python 3.8 and the standard
 library. Optional plotting uses matplotlib; the bounded physical H2D script
 requires an existing CUDA-enabled torch environment and an idle GPU.
+
+## Shadow queue/cache placement (2026-11-24)
+
+Branch `research/shadow-rollout` continues the placement experiment under the
+**same execution service actions** as Cost-Aware and Round-Robin-Cost:
+
+- `shadow_cache` rolls known FIFO completions into a private target cache.
+- `shadow_bounded` limits cache updates to eight completions while still
+  charging all remaining queued work.
+- `shadow_frozen` is the frozen-cache forecast ablation.
+
+No future arrivals are read. Other-node caches are frozen, future transfer
+rates are isolated estimates, and existing outgoing pins are retained in
+forecasts. All real requests replan with the unchanged `minimum_service`.
+
+On fresh seeds 201–205, 14 declared shapes × two admissions × ten policies
+produce 1,400 held-out runs. Versus action-matched Round Robin, full rollout
+has 24 better / 116 neutral / 0 worse P95 conditions, mean paired +1.884%;
+bounded rollout has 20 / 116 / 4, mean +1.763%. Full rollout still loses in
+two conditions against Cost-Aware. These are conditional synthetic findings.
+
+Fair CPU timing includes placement **and** execution replanning: full rollout
+averages 7.03 ms/request, bounded 4.67 ms, Cost-Aware 1.27 ms and RR-Cost
+0.071 ms on the shared host. Those CPU costs are not charged to simulated
+TTFT. There is no demonstrated net serving speedup including scheduler CPU
+saturation, nor physical validation of the model's zero-time CPU KV admission.
+
+See [complete results and figures](experiments/research-shadow-evaluation-20261124/ANALYSIS.md),
+[model limits](experiments/research-shadow-evaluation-20261124/LIMITATIONS.md),
+[development diagnostics](experiments/research-shadow-diagnostics-20261124/),
+and the [research log](docs/RESEARCH_LOG.md) for exact provenance and resume plans.
+Run into fresh directories (Python 3.8 standard library):
+
+```bash
+python3 -m unittest discover -s tests -v
+python3 scripts/research_shadow.py --split development --out /state/partition/fyzhou/results/distributed-kv-sim/new-shadow-development --archive experiments/new-shadow-development
+python3 scripts/research_shadow.py --split evaluation --out /state/partition/fyzhou/results/distributed-kv-sim/new-shadow-evaluation --archive experiments/new-shadow-evaluation
+python3 scripts/research_shadow.py --split evaluation --out /state/partition/fyzhou/results/distributed-kv-sim/new-shadow-replay --verify-against /state/partition/fyzhou/results/distributed-kv-sim/new-shadow-evaluation/runs.csv
+```
+
+Seeds 201–205 are now consumed evaluation data. Reserve fresh seeds 301–305
+for the next method; do not re-label 101–105 or 201–205 as untouched holdouts.
