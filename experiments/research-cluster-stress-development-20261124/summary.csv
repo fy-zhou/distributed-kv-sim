@@ -1,0 +1,4 @@
+ingress_scale,candidate,baseline,conditions,seed_clusters,mean_p95_improvement_pct,seed_bootstrap_p025,seed_bootstrap_p975,improve,neutral,regress
+0.0,shadow_cluster,round_robin_cost,16,2,33.643724583963,31.253513094532167,36.03393607339383,14,0,2
+0.0,shadow_cluster,shadow_fast,16,2,27.551513561740585,26.920616768144207,28.182410355336966,15,0,1
+0.0,shadow_cluster,shadow_network,16,2,25.504488469786743,22.18928474690008,28.819692192673404,15,0,1

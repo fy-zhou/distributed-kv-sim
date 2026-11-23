@@ -622,3 +622,29 @@ The bounded physical copy CLI now accepts --direction d2h. The first
 implementation contained a syntax error, fixed and compiled in `9591079`.
 Both devices subsequently triggered the busy guard before CUDA setup.
 No new D2H timings were collected.
+
+### Network stress and cluster reference checkpoint
+
+On dedicated stress development seeds 61–62, known-active-flow replay produced
+8 improvements, 6 ties and 2 regressions relative to the cache shortcut, with
+mean P95 improvement −0.157% across 16 conditions. Against RR-cost it averaged
+−4.011%, which rejects a universal tail benefit under this stress design.
+All 80 runs and adverse conditions are retained.
+
+Cluster rollout development seeds 71–72 completed 64 runs. Relative to
+RR-cost, mean P95 improvement was +33.644% (14/0/2). Relative to known-active
+replay it was +25.504% (15/0/1). This stress-only result accompanies an
+average host planning time of 26.933 ms/request, versus 17.220 ms/request
+for known-active replay and 0.169 ms/request for RR-cost. Independent
+stress holdouts are in progress. Cluster rollout's strong queue error
+results reflect scheduling from assigned work and do not bypass future
+arrival uncertainty or simulate the new transfer after placement.
+
+Optional cluster pruning (source `c96e3c5`) stops an internal replay once
+its simulated time alone exceeds the best already scored completion time.
+In that case all unresolved destinations have strictly larger queue
+lower bounds. This keeps tie handling and execution actions intact.
+Analytical tests verify the same winner after pruning a late node, plus
+live-state and future-arrival independence for full rollout. AB/BA wall
+timing and deterministic parity are being tested on development seeds
+81–82 and independent holdouts 801–805.
