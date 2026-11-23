@@ -186,15 +186,17 @@ class ForecastEfficiencyTests(unittest.TestCase):
     def test_indexed_private_cache_matches_pinned_admission(self):
         from itertools import product
         from kv_sim.cache import BlockCache
-        from kv_sim.scheduler.shadow_cluster import _ForecastIndexedCache
+        from kv_sim.scheduler.shadow_cluster import _ForecastIndexedCache, _ForecastGatedCache
         for pinned in ('a', 'ab', 'abc'):
             for keys in product('abcx', repeat=4):
-                a, b = BlockCache(3), _ForecastIndexedCache(3)
-                for cache in (a, b):
+                caches = (BlockCache(3), _ForecastIndexedCache(3), _ForecastGatedCache(3))
+                for cache in caches:
                     cache.admit('abc')
                     cache.pin(pinned)
-                self.assertEqual(a.admit(keys), b.admit(keys))
-                self.assertEqual(a.__dict__, b.__dict__)
+                counts = [cache.admit(keys) for cache in caches]
+                self.assertEqual(counts, [counts[0]]*3)
+                for cache in caches[1:]:
+                    self.assertEqual(caches[0].__dict__, cache.__dict__, pinned)
 
     def test_cheap_queue_forecast_counts_each_pending_request_without_cache_updates(self):
         from kv_sim.scheduler.shadow import cold_queue_forecasts

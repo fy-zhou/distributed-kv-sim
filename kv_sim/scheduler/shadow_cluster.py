@@ -56,6 +56,28 @@ class _ForecastIndexedCache(_ForecastCache):
         return inserted
 
 
+class _ForecastGatedCache(_ForecastIndexedCache):
+    """Build an index only when repeated head scans look more expensive."""
+
+    def admit(self, keys, *, remote=False):
+        if not self.pins or (remote and self.admission == 'no_remote'):
+            return _ForecastCache.admit(self, keys, remote=remote)
+        keys = tuple(keys)
+        if not keys:
+            return 0
+        leading_pins = 0
+        for key in self.blocks:
+            if key not in self.pins:
+                break
+            leading_pins += 1
+        # Scale by incoming misses. The guard affects runtime only.
+        if leading_pins and leading_pins * len(keys) > len(self.blocks):
+            misses = sum(key not in self.blocks for key in keys)
+            if leading_pins * misses > len(self.blocks) + len(keys):
+                return super().admit(keys, remote=remote)
+        return _ForecastCache.admit(self, keys, remote=remote)
+
+
 def _fork(sim, *, cache_type=BlockCache):
     from ..engine.simulator import Simulator
 
