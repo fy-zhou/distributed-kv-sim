@@ -10,7 +10,7 @@ from kv_sim.cluster.network import FluidNetwork, SHARING_MODELS
 from scripts.research_common import archive, digest, new_directory, provenance, write_csv
 from scripts.research_shadow import MeasuredSimulator, inputs, summaries, trial
 
-SEEDS = {'development': (2800, 2801), 'evaluation': (2701, 2702, 2703, 2704, 2705)}
+SEEDS = {'development': (2800, 2801), 'evaluation': (2901, 2902, 2903, 2904, 2905)}
 POLICIES = ('round_robin_cost', 'bandwidth_aware', 'shadow_cluster_finite')
 SCENARIOS = (
     dict(name='fabric_only_control', nic_by_node=(16.,)*4, fabric=2., skew=0.),
