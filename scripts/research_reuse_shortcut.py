@@ -11,10 +11,12 @@ from scripts.research_common import archive, new_directory, provenance, write_cs
 from scripts.research_evaluate import SCENARIOS
 from scripts.research_shadow import TIMING_FIELDS, inputs, trial
 
+FLOOR_SEEDS = {'development': (3600, 3601), 'evaluation': (3701, 3702, 3703, 3704, 3705)}
 MEMO_SEEDS = {'development': (2400, 2401), 'evaluation': (2301, 2302, 2303, 2304, 2305)}
 SEEDS = {'development': (2300, 2301), 'evaluation': (2201, 2202, 2203, 2204, 2205)}
 POLICIES = ('round_robin_cost', 'shadow_cluster_events')
 SHAPES = ('reference', 'compute_heavy', 'short_prefix', 'long_prefix')
+PARTIAL = dict(name='partial_prefix', kind='zipf', shared=256, capacity=160, compute_scale=1.35)
 
 
 def main():
@@ -22,27 +24,34 @@ def main():
     parser.add_argument('--split', choices=SEEDS, required=True)
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--archive', type=Path, required=True)
-    parser.add_argument('--memoized', action='store_true')
+    modes = parser.add_mutually_exclusive_group()
+    modes.add_argument('--memoized', action='store_true')
+    modes.add_argument('--prefix-floor', action='store_true')
     args = parser.parse_args()
-    seeds = MEMO_SEEDS if args.memoized else SEEDS
+    seeds = FLOOR_SEEDS if args.prefix_floor else MEMO_SEEDS if args.memoized else SEEDS
+    shapes = SHAPES + (PARTIAL['name'],) if args.prefix_floor else SHAPES
+    scenarios = SCENARIOS + [PARTIAL]
     out = new_directory(args.out)
     count = 80
     rows, paired = [], []
-    for scenario in SCENARIOS:
+    for scenario in scenarios:
         name = scenario['name']
-        if name not in SHAPES:
+        if name not in shapes:
             continue
+        admissions = ('always', 'prefix_fit') if name == PARTIAL['name'] else ('always', 'no_remote')
         for seed in seeds[args.split]:
             prepared = inputs(scenario, seed, count)
-            for admission in ('always', 'no_remote'):
+            for admission in admissions:
                 for policy in POLICIES:
                     original = None
                     for repeat in (0, 1):
                         values = {}
                         for enabled in (False, True)[::1 if not repeat else -1]:
                             _, row = trial(scenario, seed, admission, policy, count,
-                                prepared=prepared, certified_reuse_shortcut=enabled or args.memoized,
-                                memoized_reuse_certificate=enabled and args.memoized)
+                                prepared=prepared, certified_reuse_shortcut=enabled or args.memoized or args.prefix_floor,
+                                memoized_reuse_certificate=(enabled and args.memoized)
+                                    or (args.prefix_floor and not enabled),
+                                reuse_prefix_floor=args.prefix_floor and enabled)
                             deterministic = {k:v for k,v in row.items() if k not in TIMING_FIELDS}
                             if original is None:
                                 original = deterministic
@@ -60,7 +69,7 @@ def main():
                             total_speed_ratio=a['total_planning_mean_us']/b['total_planning_mean_us']))
         print(args.split, name, len(rows), flush=True)
     summary = []
-    for name in SHAPES:
+    for name in shapes:
         for policy in POLICIES:
             group = [r for r in paired if (r['scenario'], r['policy']) == (name, policy)]
             summary.append(dict(scenario=name, policy=policy, pairs=len(group), **{
@@ -72,7 +81,8 @@ def main():
     write_csv(out/'pairs.csv', paired)
     write_csv(out/'summary.csv', summary)
     (out/'config.json').write_text(json.dumps(provenance(dict(
-        seeds=seeds[args.split], memoized=args.memoized, policies=POLICIES, shapes=SHAPES, requests=count,
+        seeds=seeds[args.split], memoized=args.memoized, prefix_floor=args.prefix_floor,
+        policies=POLICIES, shapes=shapes, requests=count,
         timing='AB/BA repeats within every paired workload, measured on the host.',
         interpretation='All deterministic results including outcome and ordered-cache hashes must match.'
                        ' Execution-planning and total CPU costs are reported separately.')),
