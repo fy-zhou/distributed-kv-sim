@@ -14,7 +14,8 @@ from .reuse import minimum_service
 
 POLICIES = ('shadow_frozen', 'shadow_cache', 'shadow_bounded',
             'shadow_fast', 'shadow_network', 'shadow_fast_lru', 'shadow_cluster',
-            'shadow_cluster_pruned', 'shadow_cluster_fast', 'shadow_cluster_lru')
+            'shadow_cluster_pruned', 'shadow_cluster_fast', 'shadow_cluster_lru',
+            'shadow_cluster_indexed')
 
 
 class _LocalView:
@@ -192,9 +193,10 @@ def select(sim, req):
 
 def forecasts(sim, req, nodes):
     policy = sim.cfg.policy
-    if policy in ('shadow_cluster', 'shadow_cluster_pruned', 'shadow_cluster_fast', 'shadow_cluster_lru'):
-        from .shadow_cluster import cold_forecasts, forecasts as cluster_forecasts
-        if policy in ('shadow_cluster_fast', 'shadow_cluster_lru'):
+    if policy.startswith('shadow_cluster'):
+        from .shadow_cluster import (_ForecastCache, _ForecastIndexedCache,
+                                     cold_forecasts, forecasts as cluster_forecasts)
+        if policy in ('shadow_cluster_fast', 'shadow_cluster_lru', 'shadow_cluster_indexed'):
             cold = cold_forecasts(sim, req, nodes)
             if cold is not None:
                 return cold
@@ -203,8 +205,9 @@ def forecasts(sim, req, nodes):
                 sim.cfg.gpu_fixed_ms, sim.cfg.gpu_ms_per_new_token,
                 sim.cfg.gpu_ms_per_attention_pair, sim.cfg.h2d_fixed_ms,
                 sim.cfg.h2d_ms_per_gib, sim.cfg.remote_setup_ms))
-        return cluster_forecasts(sim, req, nodes, prune=prune,
-                                 fast_cache=policy == 'shadow_cluster_lru')
+        cache_type = {'shadow_cluster_lru': _ForecastCache,
+                      'shadow_cluster_indexed': _ForecastIndexedCache}.get(policy, BlockCache)
+        return cluster_forecasts(sim, req, nodes, prune=prune, cache_type=cache_type)
     memo = {} if policy in ('shadow_fast', 'shadow_network', 'shadow_fast_lru') else None
     update = complete_unpinned_lru if policy == 'shadow_fast_lru' else complete_cache
     remaining = active_remaining(sim) if policy == 'shadow_network' else {}

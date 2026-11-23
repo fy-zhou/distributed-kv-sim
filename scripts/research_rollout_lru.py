@@ -14,6 +14,7 @@ from scripts.research_shadow import TIMING_FIELDS, inputs, trial
 SEEDS = {'development': (51, 52), 'evaluation': (501, 502, 503, 504, 505)}
 POLICIES = ('shadow_fast', 'shadow_fast_lru')
 SHAPES = ('reference', 'compute_heavy', 'long_prefix')
+INDEX_SEEDS = {'development': (120, 121), 'evaluation': (1101, 1102, 1103, 1104, 1105)}
 CLUSTER_LRU_SEEDS = {'development': (110, 111), 'evaluation': (1001, 1002, 1003, 1004, 1005)}
 COLD_SEEDS = {'development': (91, 92), 'evaluation': (901, 902, 903, 904, 905)}
 PRUNE_SEEDS = {'development': (81, 82), 'evaluation': (801, 802, 803, 804, 805)}
@@ -28,17 +29,20 @@ def main():
     variants.add_argument('--cluster-pruning', action='store_true')
     variants.add_argument('--cluster-cold', action='store_true')
     variants.add_argument('--cluster-lru', action='store_true')
+    variants.add_argument('--cluster-indexed', action='store_true')
     args = parser.parse_args()
     scenarios, seeds, policies = SCENARIOS, SEEDS, POLICIES
-    if args.cluster_pruning or args.cluster_lru:
+    if args.cluster_pruning or args.cluster_lru or args.cluster_indexed:
         from scripts.research_rollout_efficiency import STRESS
         scenarios = STRESS
         seeds, policies = PRUNE_SEEDS, ('shadow_cluster', 'shadow_cluster_pruned')
     if args.cluster_lru:
         seeds, policies = CLUSTER_LRU_SEEDS, ('shadow_cluster_fast', 'shadow_cluster_lru')
+    if args.cluster_indexed:
+        seeds, policies = INDEX_SEEDS, ('shadow_cluster_lru', 'shadow_cluster_indexed')
     if args.cluster_cold:
         seeds, policies = COLD_SEEDS, ('shadow_cluster_pruned', 'shadow_cluster_fast')
-    shapes = tuple(s['name'] for s in scenarios if args.cluster_pruning or args.cluster_lru or s['name'] in SHAPES)
+    shapes = tuple(s['name'] for s in scenarios if args.cluster_pruning or args.cluster_lru or args.cluster_indexed or s['name'] in SHAPES)
     out = new_directory(args.out)
     (out/'config.json').write_text(json.dumps(provenance(dict(
         seeds=seeds[args.split], policies=policies, shapes=shapes, requests=120,

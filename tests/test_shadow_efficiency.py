@@ -182,3 +182,16 @@ class ForecastEfficiencyTests(unittest.TestCase):
             cache.unpin(('b',))
             cache.admit('dggca')
         self.assertEqual(a.__dict__, b.__dict__)
+
+    def test_indexed_private_cache_matches_pinned_admission(self):
+        from itertools import product
+        from kv_sim.cache import BlockCache
+        from kv_sim.scheduler.shadow_cluster import _ForecastIndexedCache
+        for pinned in ('a', 'ab', 'abc'):
+            for keys in product('abcx', repeat=4):
+                a, b = BlockCache(3), _ForecastIndexedCache(3)
+                for cache in (a, b):
+                    cache.admit('abc')
+                    cache.pin(pinned)
+                self.assertEqual(a.admit(keys), b.admit(keys))
+                self.assertEqual(a.__dict__, b.__dict__)

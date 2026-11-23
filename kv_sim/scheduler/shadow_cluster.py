@@ -27,7 +27,36 @@ class _ForecastCache(BlockCache):
         return inserted
 
 
-def _fork(sim, *, fast_cache=False):
+class _ForecastIndexedCache(_ForecastCache):
+    """Maintain the order of unpinned victims during one private admission."""
+
+    def admit(self, keys, *, remote=False):
+        if not self.pins or (remote and self.admission == 'no_remote'):
+            return super().admit(keys, remote=remote)
+        from collections import OrderedDict
+
+        victims = OrderedDict.fromkeys(key for key in self.blocks if key not in self.pins)
+        inserted = 0
+        for key in keys:
+            if key in self.blocks:
+                self.blocks.move_to_end(key)
+                if key in victims:
+                    victims.move_to_end(key)
+                continue
+            if len(self.blocks) >= self.capacity:
+                if not victims:
+                    self.rejections += 1
+                    continue
+                victim, _ = victims.popitem(last=False)
+                del self.blocks[victim]
+                self.evictions += 1
+            self.blocks[key] = None
+            victims[key] = None
+            inserted += 1
+        return inserted
+
+
+def _fork(sim, *, cache_type=BlockCache):
     from ..engine.simulator import Simulator
 
     shadow = Simulator([node.spec for node in sim.nodes.values()],
@@ -37,7 +66,6 @@ def _fork(sim, *, fast_cache=False):
     shadow.sequence = sim.sequence
     shadow.epoch = sim.epoch
     shadow.network = copy.deepcopy(sim.network)
-    cache_type = _ForecastCache if fast_cache else BlockCache
     for node_id, live in sim.nodes.items():
         cache = cache_type(live.cache.capacity, live.cache.admission)
         cache.blocks = live.cache.blocks.copy()
@@ -94,7 +122,7 @@ def cold_forecasts(sim, req, nodes):
     return predictions
 
 
-def forecasts(sim, req, nodes, *, prune=False, fast_cache=False):
+def forecasts(sim, req, nodes, *, prune=False, cache_type=BlockCache):
     """Score service on the forecast state when each candidate becomes idle.
 
     A single fork drains the already assigned queues. The new request is
@@ -105,7 +133,7 @@ def forecasts(sim, req, nodes, *, prune=False, fast_cache=False):
 
     needed = set(nodes)
     predictions = {}
-    shadow = _fork(sim, fast_cache=fast_cache)
+    shadow = _fork(sim, cache_type=cache_type)
 
     def ready(node_id):
         if node_id not in needed:
