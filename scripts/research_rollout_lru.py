@@ -14,6 +14,7 @@ from scripts.research_shadow import TIMING_FIELDS, inputs, trial
 SEEDS = {'development': (51, 52), 'evaluation': (501, 502, 503, 504, 505)}
 POLICIES = ('shadow_fast', 'shadow_fast_lru')
 SHAPES = ('reference', 'compute_heavy', 'long_prefix')
+EVENT_SEEDS = {'development': (2200, 2201), 'evaluation': (2101, 2102, 2103, 2104, 2105)}
 GATE_SEEDS = {'development': (150, 151), 'evaluation': (1401, 1402, 1403, 1404, 1405)}
 INDEX_SEEDS = {'development': (120, 121), 'evaluation': (1101, 1102, 1103, 1104, 1105)}
 CLUSTER_LRU_SEEDS = {'development': (110, 111), 'evaluation': (1001, 1002, 1003, 1004, 1005)}
@@ -32,9 +33,10 @@ def main():
     variants.add_argument('--cluster-lru', action='store_true')
     variants.add_argument('--cluster-indexed', action='store_true')
     variants.add_argument('--cluster-gated', action='store_true')
+    variants.add_argument('--cluster-events', action='store_true')
     args = parser.parse_args()
     scenarios, seeds, policies = SCENARIOS, SEEDS, POLICIES
-    stress = args.cluster_pruning or args.cluster_lru or args.cluster_indexed or args.cluster_gated
+    stress = args.cluster_pruning or args.cluster_lru or args.cluster_indexed or args.cluster_gated or args.cluster_events
     if stress:
         from scripts.research_rollout_efficiency import STRESS
         scenarios = STRESS
@@ -45,6 +47,8 @@ def main():
         seeds, policies = INDEX_SEEDS, ('shadow_cluster_lru', 'shadow_cluster_indexed')
     if args.cluster_gated:
         seeds, policies = GATE_SEEDS, ('shadow_cluster_lru', 'shadow_cluster_gated')
+    if args.cluster_events:
+        seeds, policies = EVENT_SEEDS, ('shadow_cluster_finite', 'shadow_cluster_events')
     if args.cluster_cold:
         seeds, policies = COLD_SEEDS, ('shadow_cluster_pruned', 'shadow_cluster_fast')
     shapes = tuple(s['name'] for s in scenarios if stress or s['name'] in SHAPES)

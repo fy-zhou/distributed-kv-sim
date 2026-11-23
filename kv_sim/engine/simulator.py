@@ -67,6 +67,8 @@ class Simulator:
             {s.node_id: s.nic_gib_s * (2**30) / 1000 for s in specs},
             self.cfg.fabric_gib_s * (2**30) / 1000)
         self.events = []
+        # Only the indexed cluster policy needs a view without future arrivals.
+        self.service_events = {} if self.cfg.policy == 'shadow_cluster_events' else None
         self.sequence = 0
         self.now = 0.0
         self.clock = SimulationClock()
@@ -92,8 +94,14 @@ class Simulator:
         if when < self.now - 1e-7:
             raise RuntimeError("event in the past")
         self.sequence += 1
-        heapq.heappush(
-            self.events, (float(when), self.sequence, kind, payload, epoch))
+        event = (float(when), self.sequence, kind, payload, epoch)
+        heapq.heappush(self.events, event)
+        if self.service_events is not None and kind != EVENT_ARRIVAL:
+            if kind == EVENT_FLOW_DONE:
+                self.service_events.pop('flow_done', None)
+                self.service_events['flow_done'] = event
+            else:
+                self.service_events[self.sequence] = event
 
     def _hit(self, req, node_id):
         return self.nodes[node_id].cache.prefix_len(req.hashes)
@@ -229,6 +237,8 @@ class Simulator:
 
     def _refresh_flow_event(self):
         self.epoch += 1
+        if self.service_events is not None:
+            self.service_events.pop('flow_done', None)
         next_flow = self.network.next_finish(self.now)
         if next_flow is not None:
             t, flow_id = next_flow
@@ -329,9 +339,14 @@ class Simulator:
                 raise ValueError("invalid request hashes")
             self._schedule(req.arrival_ms, EVENT_ARRIVAL, req)
         while self.events:
-            now, _, kind, payload, event_epoch = heapq.heappop(self.events)
+            now, event_id, kind, payload, event_epoch = heapq.heappop(self.events)
             if kind == EVENT_FLOW_DONE and event_epoch != self.epoch:
                 continue
+            if self.service_events is not None:
+                if kind == EVENT_FLOW_DONE:
+                    self.service_events.pop('flow_done', None)
+                elif kind != EVENT_ARRIVAL:
+                    self.service_events.pop(event_id, None)
             self.network.advance(now)
             self.clock.advance(now)
             self.now = now

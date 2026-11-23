@@ -226,3 +226,13 @@ class ForecastEfficiencyTests(unittest.TestCase):
         self.assertAlmostEqual(proposed_transfer_ms(sim, 2, 0, payload),
                                2. + payload/sim.network.fabric)
         self.assertEqual(sim.network.flows[1].remaining_bytes, short)
+
+    def test_service_event_index_preserves_finite_forecasts_and_drains(self):
+        from scripts.research_shadow import trial
+        scenario = dict(name='small', nodes=3, shared=32, capacity=36,
+                        compute_scale=16., burst=4, fabric=1.)
+        original, _ = trial(scenario, 2101, 'always', 'shadow_cluster_finite', 24)
+        candidate, _ = trial(scenario, 2101, 'always', 'shadow_cluster_events', 24)
+        self.assertEqual(original.rows, candidate.rows)
+        self.assertEqual(original.residuals, candidate.residuals)
+        self.assertEqual(candidate.service_events, {})

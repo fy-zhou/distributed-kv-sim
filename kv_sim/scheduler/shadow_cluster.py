@@ -98,8 +98,13 @@ def _fork(sim, *, cache_type=BlockCache):
                                      replace(live.active) if live.active else None)
     # Copy only the simulator's internal event types. External arrivals never
     # dispatch or participate in the fork, even when their timestamp is now.
-    shadow.events = [e for e in sim.events
-                     if e[2] in (EVENT_FLOW_START, EVENT_FLOW_DONE, EVENT_JOB_DONE)]
+    if sim.service_events is None:
+        shadow.events = [event for event in sim.events if event[2]
+                         in (EVENT_FLOW_START, EVENT_FLOW_DONE, EVENT_JOB_DONE)]
+    else:
+        shadow.events = list(sim.service_events.values())
+    # The fork drains its copied event queue directly.
+    shadow.service_events = None
     heapq.heapify(shadow.events)
     return shadow
 
