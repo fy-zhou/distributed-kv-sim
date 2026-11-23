@@ -51,3 +51,9 @@ class PrefixAdmissionTests(unittest.TestCase):
             with (out/'runs.csv').open(newline='') as handle:
                 self.assertEqual(len(list(csv.DictReader(handle))), 6)
             self.assertTrue((out/'placement_pairs.csv').exists())
+
+    def test_explicit_sender_and_receiver_bandwidths_are_preserved(self):
+        from scripts.research_shadow import inputs
+        _, specs, _, _, _ = inputs(dict(name='heterogeneous', nodes=2, shared=4,
+                                        nic_by_node=(1.5, 8.)), 1901, 4)
+        self.assertEqual([node.nic_gib_s for node in specs], [1.5, 8.])

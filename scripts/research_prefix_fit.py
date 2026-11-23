@@ -10,6 +10,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from scripts.research_common import archive, new_directory, provenance, write_csv
 from scripts.research_shadow import TIMING_FIELDS, inputs, summaries, trial
 
+HETEROGENEOUS_SEEDS = {'development': (200, 201),
+                       'evaluation': (1901, 1902, 1903, 1904, 1905)}
+HETEROGENEOUS = (
+    dict(name='slow_source', nic_by_node=(1., 8., 8., 8.)),
+    dict(name='fast_source', nic_by_node=(16., 2., 2., 2.)),
+    dict(name='slow_destination', nic_by_node=(8., 8., 8., 1.)),
+    dict(name='split_pairs', nic_by_node=(2., 2., 8., 8.)),
+)
 JOINT_SEEDS = {'development': (190, 191), 'evaluation': (1801, 1802, 1803, 1804, 1805)}
 RATE_SEEDS = {'development': (170, 171), 'evaluation': (1601, 1602, 1603, 1604, 1605)}
 FACTORIAL_SEEDS = {'development': (160, 161), 'evaluation': (1501, 1502, 1503, 1504, 1505)}
@@ -42,6 +50,8 @@ def main():
                           help='Cross clipping with four fixed offered loads')
     protocol.add_argument('--joint-stress', action='store_true',
                           help='Cross finite-flow placement with capacity-fit admission')
+    protocol.add_argument('--heterogeneous', action='store_true',
+                          help='Cross both interventions with asymmetric NIC capacities')
     args = parser.parse_args()
     scenarios, seeds, admissions = SCENARIOS, SEEDS, ADMISSIONS
     policies = POLICIES
@@ -60,9 +70,13 @@ def main():
         admissions = ('always', 'prefix_fit')
         comparisons = (('prefix_fit', 'always'),)
     out = new_directory(args.out)
-    if args.joint_stress:
+    if args.joint_stress or args.heterogeneous:
         from scripts.research_rollout_efficiency import STRESS
         scenarios, seeds = STRESS, JOINT_SEEDS
+        if args.heterogeneous:
+            seeds = HETEROGENEOUS_SEEDS
+            scenarios = tuple(dict(shape, compute_scale=16., fabric=8., capacity=256,
+                                   burst=12) for shape in HETEROGENEOUS)
         policies = ('round_robin_cost', 'shadow_cluster_lru', 'shadow_cluster_finite')
         admissions = ('always', 'prefix_fit')
         comparisons = (('prefix_fit', 'always'),)
@@ -118,7 +132,7 @@ def main():
         dict(policy=policy, **r) for policy in policies
         for r in summaries([p for p in pairs if p['policy'] == policy])])
     archived = ['runs.csv', 'pairs.csv', 'summary.csv']
-    if args.joint_stress:
+    if args.joint_stress or args.heterogeneous:
         matched = {}
         for row in rows:
             grouped = matched.setdefault((row['scenario'], row['seed'], row['admission']), {})

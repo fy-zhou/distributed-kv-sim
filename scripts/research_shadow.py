@@ -80,7 +80,10 @@ class MeasuredSimulator(AuditSimulator):
 
 def inputs(scenario,seed,count):
     params=dict(DEFAULTS,**{k:v for k,v in scenario.items()if k!='name'})
-    specs=[NodeSpec(i,params['capacity'],params['nic'])for i in range(params['nodes'])]
+    bandwidths = params.get('nic_by_node', [params['nic']]*params['nodes'])
+    if len(bandwidths) != params['nodes']:
+        raise ValueError('nic_by_node must cover every node')
+    specs = [NodeSpec(i, params['capacity'], rate) for i, rate in enumerate(bandwidths)]
     if params['kind']=='hotspot':
         reqs,hot=make_hotspot_workload(count=count,seed=seed,shared_blocks=params['shared'],
             burst_width=params['burst'],burst_gap_ms=params['gap'],hot_probability=params['popularity'])
