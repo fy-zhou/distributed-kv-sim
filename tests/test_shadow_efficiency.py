@@ -236,3 +236,13 @@ class ForecastEfficiencyTests(unittest.TestCase):
         self.assertEqual(original.rows, candidate.rows)
         self.assertEqual(original.residuals, candidate.residuals)
         self.assertEqual(candidate.service_events, {})
+
+    def test_certified_execution_reuse_shortcut_preserves_cold_and_warm_actions(self):
+        from scripts.research_shadow import trial
+        for scale in (1., 16.):
+            scenario = dict(name='small', shared=64, capacity=136, compute_scale=scale)
+            base, _ = trial(scenario, 2201, 'always', 'round_robin_cost', 20)
+            fast, _ = trial(scenario, 2201, 'always', 'round_robin_cost', 20,
+                            certified_reuse_shortcut=True)
+            self.assertEqual(base.rows, fast.rows)
+            self.assertEqual(base.residuals, fast.residuals)

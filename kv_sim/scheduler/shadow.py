@@ -6,11 +6,9 @@ pins are conservatively retained throughout the local forecast. This is a
 local rollout approximation, not a cluster event replay or oracle.
 """
 from collections import OrderedDict
-import math
-from ..predictor import ComputePredictor, H2DPredictor, TransferPredictor
 from .shadow_network import active_remaining
 from ..cache import BlockCache, admitted_blocks
-from .reuse import minimum_service
+from .reuse import certified_cold_cost, minimum_service
 
 POLICIES = ('shadow_frozen', 'shadow_cache', 'shadow_bounded',
             'shadow_fast', 'shadow_network', 'shadow_fast_lru', 'shadow_cluster',
@@ -87,37 +85,11 @@ def complete_unpinned_lru(cache, request, remote, local, admission):
             blocks[key] = None
 
 
-def _cold_cost(sim, req):
-    """Return a cache-independent cost only if reuse strictly loses."""
-    compute, h2d, transfer = sim.compute_predictor, sim.h2d_predictor, sim.transfer_predictor
-    if (type(compute) is not ComputePredictor or type(h2d) is not H2DPredictor
-            or type(transfer) is not TransferPredictor):
-        return None
-    coefficients = (compute.fixed_ms, compute.ms_per_new_token,
-                    compute.ms_per_causal_pair, h2d.fixed_ms,
-                    h2d.ms_per_gib, h2d.kv_bytes_per_token, transfer.setup_ms)
-    if not all(math.isfinite(x) and x >= 0 for x in coefficients):
-        return None
-    if sim.cfg.kv_bytes_per_token <= 0 or sim.cfg.block_size <= 0:
-        return None
-    cold = sim._compute_time(req, 0)
-    if not req.hashes:
-        return cold
-    # For positive hits the cost curve is concave. Check both endpoints.
-    full = len(req.hashes)
-    ends = [sim._h2d_time(h) + sim._compute_time(req, h) for h in (1, full)]
-    # Leave numerical near-ties to the unmodified planner, which prefers local reuse.
-    margin = max(abs(cold), *map(abs, ends), 1.) * 1e-12
-    if min(ends) > cold + margin:
-        return cold
-    return None
-
-
 def _cold_forecast(sim, req, node, horizon, waiting, memo):
     def cost(request):
         key = (request.length_tokens, len(request.hashes))
         if key not in memo:
-            memo[key] = _cold_cost(sim, request)
+            memo[key] = certified_cold_cost(sim, request)
         return memo[key]
 
     compute = cost(req)

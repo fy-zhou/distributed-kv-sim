@@ -6,6 +6,37 @@ service predictors as execution. No future cache states are assumed known.
 """
 
 
+import math
+
+from ..predictor import ComputePredictor, H2DPredictor, TransferPredictor
+
+
+def certified_cold_cost(sim, req):
+    """Return a cache-independent cost only if reuse strictly loses."""
+    compute, h2d, transfer = sim.compute_predictor, sim.h2d_predictor, sim.transfer_predictor
+    if (type(compute) is not ComputePredictor or type(h2d) is not H2DPredictor
+            or type(transfer) is not TransferPredictor):
+        return None
+    coefficients = (compute.fixed_ms, compute.ms_per_new_token,
+                    compute.ms_per_causal_pair, h2d.fixed_ms,
+                    h2d.ms_per_gib, h2d.kv_bytes_per_token, transfer.setup_ms)
+    if not all(math.isfinite(x) and x >= 0 for x in coefficients):
+        return None
+    if sim.cfg.kv_bytes_per_token <= 0 or sim.cfg.block_size <= 0:
+        return None
+    cold = sim._compute_time(req, 0)
+    if not req.hashes:
+        return cold
+    # For positive hits the cost curve is concave. Check both endpoints.
+    full = len(req.hashes)
+    ends = [sim._h2d_time(h) + sim._compute_time(req, h) for h in (1, full)]
+    # Leave numerical near-ties to the unmodified planner, which prefers local reuse.
+    margin = max(abs(cold), *map(abs, ends), 1.) * 1e-12
+    if min(ends) > cold + margin:
+        return cold
+    return None
+
+
 def minimum_service(sim, req, dest, isolated=False):
     local = sim._hit(req, dest)
     # Tuple semantics: consumed local blocks, source, total reused blocks.
@@ -57,4 +88,6 @@ def choose_reuse(sim, req, node_id, isolated=False):
     planner = REUSE_PLANNERS.get(sim.cfg.policy)
     if planner is None:
         return sim._best_source(req, node_id)
+    if sim.cfg.certified_reuse_shortcut and certified_cold_cost(sim, req) is not None:
+        return 0, None, 0
     return planner(sim, req, node_id, isolated=isolated)

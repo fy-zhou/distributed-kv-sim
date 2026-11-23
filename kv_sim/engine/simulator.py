@@ -37,6 +37,7 @@ class Config:
     network_externality_weight: float = 1.0
     trace_decisions: bool = False
     shadow_cache_updates: int = 8
+    certified_reuse_shortcut: bool = False
 
 
 class Simulator:

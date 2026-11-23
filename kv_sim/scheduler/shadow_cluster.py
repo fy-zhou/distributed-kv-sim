@@ -111,7 +111,7 @@ def _fork(sim, *, cache_type=BlockCache):
 
 def cold_forecasts(sim, req, nodes):
     """Predict exact ready times without a fork if every queued job is cold."""
-    from .shadow import _cold_cost
+    from .reuse import certified_cold_cost
 
     if sim.network.flows or any(
             node.active and node.active.expected_finish_ms is None
@@ -122,7 +122,7 @@ def cold_forecasts(sim, req, nodes):
     def cost(request):
         key = (request.length_tokens, len(request.hashes))
         if key not in memo:
-            memo[key] = _cold_cost(sim, request)
+            memo[key] = certified_cold_cost(sim, request)
         return memo[key]
 
     compute = cost(req)
