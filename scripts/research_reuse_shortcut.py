@@ -11,6 +11,7 @@ from scripts.research_common import archive, new_directory, provenance, write_cs
 from scripts.research_evaluate import SCENARIOS
 from scripts.research_shadow import TIMING_FIELDS, inputs, trial
 
+MEMO_SEEDS = {'development': (2400, 2401), 'evaluation': (2301, 2302, 2303, 2304, 2305)}
 SEEDS = {'development': (2300, 2301), 'evaluation': (2201, 2202, 2203, 2204, 2205)}
 POLICIES = ('round_robin_cost', 'shadow_cluster_events')
 SHAPES = ('reference', 'compute_heavy', 'short_prefix', 'long_prefix')
@@ -21,7 +22,9 @@ def main():
     parser.add_argument('--split', choices=SEEDS, required=True)
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--archive', type=Path, required=True)
+    parser.add_argument('--memoized', action='store_true')
     args = parser.parse_args()
+    seeds = MEMO_SEEDS if args.memoized else SEEDS
     out = new_directory(args.out)
     count = 80
     rows, paired = [], []
@@ -29,7 +32,7 @@ def main():
         name = scenario['name']
         if name not in SHAPES:
             continue
-        for seed in SEEDS[args.split]:
+        for seed in seeds[args.split]:
             prepared = inputs(scenario, seed, count)
             for admission in ('always', 'no_remote'):
                 for policy in POLICIES:
@@ -38,7 +41,8 @@ def main():
                         values = {}
                         for enabled in (False, True)[::1 if not repeat else -1]:
                             _, row = trial(scenario, seed, admission, policy, count,
-                                prepared=prepared, certified_reuse_shortcut=enabled)
+                                prepared=prepared, certified_reuse_shortcut=enabled or args.memoized,
+                                memoized_reuse_certificate=enabled and args.memoized)
                             deterministic = {k:v for k,v in row.items() if k not in TIMING_FIELDS}
                             if original is None:
                                 original = deterministic
@@ -68,7 +72,7 @@ def main():
     write_csv(out/'pairs.csv', paired)
     write_csv(out/'summary.csv', summary)
     (out/'config.json').write_text(json.dumps(provenance(dict(
-        seeds=SEEDS[args.split], policies=POLICIES, shapes=SHAPES, requests=count,
+        seeds=seeds[args.split], memoized=args.memoized, policies=POLICIES, shapes=SHAPES, requests=count,
         timing='AB/BA repeats within every paired workload, measured on the host.',
         interpretation='All deterministic results including outcome and ordered-cache hashes must match.'
                        ' Execution-planning and total CPU costs are reported separately.')),

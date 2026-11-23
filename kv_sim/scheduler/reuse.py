@@ -84,10 +84,27 @@ REUSE_PLANNERS = {'cost_aware': minimum_service,
                   'shadow_cold_queue': minimum_service}
 
 
+def _execution_certificate(sim, req):
+    cache = sim.reuse_certificates
+    if cache is None:
+        return certified_cold_cost(sim, req)
+    compute, h2d, transfer = sim.compute_predictor, sim.h2d_predictor, sim.transfer_predictor
+    if (type(compute) is not ComputePredictor or type(h2d) is not H2DPredictor
+            or type(transfer) is not TransferPredictor):
+        return None
+    key = (compute, h2d, transfer, sim.cfg.block_size, sim.cfg.kv_bytes_per_token,
+           req.length_tokens, len(req.hashes))
+    if key not in cache:
+        if len(cache) >= 4096:
+            cache.clear()
+        cache[key] = certified_cold_cost(sim, req)
+    return cache[key]
+
+
 def choose_reuse(sim, req, node_id, isolated=False):
     planner = REUSE_PLANNERS.get(sim.cfg.policy)
     if planner is None:
         return sim._best_source(req, node_id)
-    if sim.cfg.certified_reuse_shortcut and certified_cold_cost(sim, req) is not None:
+    if sim.cfg.certified_reuse_shortcut and _execution_certificate(sim, req) is not None:
         return 0, None, 0
     return planner(sim, req, node_id, isolated=isolated)

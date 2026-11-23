@@ -38,6 +38,7 @@ class Config:
     trace_decisions: bool = False
     shadow_cache_updates: int = 8
     certified_reuse_shortcut: bool = False
+    memoized_reuse_certificate: bool = False
 
 
 class Simulator:
@@ -80,6 +81,7 @@ class Simulator:
         self.decisions = []
         self.tracked_prefix = ()
         self.cache_trace = []
+        self.reuse_certificates = {} if self.cfg.memoized_reuse_certificate else None
 
     def track_prefix(self, prefix_hashes):
         """Opt-in prefix residency audit; read-only and no scheduler effects."""

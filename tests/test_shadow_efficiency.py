@@ -254,3 +254,15 @@ class ForecastEfficiencyTests(unittest.TestCase):
         req = Request.from_tokens('equal', 0., list(range(64)))
         sim.seed_cache(0, req.hashes)
         self.assertEqual(sim._reuse_choice(req, 0), (4, None, 4))
+
+    def test_memoized_certificate_invalidates_when_predictor_changes(self):
+        from kv_sim.predictor import ComputePredictor
+        sim = Simulator([NodeSpec(0, 260)], Config(policy='round_robin_cost',
+            certified_reuse_shortcut=True, memoized_reuse_certificate=True))
+        req = Request.from_tokens('r', 0., list(range(4160)))
+        sim.seed_cache(0, req.hashes)
+        self.assertEqual(sim._reuse_choice(req, 0), (0, None, 0))
+        self.assertEqual(len(sim.reuse_certificates), 1)
+        sim.compute_predictor = ComputePredictor(ms_per_new_token=1.)
+        self.assertEqual(sim._reuse_choice(req, 0), (260, None, 260))
+        self.assertEqual(len(sim.reuse_certificates), 2)
