@@ -35,11 +35,14 @@ class Config:
     admission: str = "always"
     network_externality_weight: float = 1.0
     trace_decisions: bool = False
+    shadow_cache_updates: int = 8
 
 
 class Simulator:
     def __init__(self, specs, config=None):
         self.cfg = config or Config()
+        if self.cfg.shadow_cache_updates < 0:
+            raise ValueError("shadow_cache_updates must be nonnegative")
         if not specs:
             raise ValueError("at least one node required")
         if len({s.node_id for s in specs}) != len(specs):
@@ -142,6 +145,9 @@ class Simulator:
 
     def _estimate_breakdown(self, req, node_id):
         """Estimated waiting, transfer and compute costs for one candidate."""
+        from ..scheduler.shadow import POLICIES, forecast, horizon
+        if self.cfg.policy in POLICIES:
+            return forecast(self, req, node_id, horizon(self))
         node = self.nodes[node_id]
         local, source, length = self._reuse_choice(req, node_id)
         remote = length - local if source is not None else 0

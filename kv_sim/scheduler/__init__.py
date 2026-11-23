@@ -1,5 +1,5 @@
 """Policy dispatch. Strategies receive simulator + request, return node ID."""
-from . import round_robin, shortest_queue, max_hit, greedy, bandwidth_aware, cost_aware
+from . import round_robin, shortest_queue, max_hit, greedy, bandwidth_aware, cost_aware, shadow
 
 POLICIES = {
     "round_robin": round_robin.select,
@@ -9,6 +9,7 @@ POLICIES = {
     "bandwidth_aware": bandwidth_aware.select,
     "cost_aware": cost_aware.select,
     "round_robin_cost": round_robin.select,
+    **{name: shadow.select for name in shadow.POLICIES},
 }
 
 

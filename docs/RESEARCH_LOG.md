@@ -303,3 +303,51 @@ No historical experiment archive was modified. The user's original
 `.gitignore` edit remains uncommitted and unchanged. No GPUs/models/system
 packages were installed; plotting dependencies exist only in a new results-side
 virtual environment. GPU 1 was never used by these measurements.
+
+## Iteration 4 — shadow FIFO/cache placement (2026-11-24)
+
+Resume verified local/GitHub checkpoint: `5d05886`; 49 tests pass, no old
+research process running. Work branch `research/shadow-rollout` preserves the
+prior branch. The original `.gitignore` change remains outside commits.
+
+Question: does forecasting replicas created by already queued requests remove
+source overload when service actions are held identical? Hypothesis: summing
+queued costs against today's cache overprices cold destinations that will
+soon create their own reusable prefixes. A local FIFO/cache rollout should
+reduce that prediction error and improve placement in compute-heavy and
+long-prefix regimes, but may fail when other nodes or pins evolve.
+
+Three predeclared placement candidates use the exact same minimum_service
+execution planner as cost_aware and round_robin_cost:
+- shadow_frozen: frozen-cache control, isolated rates for delayed service;
+- shadow_cache: roll active completion and every known FIFO job into a private
+  target cache, accounting for touches, LRU, capacity and admission;
+- shadow_bounded: same, but stop cache updates after eight completions. Every
+  tail job still contributes service time on the last forecast cache.
+
+No future arrival events or trace generator state are read. Other-node caches
+are frozen; queued transfers use isolated link rates; active work uses the
+existing remaining-work predictor. Outgoing pins are conservatively retained
+throughout the forecast. These limitations make this an approximate local
+rollout, not an exact full-cluster or oracle simulation. Real execution always
+replans with minimum_service from current live state. No admission, network,
+compute or legacy-policy semantics changed.
+
+Tests establish a single-node closed-form forecast matching actual completion,
+cache-root loss after oversized admission, no_remote semantics, no future-event
+peek, no mutation of live caches/pins/jobs/network/events, and full accounting
+of tail jobs after the bounded horizon. Common instrumentation is verified to
+preserve per-request outcomes and count exactly one execution plan/request.
+57 tests pass before development runs.
+
+Protocol frozen in scripts/research_shadow.py: development seeds 21/22;
+held-out 201–205. Reuse the prior 14 scenario definitions, 120 requests,
+two admissions, all seven old policies plus three new candidates. Report all
+variants, using round_robin_cost as primary placement comparator and frozen
+rollout as cache-evolution ablation. No evaluation-seed tuning or variant
+selection. Time both actual placement and every execution-time service plan
+with the same instrumentation for all policies; observer forecasts/residuals
+and I/O are excluded. Do not add measured CPU overhead to simulated TTFT.
+Raw per-request outcomes and forecasts are streamed to compressed JSONL
+outside Git; compact summaries retain every condition and negative outcome.
+Whole-seed bootstrap preserves correlated scenario/admission pairs.
