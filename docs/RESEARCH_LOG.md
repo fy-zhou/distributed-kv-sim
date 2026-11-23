@@ -1120,3 +1120,36 @@ all 36 same-policy pairs and ranges of +38.35–39.94% (RR-cost),
 +51.63–54.79% (Cost-Aware) and +57.20–59.12% (Shadow-Fast) mean paired
 P95 across the measured worker-load proxy and the two serial spill
 assumptions. Holdout and independent replay are separate.
+
+## Capacity-fit under load and spill cost, held out
+
+Source `120ad80`, development 2500–2501 and holdout 2401–2405.
+The prior admission hypothesis survives the measured worker-load fit and
+both assumed serial D2H rates. All 90 same-policy P95 pairs improve over
+always on the two capacity-cliff workloads (hotspot and variable-length
+Zipf). Mean paired P95 improvement ranges +38.67–40.91% for RR-cost,
++57.82–59.72% for Cost-Aware and +57.52–62.52% for Shadow-Fast. The
+lowest of nine mean comparisons is RR-cost with the worker-load proxy.
+The 180 configurations independently replay exactly, including admission
+and placement comparison tables. The D2H rates remain assumptions.
+Both GPUs were occupied at the latest run check.
+
+## Serial controller with matched dispatch pacing, pilot
+
+Sources `3172f7c` and `41b9e1a`. The controller snapshots the cluster
+at the start or finish of a fixed, FCFS placement CPU interval. It commits
+the selected node at the end in either mode. A focused test holds both
+dispatch times fixed and observes a different active job at decision time.
+The initial fixture used zero cache capacity and was corrected. 85 tests
+pass. Timing rates come only from the finite-policy development placement
+timer, excluding node-side KV replanning. Wait enters simulated TTFT.
+
+The 120-run development pilot (2700–2701) found no Round-Robin assignment
+or P95 change between snapshots. At full placement cost, start vs finish
+averages +2.42% P95 for Finite and −0.70% for Cluster-LRU. Finite vs
+Cluster-LRU changes sign from −0.84% at finish to +2.62% at start. These
+two development seeds motivate checking sensitivity on held-out
+2601–2605. The same-mode comparisons and start-vs-finish controls are
+declared in the runner. The controller does not reserve nodes or perform
+a second placement decision, and a single fixed compute interval per
+policy is a sensitivity parameter.

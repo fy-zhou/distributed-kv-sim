@@ -1,0 +1,7 @@
+profile,candidate,baseline,conditions,seed_clusters,mean_p95_improvement_pct,seed_bootstrap_p025,seed_bootstrap_p975,improve,neutral,regress
+worker_load_proxy,shadow_fast,cost_aware,20,5,12.520589484202223,9.276029990730107,15.765148977674338,17,0,3
+worker_load_proxy,shadow_fast,round_robin_cost,20,5,-7.226007212309095,-8.183178377950824,-6.194627215703299,12,0,8
+serial_spill_16,shadow_fast,cost_aware,20,5,11.579674244719564,10.201380256358416,12.874403738104222,17,0,3
+serial_spill_16,shadow_fast,round_robin_cost,20,5,-8.312047948187951,-10.577227718857017,-6.412639444799319,12,0,8
+serial_spill_32,shadow_fast,cost_aware,20,5,9.582228224114662,7.382902364417015,12.112366192599982,16,0,4
+serial_spill_32,shadow_fast,round_robin_cost,20,5,-10.400989913688669,-12.573350265041732,-8.330734453703272,11,0,9

@@ -1,0 +1,34 @@
+{
+  "verified_runs": 180,
+  "ignored_fields": [
+    "decision_max_us",
+    "decision_mean_us",
+    "execution_plan_mean_us",
+    "total_planning_mean_us"
+  ],
+  "compared": "All deterministic run fields and byte-identical paired and summary CSVs.",
+  "original": {
+    "path": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261124-prefix-spill-evaluation",
+    "code_commit": "5cdcd5171b71fb6e88ce87927567cd065fd6883a",
+    "sha256": {
+      "config.json": "9c99e4c67f004f458365b9e77d23ddb6f6033d4c44128e5b25f2317f84114e37",
+      "runs.csv": "a88353bdd5460da29a06ce0c0f1887e6b8d922e25d805ccceac418568a8a640f",
+      "pairs.csv": "644b34dd4fb28888194caed4cc56c5b0a1a6154e986c8be660c18a024c6e770c",
+      "summary.csv": "9359f628da21bcd9a6e08b56ed1f82415de3da419e87d5ebcc4b11a73dee2ef6",
+      "admission_pairs.csv": "6d17f87510688da4292100fc1d7136e3fb73fc7ed2c23a30bf2148c5ff5a7973",
+      "admission_summary.csv": "55a35fba925ee34ecb6ad0b8c5ef8ac2cb752a105f77142d0273e0f0e3fd6301"
+    }
+  },
+  "replay": {
+    "path": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261124-prefix-spill-replay",
+    "code_commit": "d3409432e0feecaeb2edf65793b1c9a6581735bf",
+    "sha256": {
+      "config.json": "72d66d488598378bce895e18f95f164b0d588a1260cb38ae9549b0c732da3725",
+      "runs.csv": "acc17c5d4a8bdebfc78a11a16f5b5059e2ed6c73e71bd866d274b53819f65730",
+      "pairs.csv": "644b34dd4fb28888194caed4cc56c5b0a1a6154e986c8be660c18a024c6e770c",
+      "summary.csv": "9359f628da21bcd9a6e08b56ed1f82415de3da419e87d5ebcc4b11a73dee2ef6",
+      "admission_pairs.csv": "6d17f87510688da4292100fc1d7136e3fb73fc7ed2c23a30bf2148c5ff5a7973",
+      "admission_summary.csv": "55a35fba925ee34ecb6ad0b8c5ef8ac2cb752a105f77142d0273e0f0e3fd6301"
+    }
+  }
+}

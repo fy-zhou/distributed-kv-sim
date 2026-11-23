@@ -1,0 +1,10 @@
+policy,profile,candidate,baseline,conditions,seed_clusters,mean_p95_improvement_pct,seed_bootstrap_p025,seed_bootstrap_p975,improve,neutral,regress
+round_robin_cost,worker_load_proxy,prefix_fit,always,10,5,38.66880107247795,37.33498205884565,40.28533241636041,10,0,0
+round_robin_cost,serial_spill_16,prefix_fit,always,10,5,40.91067171958122,39.12037492524154,42.69455916538468,10,0,0
+round_robin_cost,serial_spill_32,prefix_fit,always,10,5,40.03763124108413,38.01839010861555,42.177213707425665,10,0,0
+cost_aware,worker_load_proxy,prefix_fit,always,10,5,57.82191926928338,54.534358961668985,61.19198789873307,10,0,0
+cost_aware,serial_spill_16,prefix_fit,always,10,5,59.71851930433563,55.36748996956834,64.17228411172668,10,0,0
+cost_aware,serial_spill_32,prefix_fit,always,10,5,58.980937137192576,56.50324475798145,61.78840691389825,10,0,0
+shadow_fast,worker_load_proxy,prefix_fit,always,10,5,57.522461441130474,56.22058630959964,58.81064264942852,10,0,0
+shadow_fast,serial_spill_16,prefix_fit,always,10,5,62.52367235106448,60.490931979321985,64.83352302762037,10,0,0
+shadow_fast,serial_spill_32,prefix_fit,always,10,5,60.59245639536132,57.20518313079185,63.97972965993079,10,0,0
