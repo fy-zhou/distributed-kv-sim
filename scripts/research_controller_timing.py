@@ -18,10 +18,14 @@ from scripts.research_rollout_efficiency import FINITE_SEEDS, STRESS
 from scripts.research_shadow import MeasuredSimulator, inputs, summaries, trial
 
 SEEDS = {'development': (2700, 2701), 'evaluation': (2601, 2602, 2603, 2604, 2605)}
+CONCURRENCY_SEEDS = {'development': (4200, 4201),
+                     'evaluation': (4301, 4302, 4303, 4304, 4305)}
 POLICIES = ('round_robin_cost', 'shadow_cluster_lru', 'shadow_cluster_finite')
-MODES = {'zero': ('finish', 0.), 'start_quarter': ('start', .25),
-         'finish_quarter': ('finish', .25), 'start_full': ('start', 1.),
-         'finish_full': ('finish', 1.)}
+MODES = {'zero': ('finish', 0., 1), 'start_quarter': ('start', .25, 1),
+         'finish_quarter': ('finish', .25, 1), 'start_full': ('start', 1., 1),
+         'finish_full': ('finish', 1., 1)}
+CONCURRENCY = {f'{snapshot}_{slots}': (snapshot, 1., slots)
+               for slots in (1, 2, 4) for snapshot in ('start', 'finish')}
 
 
 class ControllerSimulator(MeasuredSimulator):
@@ -30,15 +34,20 @@ class ControllerSimulator(MeasuredSimulator):
     A frozen placement has no node reservation. Execution replans the KV
     route when the request reaches service, as in the default engine.
     """
-    def __init__(self, *args, placement_ms, snapshot, **kwargs):
+    def __init__(self, *args, placement_ms, snapshot, slots=1, **kwargs):
         super().__init__(*args, **kwargs)
-        if placement_ms < 0 or snapshot not in ('start', 'finish'):
+        if placement_ms < 0 or snapshot not in ('start', 'finish') or slots < 1:
             raise ValueError('invalid controller parameters')
         self.placement_ms = placement_ms
         self.snapshot = snapshot
         self.pending = deque()
-        self.placement_active = False
+        self.slots = slots
+        self.in_flight = 0
         self.controller_trace = []
+
+    @property
+    def placement_active(self):
+        return self.in_flight > 0
 
     def _decision(self, req, dispatch_ms):
         chosen = self._choose(req)
@@ -49,7 +58,7 @@ class ControllerSimulator(MeasuredSimulator):
         return chosen
 
     def _begin(self, req):
-        self.placement_active = True
+        self.in_flight += 1
         end = self.now + self.placement_ms
         chosen = self._decision(req, end) if self.snapshot == 'start' else None
         # Reuse the external-arrival class so private service forks omit
@@ -61,7 +70,7 @@ class ControllerSimulator(MeasuredSimulator):
             super()._on_arrival(event)
             return
         if isinstance(event, Request):
-            if self.placement_active:
+            if self.in_flight == self.slots:
                 self.pending.append(event)
             else:
                 self._begin(event)
@@ -73,29 +82,32 @@ class ControllerSimulator(MeasuredSimulator):
         self.controller_trace.append(dict(request_id=req.request_id, node=chosen,
             arrival_ms=req.arrival_ms, start_ms=started, dispatch_ms=self.now))
         self._dispatch(req, chosen)
-        self.placement_active = False
+        self.in_flight -= 1
         if self.pending:
             self._begin(self.pending.popleft())
 
 
-def paired(rows):
+def paired(rows, modes, snapshots, extra):
     groups = {}
     for row in rows:
         group = groups.setdefault((row['scenario'], row['seed']), {})
         group[row['mode'], row['policy']] = row
     comparisons = []
     for (scenario, seed), group in sorted(groups.items()):
-        assert set(group) == {(mode, policy) for mode in MODES for policy in POLICIES}
+        assert set(group) == {(mode, policy) for mode in modes for policy in POLICIES}
         assert len({r['trace_hash'] for r in group.values()}) == 1
         assert len({r['initial_cache_hash'] for r in group.values()}) == 1
         targets = []
-        for mode in MODES:
+        for mode in modes:
             for policy in POLICIES[1:]:
                 targets.append(((mode, policy), (mode, POLICIES[0])))
             targets.append(((mode, POLICIES[2]), (mode, POLICIES[1])))
-        for scale in ('quarter', 'full'):
+        for start, finish in snapshots:
             for policy in POLICIES:
-                targets.append((('start_'+scale, policy), ('finish_'+scale, policy)))
+                targets.append(((start, policy), (finish, policy)))
+        for candidate, baseline in extra:
+            for policy in POLICIES:
+                targets.append(((candidate, policy), (baseline, policy)))
         for candidate, baseline in targets:
             c = group[candidate]['p95_ttft_ms']
             b = group[baseline]['p95_ttft_ms']
@@ -113,7 +125,14 @@ def main():
     parser.add_argument('--timing', type=Path, required=True)
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--archive', type=Path)
+    parser.add_argument('--concurrency', action='store_true')
     args = parser.parse_args()
+    modes = CONCURRENCY if args.concurrency else MODES
+    seeds = CONCURRENCY_SEEDS if args.concurrency else SEEDS
+    snapshots = ([(f'start_{slots}', f'finish_{slots}') for slots in (1, 2, 4)] if args.concurrency
+                 else [('start_quarter', 'finish_quarter'), ('start_full', 'finish_full')])
+    extra = ([(f'{snapshot}_{slots}', f'{snapshot}_1') for snapshot in ('start', 'finish')
+              for slots in (2, 4)] if args.concurrency else [])
     with args.timing.open(newline='') as handle:
         development = list(csv.DictReader(handle))
     if {int(row['seed']) for row in development} != set(FINITE_SEEDS['development']):
@@ -123,24 +142,24 @@ def main():
              for policy in POLICIES}
     out = new_directory(args.out)
     admission = 'always'
-    config = provenance(dict(split=args.split, seeds=SEEDS[args.split], scenarios=STRESS,
-        policies=POLICIES, admission=admission, requests=120, modes=MODES,
+    config = provenance(dict(split=args.split, seeds=seeds[args.split], scenarios=STRESS,
+        policies=POLICIES, admission=admission, requests=120, modes=modes,
         rates_ms=rates, timing_source=str(args.timing),
         timing_sha256=hashlib.sha256(args.timing.read_bytes()).hexdigest(),
-        controller='Serial FCFS, constant development placement-only CPU per policy. '
+        controller='FCFS placement slots, constant development placement-only CPU per policy. '
                    'No node reservation; execution replans at service. Controller time is in TTFT.'))
     (out/'config.json').write_text(json.dumps(config, indent=2)+'\n')
     rows = []
     with gzip.GzipFile(str(out/'traces.jsonl.gz'), 'wb', mtime=0) as trace:
         for scenario in STRESS:
-            for seed in SEEDS[args.split]:
+            for seed in seeds[args.split]:
                 prepared = inputs(scenario, seed, 120)
-                order = sorted(((mode, policy) for mode in MODES for policy in POLICIES),
+                order = sorted(((mode, policy) for mode in modes for policy in POLICIES),
                                key=lambda key: digest([scenario['name'], seed, key]))
                 for mode, policy in order:
-                    snapshot, scale = MODES[mode]
+                    snapshot, scale, slots = modes[mode]
                     cost = rates[policy]*scale
-                    factory = partial(ControllerSimulator, placement_ms=cost, snapshot=snapshot)
+                    factory = partial(ControllerSimulator, placement_ms=cost, snapshot=snapshot, slots=slots)
                     sim, row = trial(scenario, seed, admission, policy,
                                      prepared=prepared, simulator_factory=factory)
                     controller = sim.controller_trace
@@ -157,12 +176,12 @@ def main():
                     rows.append(row)
                 group = {(r['mode'], r['policy']): r for r in rows[-len(order):]}
                 for policy in POLICIES:
-                    for scale in ('quarter', 'full'):
-                        assert (group['start_'+scale, policy]['dispatch_times_hash']
-                                == group['finish_'+scale, policy]['dispatch_times_hash'])
+                    for start, finish in snapshots:
+                        assert (group[start, policy]['dispatch_times_hash']
+                                == group[finish, policy]['dispatch_times_hash'])
                 write_csv(out/'runs.csv', rows)
             print('Completed', args.split, scenario['name'], len(rows), flush=True)
-    pairs = paired(rows)
+    pairs = paired(rows, modes, snapshots, extra)
     write_csv(out/'pairs.csv', pairs)
     write_csv(out/'summary.csv', summaries(pairs))
     if args.archive:

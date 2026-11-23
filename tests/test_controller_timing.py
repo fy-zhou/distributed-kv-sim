@@ -34,3 +34,15 @@ class ControllerTimingTests(unittest.TestCase):
                         else [('0', 5., False), ('1', 10., False)])
             self.assertEqual(sim.decision_states, expected)
         self.assertEqual(traces[0], traces[1])
+
+    def test_two_slots_dispatch_in_fcfs_order_and_read_concurrent_state(self):
+        requests = [Request(str(i), 0., (), 1) for i in range(5)]
+        sim = ObservedController([NodeSpec(0, 1)], Config(policy='round_robin_cost',
+            gpu_ms_per_new_token=0., gpu_ms_per_attention_pair=0.), audit=False,
+            placement_ms=5., snapshot='start', slots=2)
+        sim.run(requests)
+        self.assertEqual([r['dispatch_ms'] for r in sim.controller_trace], [5., 5., 10., 10., 15.])
+        self.assertEqual([r['request_id'] for r in sim.controller_trace], [str(i) for i in range(5)])
+        self.assertEqual(sim.decision_states[:2], [('0', 0., False), ('1', 0., False)])
+        self.assertEqual(sim.in_flight, 0)
+        assert_invariants(sim)
