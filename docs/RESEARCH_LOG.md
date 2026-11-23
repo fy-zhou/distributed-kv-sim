@@ -1051,3 +1051,14 @@ result and forecast parity. RR-cost reference execution-planning ratio
 is 7.831× and short-prefix 2.756×. In compute-heavy the unsuccessful
 certificate adds CPU work (RR-cost combined ratio 0.845×). The longer
 prefix shape similarly has no stable benefit. Both holdouts are running.
+
+The execution certificate holdout 2201–2205 completed 320 runs with
+exact deterministic parity. RR-cost total CPU speed ratios are 6.487×
+reference, 2.457× short-prefix, 0.947× compute-heavy and 0.986× long-prefix.
+Indexed cluster totals are 2.434×, 1.648×, 0.917× and 0.952× respectively.
+The direct proof helps cold shapes, while misses can cost extra work.
+A bounded per-simulator memo is now an optional, equivalent comparison.
+It keys the proof by immutable predictor values and request shape, clears
+when full, and preserves the route if a model changes. New development
+2400–2401 and held-out 2301–2305 are running. Source `cedc0e4`.
+83 tests pass including model-change invalidation and exact service ties.
