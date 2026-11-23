@@ -169,3 +169,16 @@ class ForecastEfficiencyTests(unittest.TestCase):
             self.assertEqual(len(rows), 10)
             self.assertNotIn('prepared', rows[0])
             self.assertLess((out/'runs.csv').stat().st_size, 16000)
+
+    def test_cluster_lru_matches_live_cache_through_pins_and_evictions(self):
+        from kv_sim.cache import BlockCache
+        from kv_sim.scheduler.shadow_cluster import _ForecastCache
+
+        a, b = BlockCache(3), _ForecastCache(3)
+        for cache in (a, b):
+            cache.admit('abc')
+            cache.pin(('b',))
+            cache.admit('def')
+            cache.unpin(('b',))
+            cache.admit('dggca')
+        self.assertEqual(a.__dict__, b.__dict__)

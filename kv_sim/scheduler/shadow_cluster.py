@@ -8,7 +8,26 @@ from ..cluster.node import Node
 from ..engine.events import (EVENT_FLOW_DONE, EVENT_FLOW_START, EVENT_JOB_DONE)
 
 
-def _fork(sim):
+class _ForecastCache(BlockCache):
+    """Use constant-time eviction when the fork has no pinned victims."""
+
+    def admit(self, keys, *, remote=False):
+        if self.pins or remote:
+            return super().admit(keys, remote=remote)
+        inserted = 0
+        for key in keys:
+            if key in self.blocks:
+                self.blocks.move_to_end(key)
+            else:
+                if len(self.blocks) >= self.capacity:
+                    self.blocks.popitem(last=False)
+                    self.evictions += 1
+                self.blocks[key] = None
+                inserted += 1
+        return inserted
+
+
+def _fork(sim, *, fast_cache=False):
     from ..engine.simulator import Simulator
 
     shadow = Simulator([node.spec for node in sim.nodes.values()],
@@ -18,8 +37,9 @@ def _fork(sim):
     shadow.sequence = sim.sequence
     shadow.epoch = sim.epoch
     shadow.network = copy.deepcopy(sim.network)
+    cache_type = _ForecastCache if fast_cache else BlockCache
     for node_id, live in sim.nodes.items():
-        cache = BlockCache(live.cache.capacity, live.cache.admission)
+        cache = cache_type(live.cache.capacity, live.cache.admission)
         cache.blocks = live.cache.blocks.copy()
         cache.pins = live.cache.pins.copy()
         shadow.nodes[node_id] = Node(live.spec, cache, live.queue.copy(),
@@ -74,7 +94,7 @@ def cold_forecasts(sim, req, nodes):
     return predictions
 
 
-def forecasts(sim, req, nodes, *, prune=False):
+def forecasts(sim, req, nodes, *, prune=False, fast_cache=False):
     """Score service on the forecast state when each candidate becomes idle.
 
     A single fork drains the already assigned queues. The new request is
@@ -85,7 +105,7 @@ def forecasts(sim, req, nodes, *, prune=False):
 
     needed = set(nodes)
     predictions = {}
-    shadow = _fork(sim)
+    shadow = _fork(sim, fast_cache=fast_cache)
 
     def ready(node_id):
         if node_id not in needed:
