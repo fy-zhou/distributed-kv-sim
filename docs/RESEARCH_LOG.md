@@ -1062,3 +1062,15 @@ It keys the proof by immutable predictor values and request shape, clears
 when full, and preserves the route if a model changes. New development
 2400–2401 and held-out 2301–2305 are running. Source `cedc0e4`.
 83 tests pass including model-change invalidation and exact service ties.
+
+The Zipf holdout completed 90 runs on variable-length, multi-family
+workloads. Prefix-fit wins all 15 same-placement P95 pairs for each policy.
+Mean paired gains are +30.64% RR-cost, +52.22% Cluster-LRU and +52.68%
+finite. Separately, finite versus Cluster-LRU averages +1.004% within
+prefix_fit, with five improvements, nine ties and one regression. Within
+always the mean is effectively zero and there is one very small regression.
+This supports capacity-fixture admission as the larger effect under these
+shapes. Independent replay is running.
+Both new optional execution flags are exposed in the simulator CLI.
+A paired two-policy prefix_fit smoke run has byte-identical request
+and summary CSVs with and without the memoized option.
