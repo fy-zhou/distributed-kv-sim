@@ -6,7 +6,7 @@ pins are conservatively retained throughout the local forecast. This is a
 local rollout approximation, not a cluster event replay or oracle.
 """
 from collections import OrderedDict
-from .shadow_network import active_remaining
+from .shadow_network import active_remaining, transfer_cost
 from ..cache import BlockCache, admitted_blocks
 from .reuse import certified_cold_cost, minimum_service
 
@@ -14,7 +14,7 @@ POLICIES = ('shadow_frozen', 'shadow_cache', 'shadow_bounded',
             'shadow_fast', 'shadow_network', 'shadow_fast_lru', 'shadow_cluster',
             'shadow_cluster_pruned', 'shadow_cluster_fast', 'shadow_cluster_lru',
             'shadow_cluster_indexed', 'shadow_cluster_gated', 'shadow_cluster_finite', 'shadow_cluster_events',
-            'shadow_cold_queue')
+            'shadow_cluster_routes', 'shadow_cold_queue')
 
 
 class _LocalView:
@@ -30,15 +30,19 @@ class _LocalView:
         return self.sim._hit(req, node_id)
 
 
-def _service(view, req, target, isolated):
-    local, source, hit = minimum_service(view, req, target, isolated=isolated)
+def _service(view, req, target, isolated, *, compare_finite_routes=False):
+    transfer_ms = transfer_cost(view, target) if compare_finite_routes else None
+    local, source, hit = minimum_service(view, req, target, isolated=isolated, transfer_ms=transfer_ms)
     remote = hit-local if source is not None else 0
     payload = remote*view.cfg.block_size*view.cfg.kv_bytes_per_token
     network_ms = 0.
     if remote:
-        rate = (min(view.network.nic[source], view.network.nic[target], view.network.fabric)
-                if isolated else view.network.prospective_rate(source, target))
-        network_ms = view.transfer_predictor.predict_ms(payload, rate)
+        if transfer_ms is None:
+            rate = (min(view.network.nic[source], view.network.nic[target], view.network.fabric)
+                    if isolated else view.network.prospective_rate(source, target))
+            network_ms = view.transfer_predictor.predict_ms(payload, rate)
+        else:
+            network_ms = transfer_ms(source, payload)
     h2d_ms, compute_ms = view._h2d_time(hit), view._compute_time(req, hit)
     return dict(node=target, local_blocks=local, remote_blocks=remote,
                 total_hit_blocks=hit, source=source, payload_bytes=payload,
@@ -192,7 +196,8 @@ def forecasts(sim, req, nodes):
         from .shadow_cluster import (_ForecastCache, _ForecastGatedCache, _ForecastIndexedCache,
                                      cold_forecasts, forecasts as cluster_forecasts)
         if policy in ('shadow_cluster_fast', 'shadow_cluster_lru', 'shadow_cluster_indexed',
-                      'shadow_cluster_gated', 'shadow_cluster_finite', 'shadow_cluster_events'):
+                      'shadow_cluster_gated', 'shadow_cluster_finite', 'shadow_cluster_events',
+                      'shadow_cluster_routes'):
             cold = cold_forecasts(sim, req, nodes)
             if cold is not None:
                 return cold
@@ -205,9 +210,11 @@ def forecasts(sim, req, nodes):
                       'shadow_cluster_indexed': _ForecastIndexedCache,
                       'shadow_cluster_gated': _ForecastGatedCache,
                       'shadow_cluster_finite': _ForecastCache,
-                      'shadow_cluster_events': _ForecastCache}.get(policy, BlockCache)
+                      'shadow_cluster_events': _ForecastCache,
+                      'shadow_cluster_routes': _ForecastCache}.get(policy, BlockCache)
         return cluster_forecasts(sim, req, nodes, prune=prune, cache_type=cache_type,
-                                 finite_service=policy in ('shadow_cluster_finite', 'shadow_cluster_events'))
+                                 finite_service=policy in ('shadow_cluster_finite', 'shadow_cluster_events'),
+                                 compare_finite_routes=policy == 'shadow_cluster_routes')
     memo = {} if policy in ('shadow_fast', 'shadow_network', 'shadow_fast_lru') else None
     update = complete_unpinned_lru if policy == 'shadow_fast_lru' else complete_cache
     remaining = active_remaining(sim) if policy == 'shadow_network' else {}

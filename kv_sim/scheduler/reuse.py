@@ -37,7 +37,7 @@ def certified_cold_cost(sim, req):
     return None
 
 
-def minimum_service(sim, req, dest, isolated=False):
+def minimum_service(sim, req, dest, isolated=False, *, transfer_ms=None):
     local = sim._hit(req, dest)
     # Tuple semantics: consumed local blocks, source, total reused blocks.
     choices = [(0, None, 0)]
@@ -55,9 +55,12 @@ def minimum_service(sim, req, dest, isolated=False):
         remote_ms = 0.0
         if source is not None:
             payload = (hit-consumed_local) * sim.cfg.block_size * sim.cfg.kv_bytes_per_token
-            rate = (min(sim.network.nic[source], sim.network.nic[dest], sim.network.fabric)
-                    if isolated else sim.network.prospective_rate(source, dest))
-            remote_ms = sim.transfer_predictor.predict_ms(payload, rate)
+            if transfer_ms is None:
+                rate = (min(sim.network.nic[source], sim.network.nic[dest], sim.network.fabric)
+                        if isolated else sim.network.prospective_rate(source, dest))
+                remote_ms = sim.transfer_predictor.predict_ms(payload, rate)
+            else:
+                remote_ms = transfer_ms(source, payload)
         service = remote_ms + sim._h2d_time(hit) + sim._compute_time(req, hit)
         # Stable ties: avoid transfers, then prefer existing local reuse.
         return service, source is not None, -hit, -1 if source is None else source
@@ -81,6 +84,7 @@ REUSE_PLANNERS = {'cost_aware': minimum_service,
                   'shadow_cluster_gated': minimum_service,
                   'shadow_cluster_finite': minimum_service,
                   'shadow_cluster_events': minimum_service,
+                  'shadow_cluster_routes': minimum_service,
                   'shadow_cold_queue': minimum_service}
 
 
@@ -107,4 +111,7 @@ def choose_reuse(sim, req, node_id, isolated=False):
         return sim._best_source(req, node_id)
     if sim.cfg.certified_reuse_shortcut and _execution_certificate(sim, req) is not None:
         return 0, None, 0
+    if sim.cfg.finite_execution_routes and not isolated and sim.nodes[node_id].active is None:
+        from .shadow_network import transfer_cost
+        return planner(sim, req, node_id, transfer_ms=transfer_cost(sim, node_id))
     return planner(sim, req, node_id, isolated=isolated)

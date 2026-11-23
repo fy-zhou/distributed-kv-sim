@@ -39,6 +39,7 @@ class Config:
     shadow_cache_updates: int = 8
     certified_reuse_shortcut: bool = False
     memoized_reuse_certificate: bool = False
+    finite_execution_routes: bool = False
 
 
 class Simulator:

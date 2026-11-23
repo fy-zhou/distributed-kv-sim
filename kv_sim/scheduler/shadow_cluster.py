@@ -151,7 +151,8 @@ def cold_forecasts(sim, req, nodes):
     return predictions
 
 
-def forecasts(sim, req, nodes, *, prune=False, cache_type=BlockCache, finite_service=False):
+def forecasts(sim, req, nodes, *, prune=False, cache_type=BlockCache, finite_service=False,
+              compare_finite_routes=False):
     """Score service on the forecast state when each candidate becomes idle.
 
     A single fork drains the already assigned queues. The new request is
@@ -170,7 +171,8 @@ def forecasts(sim, req, nodes, *, prune=False, cache_type=BlockCache, finite_ser
         node = shadow.nodes[node_id]
         if node.active is not None or node.queue:
             return
-        plan = _service(shadow, req, node_id, isolated=False)
+        plan = _service(shadow, req, node_id, isolated=False,
+                        compare_finite_routes=compare_finite_routes)
         if finite_service and plan['remote_blocks']:
             plan['network_ms'] = proposed_transfer_ms(
                 shadow, plan['source'], node_id, plan['payload_bytes'])

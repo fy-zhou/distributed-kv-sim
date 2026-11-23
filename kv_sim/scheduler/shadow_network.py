@@ -56,3 +56,16 @@ def proposed_transfer_ms(sim, source, target, size):
         if owner == target:
             return elapsed
     raise RuntimeError('proposed transfer did not finish')
+
+
+def transfer_cost(sim, target):
+    """Memoize duration evaluations for alternate routes to one ready node."""
+    costs = {}
+
+    def cost(source, size):
+        key = (source, size)
+        if key not in costs:
+            costs[key] = proposed_transfer_ms(sim, source, target, size)
+        return costs[key]
+
+    return cost
