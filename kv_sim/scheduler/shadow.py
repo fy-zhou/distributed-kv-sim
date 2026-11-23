@@ -13,7 +13,7 @@ from ..cache import BlockCache, admitted_blocks
 from .reuse import minimum_service
 
 POLICIES = ('shadow_frozen', 'shadow_cache', 'shadow_bounded',
-            'shadow_fast', 'shadow_network', 'shadow_fast_lru')
+            'shadow_fast', 'shadow_network', 'shadow_fast_lru', 'shadow_cluster')
 
 
 class _LocalView:
@@ -191,6 +191,9 @@ def select(sim, req):
 
 def forecasts(sim, req, nodes):
     policy = sim.cfg.policy
+    if policy == 'shadow_cluster':
+        from .shadow_cluster import forecasts as cluster_forecasts
+        return cluster_forecasts(sim, req, nodes)
     memo = {} if policy in ('shadow_fast', 'shadow_network', 'shadow_fast_lru') else None
     update = complete_unpinned_lru if policy == 'shadow_fast_lru' else complete_cache
     remaining = active_remaining(sim) if policy == 'shadow_network' else {}
