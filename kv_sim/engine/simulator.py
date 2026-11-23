@@ -70,7 +70,8 @@ class Simulator:
             self.cfg.fabric_gib_s * (2**30) / 1000)
         self.events = []
         # Only the indexed cluster policy needs a view without future arrivals.
-        self.service_events = {} if self.cfg.policy == 'shadow_cluster_events' else None
+        self.service_events = {} if self.cfg.policy in (
+            'shadow_cluster_events', 'shadow_cluster_lazy') else None
         self.sequence = 0
         self.now = 0.0
         self.clock = SimulationClock()

@@ -151,7 +151,8 @@ def cold_forecasts(sim, req, nodes):
     return predictions
 
 
-def forecasts(sim, req, nodes, *, prune=False, cache_type=BlockCache, finite_service=False):
+def forecasts(sim, req, nodes, *, prune=False, cache_type=BlockCache, finite_service=False,
+              lazy_fork=False):
     """Score service on the forecast state when each candidate becomes idle.
 
     A single fork drains the already assigned queues. The new request is
@@ -162,27 +163,32 @@ def forecasts(sim, req, nodes, *, prune=False, cache_type=BlockCache, finite_ser
 
     needed = set(nodes)
     predictions = {}
-    shadow = _fork(sim, cache_type=cache_type)
+    shadow = None if lazy_fork else _fork(sim, cache_type=cache_type)
 
-    def ready(node_id):
+    def ready(view, node_id):
         if node_id not in needed:
             return
-        node = shadow.nodes[node_id]
+        node = view.nodes[node_id]
         if node.active is not None or node.queue:
             return
-        plan = _service(shadow, req, node_id, isolated=False)
+        plan = _service(view, req, node_id, isolated=False)
         if finite_service and plan['remote_blocks']:
             plan['network_ms'] = proposed_transfer_ms(
-                shadow, plan['source'], node_id, plan['payload_bytes'])
+                view, plan['source'], node_id, plan['payload_bytes'])
             plan['service_ms'] = plan['network_ms'] + plan['h2d_ms'] + plan['compute_ms']
-        waiting = shadow.now - sim.now
+        waiting = view.now - sim.now
         plan.update(queue_ms=waiting, estimated_ms=waiting+plan.pop('service_ms'),
                     rollout_jobs=len(sim.nodes[node_id].queue)+int(sim.nodes[node_id].active is not None))
         predictions[node_id] = plan
         needed.remove(node_id)
 
+    ready_view = sim if lazy_fork else shadow
     for node_id in sorted(needed):
-        ready(node_id)
+        ready(ready_view, node_id)
+    if not needed:
+        return predictions
+    if shadow is None:
+        shadow = _fork(sim, cache_type=cache_type)
     best_finish = min((p['estimated_ms'] for p in predictions.values()), default=float('inf'))
 
     while needed and shadow.events:
@@ -205,7 +211,7 @@ def forecasts(sim, req, nodes, *, prune=False, cache_type=BlockCache, finite_ser
             shadow._on_flow_done(payload)
         elif kind == EVENT_JOB_DONE:
             shadow._on_job_done(payload)
-            ready(payload)
+            ready(shadow, payload)
             if payload in predictions:
                 best_finish = min(best_finish, predictions[payload]['estimated_ms'])
     if needed:
