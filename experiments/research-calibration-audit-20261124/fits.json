@@ -1,0 +1,26 @@
+{
+  "cold_service_proxy": {
+    "fixed_ms": 26.394261180654365,
+    "ms_per_new_token": 0.0033005260018217886,
+    "ms_per_causal_pair": 2.2450848690467087e-06,
+    "held_length_mae_ms": 37.949136310367265,
+    "illustrative_mae_ms": 141.975058368588
+  },
+  "transfer_fits": {
+    "h2d_cuda_ms": {
+      "intercept_ms": 1.683924347689607,
+      "ms_per_gib": 71.20960590686957,
+      "held_length_mae_ms": 2.114319854516205
+    },
+    "scatter_cuda_ms": {
+      "intercept_ms": 0.016733202050538486,
+      "ms_per_gib": 2.8321491932485876,
+      "held_length_mae_ms": 0.3170862961335447
+    },
+    "worker_load_wall_ms": {
+      "intercept_ms": 6.732407365407952,
+      "ms_per_gib": 79.69908323404421,
+      "held_length_mae_ms": 2.8727171461097467
+    }
+  }
+}

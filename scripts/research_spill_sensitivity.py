@@ -54,6 +54,9 @@ class SpillSimulator(MeasuredSimulator):
         row = self.rows[-1]
         row.update(ttft_ms=prefill_done-row['arrival_ms'], finished_ms=prefill_done,
                    spill_ms=duration_ms, spill_bytes=size)
+        residual = self.residuals[-1]
+        residual['actual_ttft_ms'] = row['ttft_ms']
+        residual['ttft_error_ms'] = row['ttft_ms'] - residual['predicted_ttft_ms']
 
 
 def trial(scenario, seed, admission, policy, profile, fits):

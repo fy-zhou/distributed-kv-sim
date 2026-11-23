@@ -535,3 +535,46 @@ Immutable raw attempt directories are under
 /state/partition/fyzhou/results/distributed-kv-sim/research-20261124-*, including
 both development timing attempts, baseline gate, profile, paired microbench,
 first-divergence probe, service bounds, evaluation, replay and final validation.
+
+## Iterations 5–7 in progress (2026-11-24)
+
+Branch `research/rollout-efficiency`, based on `3191b6b`. Three paired
+hypotheses are frozen in `b98a4ab`. A certified cold-service shortcut skips
+private cache work when every queued and incoming request is cache-independent.
+It still accumulates every FIFO service term in the original order. The new
+network variant adds an isolated replay of current flows and known setup
+starts when predicting active-job completion. Other cache and queued-flow
+assumptions stay as in full Shadow. The third experiment adds a serial ingress
+controller before arrivals, using only development-measured placement plus
+execution-planning rates at 0.25× and 1×. This pools work into one controller
+as a sensitivity proxy. It does not model production threading or overlap.
+
+Development seeds 31–32 and held-out seeds 301–305 use the same 14 workload
+shapes, two admissions, five action-matched policies and 120 requests.
+Development completed 280 cases with exact cold-shortcut outcome, final
+cache and residual metric parity. Mean total host planning was 6.930 ms
+for full Shadow, 2.013 ms for the shortcut and 2.081 ms for network replay.
+Replay changed no P95 outcomes in the 56 development conditions.
+All no-ingress held-out cells enforce exact shortcut equivalence and an
+independent process replays every deterministic field.
+
+## Iteration 8 in progress — calibration and materialization sensitivity
+
+Existing 4090 matrix and configuration SHA-256 verified against the prior lab
+archive. All 1200 verified measurements in 60 cells satisfied byte accounting
+and computed-token checks. Leave-one-length-out MAE for fitted cold vLLM
+prefill service was 37.95 ms, versus 141.98 ms for the illustrative predictor
+on the six cold medians. H2D and paged scatter fit errors were 2.11 and
+0.32 ms. Worker load wall error was 2.87 ms. Worker wall already contains
+copy and scatter. Injected prefill service contains more than GPU compute.
+Source runner `8011e55`, archive `research-calibration-audit-20261124`.
+Both GPUs were occupied at inspection, so this reanalysis required no new GPU work.
+
+A separate sensitivity runner compares the illustrative model, fitted cold
+proxy, fitted worker-load proxy, and two assumed serial spill rates of
+16 and 32 GiB/s. These rates are scenario assumptions. Spill delays node
+release and visibility of newly produced full blocks after the first token.
+The forecast sees remaining spill for known active work, while future queued
+spill is not charged. Prefill and spill timings stay distinct in raw rows.
+Evaluation will use fresh seeds 401–405 after development 41–42, with
+three action-matched policies and both existing admission policies.
