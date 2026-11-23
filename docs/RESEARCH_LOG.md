@@ -1153,3 +1153,27 @@ two development seeds motivate checking sensitivity on held-out
 declared in the runner. The controller does not reserve nodes or perform
 a second placement decision, and a single fixed compute interval per
 policy is a sensitivity parameter.
+
+## Contiguous admission around outgoing pins
+
+Source `f9278f8`. In the pin-aware treatment, select the longest
+prefix within the existing per-request capacity bound that fits next
+to pinned keys. Incoming pinned keys and repeated hashes consume no
+additional slots. LRU and the live pin lifecycle stay the same.
+Forecast cache updates receive the same pin constraint as execution.
+An integration test shows zero usable blocks become a two-block
+prefix while a different remote transfer pins the other two slots.
+88 tests pass.
+
+Development 3400–3401 and holdout 3501–3505. The 120 held-out runs
+replay exactly. Single-node controls have exact matching outcomes and
+caches. RR-cost, Bandwidth-Aware and Cluster-Finite mean paired P95
+changes are +0.81% (6/10/4), +0.35% (5/13/2) and −1.03% (4/13/3)
+respectively. All three seed-cluster bootstrap ranges span zero. The
+original prefix-fit had 6144, 2304 and 1024 rejected blocks during
+observed pinned admissions, respectively. The treatment had zero.
+Among completions matched by seed, request, node and pin count, the
+mean usable prefix increases by 18.8, 12.5 and 7.4 blocks. These
+trace comparisons condition on matching states and summarize
+mechanisms. They do not estimate systemwide causal effects. Fewer
+admission failures need not translate into better tail latency.

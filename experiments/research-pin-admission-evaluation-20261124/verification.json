@@ -1,0 +1,30 @@
+{
+  "verified_runs": 120,
+  "ignored_fields": [
+    "decision_max_us",
+    "decision_mean_us",
+    "execution_plan_mean_us",
+    "total_planning_mean_us"
+  ],
+  "compared": "All deterministic run fields and byte-identical paired and summary CSVs.",
+  "original": {
+    "path": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261124-pin-admission-evaluation",
+    "code_commit": "f9278f87109ef49f4dc52b5f8ca54e448a9a2a66",
+    "sha256": {
+      "config.json": "be813277e11faf5fd60540f3da788e57ab396b1c9920fed26a98ce05bed70a72",
+      "runs.csv": "4fb98799b5410e773965ac2ce793d806d15a10cf76b6e531d4f899a12dc28d08",
+      "pairs.csv": "b461b07482a202199b3542e50c5003e0a099f58b8545e7e80d64ddf9fd75fe6d",
+      "summary.csv": "03dfcd592db6af1828aa2d7050083d02671406721299b10dea2c43a5ccee041b"
+    }
+  },
+  "replay": {
+    "path": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261124-pin-admission-replay",
+    "code_commit": "f9278f87109ef49f4dc52b5f8ca54e448a9a2a66",
+    "sha256": {
+      "config.json": "be813277e11faf5fd60540f3da788e57ab396b1c9920fed26a98ce05bed70a72",
+      "runs.csv": "1307cb3c879d0d9988ca3b243a0d7cf57231fef0789c232b48762c93630265b5",
+      "pairs.csv": "b461b07482a202199b3542e50c5003e0a099f58b8545e7e80d64ddf9fd75fe6d",
+      "summary.csv": "03dfcd592db6af1828aa2d7050083d02671406721299b10dea2c43a5ccee041b"
+    }
+  }
+}
