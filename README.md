@@ -539,3 +539,29 @@ including per-request outcomes and final cache hashes; see
 [verification](experiments/research-shadow-evaluation-20261124/verification.json).
 59 tests and the ten-policy CLI smoke pass. The 196-case historical baseline
 gate and the 560-case optimization-equivalence check also pass.
+
+## Rollout efficiency and network forecasting
+
+The rollout-efficiency research branch adds optional placement policies that
+share the same execution-time service planner. `shadow_fast` skips private
+cache replay when recomputation is strictly cheaper for the incoming request
+and every queued request. `shadow_network` also replays active and known-setup
+transfers. `shadow_fast_lru` uses a constant-time victim selection path in an
+unpinned private cache. The full cluster variants drain assigned work in a
+fork and predict service at each node's ready time. Their pruning and cold
+shortcuts have separate paired checks.
+
+Run the ordinary efficiency protocol in a fresh output directory:
+
+```bash
+python3 scripts/research_rollout_efficiency.py --split development --out /path/to/fresh-development
+python3 scripts/research_rollout_efficiency.py --split evaluation --out /path/to/fresh-evaluation
+python3 scripts/research_rollout_efficiency.py --split evaluation --out /path/to/fresh-replay --verify-against /path/to/fresh-evaluation/runs.csv
+```
+
+Pass `--network-stress` or `--cluster-stress` for the separate contention
+protocols. The CPU ingress sensitivity uses `--ingress /path/to/fresh-development/runs.csv`.
+The spill sensitivity runner takes `--fits experiments/research-calibration-audit-20261124/fits.json`.
+See the [research log](docs/RESEARCH_LOG.md) for the assumptions and run status
+and the [ordinary held-out archive](experiments/research-efficiency-eval-20261124/)
+for timings, paired comparisons and the figure.
