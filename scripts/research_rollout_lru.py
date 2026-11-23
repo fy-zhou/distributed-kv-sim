@@ -78,11 +78,13 @@ def main():
         seeds = INTEGRATED_SEEDS
         scenarios.append(PARTIAL)
     shapes = tuple(s['name'] for s in scenarios if stress or s['name'] in SHAPES)
+    admissions_by_shape = {name: ('always', 'prefix_fit') if name == 'partial_prefix'
+                           else ('always', 'no_remote') for name in shapes}
     out = new_directory(args.out)
     (out/'config.json').write_text(json.dumps(provenance(dict(
         seeds=seeds[args.split], policies=policies, shapes=shapes,
         requests_by_shape={s['name']:s.get('count', 120) for s in scenarios if s['name'] in shapes},
-        admissions=['always', 'no_remote'], repeats=2,
+        admissions_by_shape=admissions_by_shape, repeats=2,
         scenario_parameters=[s for s in scenarios if s['name'] in shapes],
         execution_paths=('memoized_cold_certificate', 'reuse_prefix_floor') if args.cluster_integrated else None,
         order='AB then BA for each condition. Scheduler clock excludes setup of workload.',
@@ -93,7 +95,7 @@ def main():
         if scenario['name'] not in shapes:
             continue
         count = scenario.get('count',120)
-        admissions = ('always', 'prefix_fit') if scenario['name'] == 'partial_prefix' else ('always', 'no_remote')
+        admissions = admissions_by_shape[scenario['name']]
         for seed in seeds[args.split]:
             prepared = inputs(scenario, seed, count)
             for admission in admissions:
