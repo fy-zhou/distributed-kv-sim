@@ -1120,3 +1120,28 @@ all 36 same-policy pairs and ranges of +38.35–39.94% (RR-cost),
 +51.63–54.79% (Cost-Aware) and +57.20–59.12% (Shadow-Fast) mean paired
 P95 across the measured worker-load proxy and the two serial spill
 assumptions. Holdout and independent replay are separate.
+
+## Network sharing sensitivity
+
+Sources `2429cd0` and `2b63a0f`. Do unused fabric shares change
+placement conclusions when endpoint bandwidth is asymmetric? The
+opt-in max-min allocator uses progressive filling over the same
+full-duplex NIC and fabric budgets. Matching prospective rate, legacy
+externality approximation and known-flow forecast paths all use the
+configured allocator. Exact tests cover capacity, independent duplex
+budgets, reallocation and an analytical network forecast. 88 tests pass.
+
+Development seeds 2800–2801, held-out 2901–2905. The four multi-family
+shapes vary endpoints and fabric separately. The fabric-only fixture
+has exact outcomes under both allocators for every policy. Both models
+conserve transferred bytes. All 120 held-out runs independently replay.
+
+Mean paired P95 improvement for max-min across 20 conditions per policy
+is +0.049% for RR-cost (1/18/1), +0.976% for Bandwidth-Aware (6/8/6)
+and −0.419% for Cluster-Finite (0/18/2). The largest RR-cost increase in
+overlap fabric utilization is 7.07 percentage points. Bandwidth-Aware
+has both +20.62% and −10.42% P95 cases, and changes assignments in two
+conditions. The sharing correction therefore affects individual model
+predictions but brings no uniform benefit under these workloads. Network
+parameters are synthetic. Keep both allocators available for sensitivity
+rather than changing the default model.

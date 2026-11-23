@@ -1,0 +1,4 @@
+policy,candidate,baseline,conditions,seed_clusters,mean_p95_improvement_pct,seed_bootstrap_p025,seed_bootstrap_p975,improve,neutral,regress
+round_robin_cost,max_min,equal_share,20,5,0.04886088266911781,-0.08005470090659217,0.2266373489139456,1,18,1
+bandwidth_aware,max_min,equal_share,20,5,0.9757845025571792,-1.1005869716125267,3.1646180687618948,6,8,6
+shadow_cluster_finite,max_min,equal_share,20,5,-0.4193150489926345,-0.934793309083275,0.0,0,18,2
