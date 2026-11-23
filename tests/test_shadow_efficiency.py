@@ -208,3 +208,21 @@ class ForecastEfficiencyTests(unittest.TestCase):
         self.assertAlmostEqual(score['queue_ms'],
                                2*sim._compute_time(short, 0)+sim._compute_time(long, 0))
         self.assertEqual(score['cache_updates'], 0)
+
+    def test_proposed_transfer_recovers_bandwidth_after_known_incumbent_completes(self):
+        from kv_sim.scheduler.shadow_network import proposed_transfer_ms
+        sim = Simulator([NodeSpec(i, 16, 1.) for i in range(3)],
+                        Config(policy='shadow_cluster_finite', fabric_gib_s=1.,
+                               gpu_ms_per_new_token=1., remote_setup_ms=2.))
+        req = Request.from_tokens('r', 0., list(range(16)))
+        sim.seed_cache(2, req.hashes)
+        sim.nodes[1].queue.append(req)
+        sim._start(1)
+        short = sim.cfg.block_size * sim.cfg.kv_bytes_per_token
+        sim.nodes[1].active.flow_id = sim.network.start(0., 2, 1, short)
+        payload = 8 * short
+        # The incumbent is gone before the candidate's two-ms setup ends.
+        self.assertLess(short/sim.network.fabric, 2.)
+        self.assertAlmostEqual(proposed_transfer_ms(sim, 2, 0, payload),
+                               2. + payload/sim.network.fabric)
+        self.assertEqual(sim.network.flows[1].remaining_bytes, short)

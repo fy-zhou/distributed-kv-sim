@@ -15,7 +15,8 @@ from .reuse import minimum_service
 POLICIES = ('shadow_frozen', 'shadow_cache', 'shadow_bounded',
             'shadow_fast', 'shadow_network', 'shadow_fast_lru', 'shadow_cluster',
             'shadow_cluster_pruned', 'shadow_cluster_fast', 'shadow_cluster_lru',
-            'shadow_cluster_indexed', 'shadow_cluster_gated', 'shadow_cold_queue')
+            'shadow_cluster_indexed', 'shadow_cluster_gated', 'shadow_cluster_finite',
+            'shadow_cold_queue')
 
 
 class _LocalView:
@@ -219,7 +220,7 @@ def forecasts(sim, req, nodes):
         from .shadow_cluster import (_ForecastCache, _ForecastGatedCache, _ForecastIndexedCache,
                                      cold_forecasts, forecasts as cluster_forecasts)
         if policy in ('shadow_cluster_fast', 'shadow_cluster_lru', 'shadow_cluster_indexed',
-                      'shadow_cluster_gated'):
+                      'shadow_cluster_gated', 'shadow_cluster_finite'):
             cold = cold_forecasts(sim, req, nodes)
             if cold is not None:
                 return cold
@@ -230,8 +231,10 @@ def forecasts(sim, req, nodes):
                 sim.cfg.h2d_ms_per_gib, sim.cfg.remote_setup_ms))
         cache_type = {'shadow_cluster_lru': _ForecastCache,
                       'shadow_cluster_indexed': _ForecastIndexedCache,
-                      'shadow_cluster_gated': _ForecastGatedCache}.get(policy, BlockCache)
-        return cluster_forecasts(sim, req, nodes, prune=prune, cache_type=cache_type)
+                      'shadow_cluster_gated': _ForecastGatedCache,
+                      'shadow_cluster_finite': _ForecastCache}.get(policy, BlockCache)
+        return cluster_forecasts(sim, req, nodes, prune=prune, cache_type=cache_type,
+                                 finite_service=policy == 'shadow_cluster_finite')
     memo = {} if policy in ('shadow_fast', 'shadow_network', 'shadow_fast_lru') else None
     update = complete_unpinned_lru if policy == 'shadow_fast_lru' else complete_cache
     remaining = active_remaining(sim) if policy == 'shadow_network' else {}

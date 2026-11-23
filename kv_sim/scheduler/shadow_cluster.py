@@ -3,6 +3,8 @@ from dataclasses import replace
 import copy
 import heapq
 
+from .shadow_network import proposed_transfer_ms
+
 from ..cache import BlockCache
 from ..cluster.node import Node
 from ..engine.events import (EVENT_FLOW_DONE, EVENT_FLOW_START, EVENT_JOB_DONE)
@@ -144,7 +146,7 @@ def cold_forecasts(sim, req, nodes):
     return predictions
 
 
-def forecasts(sim, req, nodes, *, prune=False, cache_type=BlockCache):
+def forecasts(sim, req, nodes, *, prune=False, cache_type=BlockCache, finite_service=False):
     """Score service on the forecast state when each candidate becomes idle.
 
     A single fork drains the already assigned queues. The new request is
@@ -164,6 +166,10 @@ def forecasts(sim, req, nodes, *, prune=False, cache_type=BlockCache):
         if node.active is not None or node.queue:
             return
         plan = _service(shadow, req, node_id, isolated=False)
+        if finite_service and plan['remote_blocks']:
+            plan['network_ms'] = proposed_transfer_ms(
+                shadow, plan['source'], node_id, plan['payload_bytes'])
+            plan['service_ms'] = plan['network_ms'] + plan['h2d_ms'] + plan['compute_ms']
         waiting = shadow.now - sim.now
         plan.update(queue_ms=waiting, estimated_ms=waiting+plan.pop('service_ms'),
                     rollout_jobs=len(sim.nodes[node_id].queue)+int(sim.nodes[node_id].active is not None))
