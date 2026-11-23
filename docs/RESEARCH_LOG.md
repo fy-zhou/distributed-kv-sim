@@ -351,3 +351,13 @@ and I/O are excluded. Do not add measured CPU overhead to simulated TTFT.
 Raw per-request outcomes and forecasts are streamed to compressed JSONL
 outside Git; compact summaries retain every condition and negative outcome.
 Whole-seed bootstrap preserves correlated scenario/admission pairs.
+
+Timing protocol refinement before held-out evaluation: execute policies in
+stable SHA256 order keyed by scenario/seed/admission/policy, independent of
+workload RNG, to reduce systematic fixed-order timing bias. Initial development
+attempt uses the original fixed order and remains preserved. This changes
+only host execution order, not simulated inputs, algorithms or parameters.
+Shared-server wall timings remain descriptive, not isolated CPU benchmarks.
+A separate 196-run gate uses consumed seed 101 only on the seven old policies
+and compares every prior deterministic metric/hash to the November 18 archive;
+new candidates are not selected or tuned using that historical seed.

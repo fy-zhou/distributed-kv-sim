@@ -169,7 +169,8 @@ def main():
         bounded_cache_updates=8,primary_comparator='round_robin_cost',
         limitations='Other caches frozen; outgoing pins retained; queued links isolated; no future arrivals read.',
         timing='Same timers for actual placement and every execution-time service plan; observer work excluded. Not simulated TTFT.',
-        candidate_selection='All three predeclared variants evaluated; no evaluation-seed tuning.'))
+        candidate_selection='All three predeclared variants evaluated; no evaluation-seed tuning.',
+        policy_execution_order='Stable SHA256 ordering by scenario, seed, admission, policy; independent of workload RNG.'))
     (out/'config.json').write_text(json.dumps(config,indent=2)+'\n')
     expected={}
     if args.verify_against:
@@ -184,7 +185,8 @@ def main():
         for scenario in SCENARIOS:
             for seed in SEEDS[args.split]:
                 for admission in ('always','no_remote'):
-                    for policy in POLICIES:
+                    order=sorted(POLICIES,key=lambda policy:digest([scenario['name'],seed,admission,policy]))
+                    for policy in order:
                         sim,row=trial(scenario,seed,admission,policy,args.requests)
                         key=(scenario['name'],seed,admission,policy)
                         if args.verify_against:
