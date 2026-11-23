@@ -841,3 +841,13 @@ deterministic parity. Median paired speed ratios are 1.080× endpoint,
 raw medians are 35.23→17.82 ms/request. Thus the fork's unpinned eviction
 path is materially inefficient in that regime. This finding is about host
 CPU work, not simulated P95. Indexed pinned-victim holdout is still running.
+
+The 1101–1105 pinned victim-index holdout completed 160 runs with exact
+deterministic parity. Median paired timing ratio is 1.344× in pin pressure,
+but 0.883× endpoint, 0.890× fabric and 0.896× replica. Unconditional indexing
+therefore trades speed across regimes and remains experimental. A gated
+variant estimates index build cost against leading pinned victims times
+new-key misses. That runtime-only heuristic uses source `cd6d0bf` and
+fresh seeds 150–151 / 1401–1405. It does not change eviction order.
+The 320 cluster-controller replay runs are complete and deterministic,
+with byte-identical paired tables and raw-file proof in the archive.

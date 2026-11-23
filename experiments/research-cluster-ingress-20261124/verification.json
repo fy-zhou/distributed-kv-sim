@@ -1,0 +1,30 @@
+{
+  "verified_runs": 320,
+  "ignored_fields": [
+    "decision_max_us",
+    "decision_mean_us",
+    "execution_plan_mean_us",
+    "total_planning_mean_us"
+  ],
+  "compared": "All deterministic run fields and byte-identical paired and summary CSVs.",
+  "original": {
+    "path": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261124-cluster-stress-ingress-fixed",
+    "code_commit": "4262642f1f88174c4f377bb65a56a469b68b158c",
+    "sha256": {
+      "config.json": "d8808c2d392ca8e0b7171bcc1b6283b17834f2b7686e54b6299b7a97712291cb",
+      "runs.csv": "97c5d0e764d54032ab3a5068ea785f4b2813aa4055c2d3e79138f810fc75f3aa",
+      "pairs.csv": "585c634a31e56fa29f3910bc06187ce2f13e76581fa46e10e5ea8ca98c85f487",
+      "summary.csv": "94a4b83d930d959b89766e3bd65d6a58a8f622b60fa1d7c06e783bcfc41a370f"
+    }
+  },
+  "replay": {
+    "path": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261124-cluster-ingress-replay",
+    "code_commit": "afc653750f08642dd061d489306acf760c74b076",
+    "sha256": {
+      "config.json": "e669fba9952d30ac373a43b730ee5b27df15ba77ab656403d190da1979f4aa0a",
+      "runs.csv": "1a7b71e4985adc0b06aecfe58b7d877c770c875456c19e22ead8e642de1e5da3",
+      "pairs.csv": "585c634a31e56fa29f3910bc06187ce2f13e76581fa46e10e5ea8ca98c85f487",
+      "summary.csv": "94a4b83d930d959b89766e3bd65d6a58a8f622b60fa1d7c06e783bcfc41a370f"
+    }
+  }
+}
