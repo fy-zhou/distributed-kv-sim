@@ -1,0 +1,30 @@
+{
+  "verified_runs": 320,
+  "ignored_fields": [
+    "decision_max_us",
+    "decision_mean_us",
+    "execution_plan_mean_us",
+    "total_planning_mean_us"
+  ],
+  "compared": "All deterministic run fields and byte-identical paired and summary CSVs.",
+  "original": {
+    "path": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261124-cheap-stress-ingress",
+    "code_commit": "ce1f72660f91865cf939795565cc4e4f0663d1a3",
+    "sha256": {
+      "config.json": "c3550ab54a05a0c23d4f0076048e5ec1b6ce0dfdd352dc47318e857f9682ca2e",
+      "runs.csv": "b35fca46e3895d3771508d804e4c7fb2f5197676796b16ac02881481542b45cb",
+      "pairs.csv": "185c23360b246de790c162969df53bdb5a967d2be0da299b5211bbd9626728a9",
+      "summary.csv": "5e18252945f0bdfa6a581a40a0bf7bb020c9272847a8177a8b94f30051b1e92f"
+    }
+  },
+  "replay": {
+    "path": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261124-cheap-stress-ingress-replay",
+    "code_commit": "6e3700ab64a72f81fd3423f23d38a0718d40678d",
+    "sha256": {
+      "config.json": "a8080cf9ea8433596d137e0cd9f80d0ca57078a909aa671014233e6fab0a2eec",
+      "runs.csv": "97ea852863bf6a916ea6ead672e0c61be498bf74e9fc550e769c68dbef3a8909",
+      "pairs.csv": "185c23360b246de790c162969df53bdb5a967d2be0da299b5211bbd9626728a9",
+      "summary.csv": "5e18252945f0bdfa6a581a40a0bf7bb020c9272847a8177a8b94f30051b1e92f"
+    }
+  }
+}

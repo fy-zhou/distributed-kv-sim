@@ -873,3 +873,20 @@ to no_remote, prefix_fit and always within the same placement and trace.
 Seed sets 160–161 / 1501–1505 are separate from the first admission study,
 with three predeclared shapes. Source `fc63ac0`. The 76 tests pass and
 independent ordinary controller replay now verifies all 400 cases.
+
+Replay proof now includes 225 capacity-fit holdout runs, 160 cheap
+stress runs and 320 cheap-controller runs. Every deterministic field
+matches, including byte-identical paired tables and summaries.
+
+A separate finite-service hypothesis changes the remote service estimate
+at candidate readiness. The execution planner still selects exactly
+the same actions as before. If its predicted action fetches remote blocks,
+the candidate forecasts setup and dynamic completions of the current
+fluid flows and already scheduled setup work. The projected snapshot does
+not add flows whose future setup has not yet been determined. Controlled
+tests show that a short incumbent which completes during the new
+candidate's setup should not slow its actual copy. Source `7554f0d`.
+Fresh 180–181 / 1701–1705 development and holdout are running.
+The offered-load prefix-fit experiment uses four burst intervals
+(2, 40, 250, 1000 ms) at fixed capacity and compute stress. Its separate
+development and evaluation seeds are 170–171 and 1601–1605.

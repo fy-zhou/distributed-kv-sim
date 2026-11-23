@@ -1,0 +1,30 @@
+{
+  "verified_runs": 160,
+  "ignored_fields": [
+    "decision_max_us",
+    "decision_mean_us",
+    "execution_plan_mean_us",
+    "total_planning_mean_us"
+  ],
+  "compared": "All deterministic run fields and byte-identical paired and summary CSVs.",
+  "original": {
+    "path": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261124-cheap-stress-evaluation",
+    "code_commit": "afc653750f08642dd061d489306acf760c74b076",
+    "sha256": {
+      "config.json": "72aad60e63ab897d23e474dac9f3251a051f1ec6402c2e5ab5da472882f15c0d",
+      "runs.csv": "a9c6caa6b162f56f133018b464cb20642f9f287167470b76ca3512c56811bdd9",
+      "pairs.csv": "44e08bd8d8315e7ae9a0f14e1ba762f6457b8058bcbe2a17ff5d46770012f8dc",
+      "summary.csv": "c142a5c4cc40a4fc576a1c249ddd5caec5d4aba6d9510f96b742322ce2d0373c"
+    }
+  },
+  "replay": {
+    "path": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261124-cheap-stress-replay",
+    "code_commit": "d3dc9c52f33c2e853f3a14caad9464749c6b7f5f",
+    "sha256": {
+      "config.json": "8d6056f40f178c11bc6f23f256b7ad5dce9ef8e597f5582f7d6b117792914090",
+      "runs.csv": "53e3e5f044e3d57c296aba783ca843646c35bb18a3f889ca8568f0c8813dfdb9",
+      "pairs.csv": "44e08bd8d8315e7ae9a0f14e1ba762f6457b8058bcbe2a17ff5d46770012f8dc",
+      "summary.csv": "c142a5c4cc40a4fc576a1c249ddd5caec5d4aba6d9510f96b742322ce2d0373c"
+    }
+  }
+}
