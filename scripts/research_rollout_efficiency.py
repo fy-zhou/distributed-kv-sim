@@ -3,6 +3,7 @@
 import argparse
 import csv
 import gzip
+import hashlib
 import json
 from pathlib import Path
 import sys
@@ -13,6 +14,13 @@ from scripts.research_evaluate import SCENARIOS
 from scripts.research_shadow import TIMING_FIELDS, summaries, trial
 
 SEEDS = {'development': (31, 32), 'evaluation': (301, 302, 303, 304, 305)}
+STRESS_SEEDS = {'development': (61, 62), 'evaluation': (601, 602, 603, 604, 605)}
+STRESS = (
+    dict(name='endpoint_pressure', compute_scale=16., nic=2., fabric=16., burst=12),
+    dict(name='fabric_pressure', compute_scale=16., nic=16., fabric=2., burst=12),
+    dict(name='pin_pressure', compute_scale=16., nic=4., fabric=4., capacity=256, burst=12),
+    dict(name='replica_pressure', compute_scale=16., nic=4., fabric=4., nodes=8, burst=16),
+)
 POLICIES = ('round_robin_cost', 'cost_aware', 'shadow_cache',
             'shadow_fast', 'shadow_network')
 INGRESS = {'round_robin_cost': .071, 'cost_aware': 1.271, 'shadow_cache': 7.026,
@@ -30,9 +38,14 @@ def main():
     parser.add_argument('--archive', type=Path)
     parser.add_argument('--verify-against', type=Path)
     parser.add_argument('--ingress', type=Path, help='Use development timing CSV to calibrate sensitivity')
+    parser.add_argument('--network-stress', action='store_true')
+
     args = parser.parse_args()
+    if args.network_stress and args.ingress:
+        parser.error('network stress and ingress are separate experiments')
     out = new_directory(args.out)
-    scenarios = SCENARIOS
+    scenarios = STRESS if args.network_stress else SCENARIOS
+    seed_set = STRESS_SEEDS if args.network_stress else SEEDS
     policies = POLICIES
     scales = (0.,)
     rates = dict(INGRESS)
@@ -49,9 +62,10 @@ def main():
                      ('reference', 'compute_heavy', 'long_prefix', 'slow_arrivals')]
         scales = (.25, 1.)
     (out/'config.json').write_text(json.dumps(provenance(dict(
-        split=args.split, seeds=SEEDS[args.split], scenarios=scenarios, policies=policies,
+        split=args.split, seeds=seed_set[args.split], scenarios=scenarios, policies=policies,
         requests=120, admissions=['always', 'no_remote'], ingress_rates_ms=rates,
         ingress_scales=scales, ingress_source=str(args.ingress) if args.ingress else None,
+        ingress_source_sha256=hashlib.sha256(args.ingress.read_bytes()).hexdigest() if args.ingress else None,
         ingress_model='Serial FCFS pooled planning proxy before simulator arrival. '
                       'TTFT includes ingress delay. Forecast errors are measured after dispatch.',
         network_model='Known active and setup transfers only. Future queued transfers use isolated links.',
@@ -64,7 +78,7 @@ def main():
     rows, pairs = [], []
     with gzip.GzipFile(str(out/'traces.jsonl.gz'), 'wb', mtime=0) as traces:
         for scenario in scenarios:
-            for seed in SEEDS[args.split]:
+            for seed in seed_set[args.split]:
                 for admission in ('always', 'no_remote'):
                     for scale in scales:
                         results = {}
@@ -110,7 +124,8 @@ def main():
     write_csv(out/'summary.csv', summary)
     if args.verify_against:
         (out/'verification.json').write_text(json.dumps(dict(verified_runs=len(rows),
-            ignored=TIMING_FIELDS, reference=str(args.verify_against)), indent=2)+'\n')
+            ignored=TIMING_FIELDS, reference=str(args.verify_against),
+            reference_sha256=hashlib.sha256(args.verify_against.read_bytes()).hexdigest()), indent=2)+'\n')
     if args.archive:
         write_csv(out/'compact_runs.csv', [{k: round(v, 6) if isinstance(v, float) else v
             for k, v in row.items() if not k.endswith('_hash')} for row in rows])
