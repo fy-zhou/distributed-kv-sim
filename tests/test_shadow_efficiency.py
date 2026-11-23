@@ -97,3 +97,29 @@ class ForecastEfficiencyTests(unittest.TestCase):
             complete_cache(a, req, 0, 1, 'always')
             complete_unpinned_lru(b, req, 0, 1, 'always')
             self.assertEqual(list(a.blocks), list(b.blocks))
+
+    def test_cluster_rollout_predicts_known_queue_and_does_not_dispatch_arrivals(self):
+        from copy import deepcopy
+        from kv_sim.scheduler.shadow_cluster import forecasts
+
+        sim = Simulator([NodeSpec(i, 32, 1.) for i in range(3)],
+                        Config(policy='shadow_cluster', fabric_gib_s=1.,
+                               gpu_ms_per_new_token=1., remote_setup_ms=2.))
+        active = Request.from_tokens('active', 0, list(range(160)))
+        queued = Request.from_tokens('queued', 0, list(range(160)))
+        incoming = Request.from_tokens('incoming', 0, list(range(160)))
+        sim.seed_cache(2, active.hashes)
+        for node in (0, 1):
+            sim.nodes[node].queue.append(active)
+            sim._start(node)
+        sim.nodes[0].queue.append(queued)
+        before = forecasts(sim, incoming, sim.nodes)
+        sim._schedule(.01, 'arrival', incoming)
+        state = deepcopy((sim.events, sim.nodes, sim.network.__dict__))
+        self.assertEqual(before, forecasts(sim, incoming, sim.nodes))
+        self.assertEqual(state, (sim.events, sim.nodes, sim.network.__dict__))
+        self.assertEqual(before[0]['local_blocks'], 10)
+        service = sim._h2d_time(10) + sim._compute_time(active, 10)
+        payload = 160 * sim.cfg.kv_bytes_per_token
+        self.assertAlmostEqual(before[0]['queue_ms'],
+                               2. + 2*payload/sim.network.fabric + 2*service)

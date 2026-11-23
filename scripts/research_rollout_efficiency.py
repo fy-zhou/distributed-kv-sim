@@ -14,6 +14,7 @@ from scripts.research_evaluate import SCENARIOS
 from scripts.research_shadow import TIMING_FIELDS, summaries, trial
 
 SEEDS = {'development': (31, 32), 'evaluation': (301, 302, 303, 304, 305)}
+CLUSTER_SEEDS = {'development': (71, 72), 'evaluation': (701, 702, 703, 704, 705)}
 STRESS_SEEDS = {'development': (61, 62), 'evaluation': (601, 602, 603, 604, 605)}
 STRESS = (
     dict(name='endpoint_pressure', compute_scale=16., nic=2., fabric=16., burst=12),
@@ -39,14 +40,23 @@ def main():
     parser.add_argument('--verify-against', type=Path)
     parser.add_argument('--ingress', type=Path, help='Use development timing CSV to calibrate sensitivity')
     parser.add_argument('--network-stress', action='store_true')
+    parser.add_argument('--cluster-stress', action='store_true')
 
     args = parser.parse_args()
-    if args.network_stress and args.ingress:
-        parser.error('network stress and ingress are separate experiments')
+    if sum(bool(x) for x in (args.network_stress, args.cluster_stress, args.ingress)) > 1:
+        parser.error('choose one separate stress or ingress experiment')
     out = new_directory(args.out)
     scenarios = STRESS if args.network_stress else SCENARIOS
     seed_set = STRESS_SEEDS if args.network_stress else SEEDS
     policies = POLICIES
+    candidates = ('shadow_fast', 'shadow_network')
+    baselines = ('round_robin_cost', 'cost_aware', 'shadow_fast')
+    if args.cluster_stress:
+        seed_set = CLUSTER_SEEDS
+        scenarios = STRESS
+        policies = ('round_robin_cost', 'shadow_fast', 'shadow_network', 'shadow_cluster')
+        candidates = ('shadow_cluster',)
+        baselines = policies[:-1]
     scales = (0.,)
     rates = dict(INGRESS)
     if args.ingress:
@@ -68,7 +78,8 @@ def main():
         ingress_source_sha256=hashlib.sha256(args.ingress.read_bytes()).hexdigest() if args.ingress else None,
         ingress_model='Serial FCFS pooled planning proxy before simulator arrival. '
                       'TTFT includes ingress delay. Forecast errors are measured after dispatch.',
-        network_model='Known active and setup transfers only. Future queued transfers use isolated links.',
+        network_model=('Cluster rollout drains only assigned work. Incoming request uses instantaneous rate.'
+                       if args.cluster_stress else 'Known active and setup transfers only. Future queued transfers use isolated links.'),
         planning_time='Placement plus execution replanning, measured on shared CPU host.')),
         indent=2)+'\n')
     expected = {}
@@ -85,8 +96,8 @@ def main():
                         order = sorted(policies, key=lambda p: digest([scenario['name'], seed, admission, p]))
                         for policy in order:
                             sim, row = trial(scenario, seed, admission, policy,
-                                             ingress_ms=scale*rates[policy])
-                            row.update(ingress_scale=scale, ingress_ms=scale*rates[policy])
+                                             ingress_ms=scale*rates.get(policy, 0.))
+                            row.update(ingress_scale=scale, ingress_ms=scale*rates.get(policy, 0.))
                             results[policy] = row
                             rows.append(row)
                             if args.verify_against:
@@ -99,12 +110,12 @@ def main():
                                     predictions=sim.residuals), separators=(',', ':'))+'\n').encode())
                         assert len({r['trace_hash'] for r in results.values()}) == 1
                         assert len({r['initial_cache_hash'] for r in results.values()}) == 1
-                        if not scale:
+                        if not scale and 'shadow_cache' in results:
                             a, b = results['shadow_cache'], results['shadow_fast']
                             assert all(a[k] == b[k] for k in a
                                        if k not in TIMING_FIELDS and k != 'policy')
-                        for candidate in ('shadow_fast', 'shadow_network'):
-                            for baseline in ('round_robin_cost', 'cost_aware', 'shadow_fast'):
+                        for candidate in candidates:
+                            for baseline in baselines:
                                 if candidate == baseline:
                                     continue
                                 a = results[candidate]['p95_ttft_ms']
