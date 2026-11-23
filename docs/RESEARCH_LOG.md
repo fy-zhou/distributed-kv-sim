@@ -906,3 +906,25 @@ The traffic behavior is consistent with having time to execute more
 remote fetches per burst under the always baseline at low offered load.
 The paired result shows the direction change, while that specific
 mechanism still needs a forced trace study.
+
+The 1501–1505 factorial holdout completed 180 cases. Against no_remote
+without clipping, prefix_fit_no_remote lowers paired mean P95 by 25.23%
+for RR-cost, 44.26% for Cost-Aware and 45.41% for Cluster-LRU. All three
+have 10 improvements and five ties against that control. This isolates
+the clipping effect even without admitting remote completions. Compared
+to prefix_fit, suppressing those admissions regresses by 23.60% for
+RR-cost and 11.56% for Cluster-LRU on these shapes. Cost-Aware averages
+−0.26% in that comparison with 10 improvements, two ties and three
+regressions. The simple always/no_remote arms remain retained and the
+factorial replay is running.
+
+A post-hoc tracer reran the first consumed offered-load seed (1601) for
+RR-cost, with instrumented outputs matching untracked outcome hashes.
+At 2 ms, always has three remote fetches and no complete new hot replica
+on any completion snapshot, while prefix_fit has 13 fetches and
+111 snapshots with a replica away from the designated source. At 1000 ms,
+always repeatedly fetches (67 times, all from the initial source) and
+still never realizes a complete new hot replica. Prefix_fit reduces remote
+fetches to 16 and yields 118 snapshots with non-source replicas. This
+paired trace identifies one path by which load reverses traffic impact
+without establishing general traffic reduction. Source `205ae7c`.
