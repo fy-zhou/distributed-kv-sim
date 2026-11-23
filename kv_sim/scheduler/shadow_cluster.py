@@ -32,7 +32,7 @@ def _fork(sim):
     return shadow
 
 
-def forecasts(sim, req, nodes):
+def forecasts(sim, req, nodes, *, prune=False):
     """Score service on the forecast state when each candidate becomes idle.
 
     A single fork drains the already assigned queues. The new request is
@@ -60,9 +60,14 @@ def forecasts(sim, req, nodes):
 
     for node_id in sorted(needed):
         ready(node_id)
+    best_finish = min((p['estimated_ms'] for p in predictions.values()), default=float('inf'))
 
     while needed and shadow.events:
         now, _, kind, payload, epoch = heapq.heappop(shadow.events)
+        if prune and predictions and now - sim.now > best_finish:
+            # Waiting alone already exceeds the best known total service.
+            # The strict comparison preserves tie-breaking at equal scores.
+            return predictions
         if kind == EVENT_FLOW_DONE and epoch != shadow.epoch:
             continue
         shadow.network.advance(now)
@@ -78,6 +83,8 @@ def forecasts(sim, req, nodes):
         elif kind == EVENT_JOB_DONE:
             shadow._on_job_done(payload)
             ready(payload)
+            if payload in predictions:
+                best_finish = min(best_finish, predictions[payload]['estimated_ms'])
     if needed:
         raise RuntimeError('assigned work did not drain in cluster forecast')
     return predictions

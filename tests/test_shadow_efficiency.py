@@ -123,3 +123,18 @@ class ForecastEfficiencyTests(unittest.TestCase):
         payload = 160 * sim.cfg.kv_bytes_per_token
         self.assertAlmostEqual(before[0]['queue_ms'],
                                2. + 2*payload/sim.network.fabric + 2*service)
+
+    def test_cluster_pruning_skips_late_node_but_preserves_winner(self):
+        from kv_sim.scheduler.shadow_cluster import forecasts
+        sim = Simulator([NodeSpec(i, 32) for i in range(3)],
+                        Config(policy='shadow_cluster_pruned', gpu_ms_per_new_token=1.))
+        long = Request.from_tokens('long', 0., list(range(160)))
+        short = Request.from_tokens('short', 0., list(range(16)))
+        sim.nodes[0].queue.append(long)
+        sim._start(0)
+        full = forecasts(sim, short, sim.nodes)
+        pruned = forecasts(sim, short, sim.nodes, prune=True)
+        self.assertEqual(set(pruned), {1, 2})
+        winner = lambda plans: min(plans, key=lambda i: (plans[i]['estimated_ms'], i))
+        self.assertEqual(winner(full), winner(pruned))
+        self.assertEqual(full[1], pruned[1])

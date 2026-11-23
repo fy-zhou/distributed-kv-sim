@@ -14,6 +14,7 @@ from scripts.research_shadow import TIMING_FIELDS, trial
 SEEDS = {'development': (51, 52), 'evaluation': (501, 502, 503, 504, 505)}
 POLICIES = ('shadow_fast', 'shadow_fast_lru')
 SHAPES = ('reference', 'compute_heavy', 'long_prefix')
+PRUNE_SEEDS = {'development': (81, 82), 'evaluation': (801, 802, 803, 804, 805)}
 
 
 def main():
@@ -21,24 +22,31 @@ def main():
     parser.add_argument('--split', choices=SEEDS, required=True)
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--archive', type=Path, required=True)
+    parser.add_argument('--cluster-pruning', action='store_true')
     args = parser.parse_args()
+    scenarios, seeds, policies = SCENARIOS, SEEDS, POLICIES
+    if args.cluster_pruning:
+        from scripts.research_rollout_efficiency import STRESS
+        scenarios = STRESS
+        seeds, policies = PRUNE_SEEDS, ('shadow_cluster', 'shadow_cluster_pruned')
+    shapes = tuple(s['name'] for s in scenarios if args.cluster_pruning or s['name'] in SHAPES)
     out = new_directory(args.out)
     (out/'config.json').write_text(json.dumps(provenance(dict(
-        seeds=SEEDS[args.split], policies=POLICIES, shapes=SHAPES, requests=120,
+        seeds=seeds[args.split], policies=policies, shapes=shapes, requests=120,
         admissions=['always', 'no_remote'], repeats=2,
         order='AB then BA for each condition. Scheduler clock excludes setup of workload.',
         estimand='Mean total host CPU planning wall-time per request, paired by condition and repeat.')),
         indent=2)+'\n')
     rows, pairs = [], []
-    for scenario in SCENARIOS:
-        if scenario['name'] not in SHAPES:
+    for scenario in scenarios:
+        if scenario['name'] not in shapes:
             continue
-        for seed in SEEDS[args.split]:
+        for seed in seeds[args.split]:
             for admission in ('always', 'no_remote'):
                 original = None
                 for repeat in (0, 1):
                     run = {}
-                    for policy in POLICIES[::1 if not repeat else -1]:
+                    for policy in policies[::1 if not repeat else -1]:
                         _, row = trial(scenario, seed, admission, policy)
                         deterministic = {k:v for k,v in row.items()
                                          if k not in TIMING_FIELDS and k != 'policy'}
@@ -47,7 +55,7 @@ def main():
                         assert original == deterministic, (scenario['name'], seed, admission)
                         run[policy] = row['total_planning_mean_us']
                         rows.append(dict(repeat=repeat, **row))
-                    a, b = [run[policy] for policy in POLICIES]
+                    a, b = [run[policy] for policy in policies]
                     pairs.append(dict(scenario=scenario['name'], seed=seed, admission=admission,
                         repeat=repeat, original_us=a, incremental_us=b, original_over_incremental=a/b))
         print(args.split, scenario['name'], len(rows), flush=True)
@@ -57,10 +65,11 @@ def main():
         median_original_us=statistics.median(r['original_us'] for r in group),
         median_incremental_us=statistics.median(r['incremental_us'] for r in group),
         median_paired_ratio=statistics.median(r['original_over_incremental'] for r in group))
-        for name in SHAPES for group in [[r for r in pairs if r['scenario'] == name]]])
+        for name in shapes for group in [[r for r in pairs if r['scenario'] == name]]])
     archive(out, args.archive, ['runs.csv', 'pairs.csv', 'summary.csv'],
-            '# Incremental private LRU timing\n\n'
-            'Outcome, cache and forecast metrics must match the prior shortcut exactly. '
+            ('# Cluster forecast pruning timing\n\n' if args.cluster_pruning
+             else '# Incremental private LRU timing\n\n') +
+            'Outcome, cache and forecast metrics must match the unoptimized comparator exactly. '
             'Wall-clock measurements on shared host, with paired AB/BA ordering.')
 
 
