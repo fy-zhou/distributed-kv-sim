@@ -1014,3 +1014,21 @@ Cluster-LRU improves a mean +3.607% (6 improvements, 13 ties and one
 regression). Within always, mean improvement is +0.218% (2/18/0).
 Independent asymmetric replay is running. The multifamily Zipf protocol
 is also running, to test the admission result beyond hotspot loads.
+
+All 120 asymmetric NIC cases replayed exactly. The separate legacy gate
+verifies 196 existing policy cases against the authentic seed-101
+archive. Historical request and cache hashes and all deterministic metrics
+match. An assigned-event index now retains internal flow setup,
+current generation completions and job completions. The indexed cluster
+forecast avoids scanning the unread arrivals and stale flow heap entries.
+Tie sequence and execution actions are preserved. Source `bb78106`.
+The 80-test suite includes equality of request outcomes and selected
+forecasts and checks that the service-event index drains.
+
+The fixed-snapshot event-index experiment (source `09a071f`) verified
+all candidate forecasts across 1000 paired samples. At 0, 120, 1000,
+10000 and 100000 unread arrivals, median paired ratios were 1.006×,
+1.071×, 1.626×, 5.659× and 33.359×. Median call at 100000 unread events
+falls 19.213→0.553 ms. Heap construction and request processing are not
+part of this isolated measurement. The 2101–2105 workload timing control
+assesses ordinary 120-request traces and remains in progress.
