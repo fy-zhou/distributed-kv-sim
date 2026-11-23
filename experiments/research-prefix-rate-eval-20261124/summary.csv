@@ -1,0 +1,3 @@
+policy,candidate,baseline,conditions,seed_clusters,mean_p95_improvement_pct,seed_bootstrap_p025,seed_bootstrap_p975,improve,neutral,regress
+round_robin_cost,prefix_fit,always,20,5,62.96553886271312,61.44268549531231,64.48839223011392,20,0,0
+shadow_cluster_lru,prefix_fit,always,20,5,71.19862496658318,69.82582594207264,72.88695579696306,20,0,0

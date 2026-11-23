@@ -890,3 +890,19 @@ Fresh 180–181 / 1701–1705 development and holdout are running.
 The offered-load prefix-fit experiment uses four burst intervals
 (2, 40, 250, 1000 ms) at fixed capacity and compute stress. Its separate
 development and evaluation seeds are 170–171 and 1601–1605.
+
+The 1601–1605 offered-load holdout completed 80 runs and 80 deterministic
+replays. All 40 P95 pairs improve across the two policies and four burst
+intervals. At 2, 40, 250 and 1000 ms, RR-cost mean paired improvements
+are 57.58%, 62.48%, 86.43%, 45.37%, and Cluster-LRU's are 70.70%, 76.94%,
+91.51%, 45.64%. This restricted experiment fixes the capacity cliff and
+illustrative compute-heavy regime. It does not demonstrate an effect
+outside oversize/reuse-sensitive workloads.
+
+Traffic changes sign across loads. At the sparsest 1000 ms interval,
+RR-cost mean traffic declines from 23.80 to 7.96 GiB, while denser
+intervals increase traffic. Cluster-LRU sees equal mean traffic there.
+The traffic behavior is consistent with having time to execute more
+remote fetches per burst under the always baseline at low offered load.
+The paired result shows the direction change, while that specific
+mechanism still needs a forced trace study.
