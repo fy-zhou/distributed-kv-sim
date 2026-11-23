@@ -14,6 +14,7 @@ from scripts.research_evaluate import SCENARIOS
 from scripts.research_shadow import TIMING_FIELDS, inputs, summaries, trial
 
 SEEDS = {'development': (31, 32), 'evaluation': (301, 302, 303, 304, 305)}
+CHEAP_SEEDS = {'development': (130, 131), 'evaluation': (1201, 1202, 1203, 1204, 1205)}
 CLUSTER_SEEDS = {'development': (71, 72), 'evaluation': (701, 702, 703, 704, 705)}
 STRESS_SEEDS = {'development': (61, 62), 'evaluation': (601, 602, 603, 604, 605)}
 STRESS = (
@@ -41,9 +42,12 @@ def main():
     parser.add_argument('--ingress', type=Path, help='Use development timing CSV to calibrate sensitivity')
     parser.add_argument('--network-stress', action='store_true')
     parser.add_argument('--cluster-stress', action='store_true')
+    parser.add_argument('--cheap-stress', action='store_true')
 
     args = parser.parse_args()
-    if args.network_stress and (args.cluster_stress or args.ingress):
+    if sum((args.network_stress, args.cluster_stress, args.cheap_stress)) > 1:
+        parser.error('choose one stress protocol')
+    if args.network_stress and args.ingress:
         parser.error('network stress is a separate experiment')
     out = new_directory(args.out)
     scenarios = STRESS if args.network_stress else SCENARIOS
@@ -57,6 +61,12 @@ def main():
         policies = ('round_robin_cost', 'shadow_fast', 'shadow_network', 'shadow_cluster')
         candidates = ('shadow_cluster',)
         baselines = policies[:-1]
+    if args.cheap_stress:
+        seed_set = CHEAP_SEEDS
+        scenarios = STRESS
+        policies = ('round_robin_cost', 'cost_aware', 'shadow_cluster_lru', 'shadow_cold_queue')
+        candidates = ('shadow_cold_queue',)
+        baselines = policies[:-1]
     scales = (0.,)
     rates = dict(INGRESS)
     if args.ingress:
@@ -68,7 +78,7 @@ def main():
         rates = {p: statistics.mean(float(r['total_planning_mean_us'])
                                      for r in development if r['policy'] == p) / 1000
                  for p in policies}
-        if not args.cluster_stress:
+        if not (args.cluster_stress or args.cheap_stress):
             scenarios = [s for s in scenarios if s['name'] in
                          ('reference', 'compute_heavy', 'long_prefix', 'slow_arrivals')]
         scales = (.25, 1.)
@@ -80,7 +90,9 @@ def main():
         ingress_model='Serial FCFS pooled planning proxy before simulator arrival. '
                       'TTFT includes ingress delay. Forecast errors are measured after dispatch.',
         network_model=('Cluster rollout drains only assigned work. Incoming request uses instantaneous rate.'
-                       if args.cluster_stress else 'Known active and setup transfers only. Future queued transfers use isolated links.'),
+                       if args.cluster_stress else
+                       'Cheap candidate prices queued work as cold compute and checks current prefixes for incoming service.'
+                       if args.cheap_stress else 'Known active and setup transfers only. Future queued transfers use isolated links.'),
         planning_time='Placement plus execution replanning, measured on shared CPU host.')),
         indent=2)+'\n')
     expected = {}

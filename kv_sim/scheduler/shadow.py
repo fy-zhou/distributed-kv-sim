@@ -15,7 +15,7 @@ from .reuse import minimum_service
 POLICIES = ('shadow_frozen', 'shadow_cache', 'shadow_bounded',
             'shadow_fast', 'shadow_network', 'shadow_fast_lru', 'shadow_cluster',
             'shadow_cluster_pruned', 'shadow_cluster_fast', 'shadow_cluster_lru',
-            'shadow_cluster_indexed')
+            'shadow_cluster_indexed', 'shadow_cold_queue')
 
 
 class _LocalView:
@@ -191,8 +191,30 @@ def select(sim, req):
     return min(predictions, key=lambda i: (predictions[i]['estimated_ms'], i))
 
 
+def cold_queue_forecasts(sim, req, nodes):
+    """Charge queued work as cold prefill, price only the incoming service."""
+    cold_costs = {}
+    predictions = {}
+    for node_id in nodes:
+        node = sim.nodes[node_id]
+        waiting = sim._remaining_active_ms(node)
+        for pending in node.queue:
+            length = pending.length_tokens
+            if length not in cold_costs:
+                cold_costs[length] = sim._compute_time(pending, 0)
+            waiting += cold_costs[length]
+        plan = _service(sim, req, node_id, isolated=waiting > 0.)
+        plan.update(queue_ms=waiting, estimated_ms=waiting+plan.pop('service_ms'),
+                    rollout_jobs=len(node.queue)+int(node.active is not None),
+                    cache_updates=0)
+        predictions[node_id] = plan
+    return predictions
+
+
 def forecasts(sim, req, nodes):
     policy = sim.cfg.policy
+    if policy == 'shadow_cold_queue':
+        return cold_queue_forecasts(sim, req, nodes)
     if policy.startswith('shadow_cluster'):
         from .shadow_cluster import (_ForecastCache, _ForecastIndexedCache,
                                      cold_forecasts, forecasts as cluster_forecasts)

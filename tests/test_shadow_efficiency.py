@@ -195,3 +195,14 @@ class ForecastEfficiencyTests(unittest.TestCase):
                     cache.pin(pinned)
                 self.assertEqual(a.admit(keys), b.admit(keys))
                 self.assertEqual(a.__dict__, b.__dict__)
+
+    def test_cheap_queue_forecast_counts_each_pending_request_without_cache_updates(self):
+        from kv_sim.scheduler.shadow import cold_queue_forecasts
+        sim = Simulator([NodeSpec(0, 32)], Config(policy='shadow_cold_queue'))
+        short = Request.from_tokens('short', 0., list(range(160)))
+        long = Request.from_tokens('long', 0., list(range(320)))
+        sim.nodes[0].queue.extend((short, long, short))
+        score = cold_queue_forecasts(sim, short, sim.nodes)[0]
+        self.assertAlmostEqual(score['queue_ms'],
+                               2*sim._compute_time(short, 0)+sim._compute_time(long, 0))
+        self.assertEqual(score['cache_updates'], 0)
