@@ -11,7 +11,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from scripts.research_common import archive, digest, new_directory, provenance, write_csv
 from scripts.research_evaluate import SCENARIOS
-from scripts.research_shadow import TIMING_FIELDS, summaries, trial
+from scripts.research_shadow import TIMING_FIELDS, inputs, summaries, trial
 
 SEEDS = {'development': (31, 32), 'evaluation': (301, 302, 303, 304, 305)}
 CLUSTER_SEEDS = {'development': (71, 72), 'evaluation': (701, 702, 703, 704, 705)}
@@ -90,14 +90,15 @@ def main():
     with gzip.GzipFile(str(out/'traces.jsonl.gz'), 'wb', mtime=0) as traces:
         for scenario in scenarios:
             for seed in seed_set[args.split]:
+                prepared = inputs(scenario, seed, 120)
                 for admission in ('always', 'no_remote'):
                     for scale in scales:
                         results = {}
                         order = sorted(policies, key=lambda p: digest([scenario['name'], seed, admission, p]))
                         for policy in order:
                             sim, row = trial(scenario, seed, admission, policy,
-                                             ingress_ms=scale*rates.get(policy, 0.))
-                            row.update(ingress_scale=scale, ingress_ms=scale*rates.get(policy, 0.))
+                                             ingress_ms=scale*rates.get(policy, 0.), prepared=prepared)
+                            row.update(ingress_scale=scale, ingress_ms=scale*rates.get(policy, 0.), prepared=prepared)
                             results[policy] = row
                             rows.append(row)
                             if args.verify_against:

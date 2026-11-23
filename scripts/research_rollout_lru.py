@@ -9,7 +9,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from scripts.research_common import archive, new_directory, provenance, write_csv
 from scripts.research_evaluate import SCENARIOS
-from scripts.research_shadow import TIMING_FIELDS, trial
+from scripts.research_shadow import TIMING_FIELDS, inputs, trial
 
 SEEDS = {'development': (51, 52), 'evaluation': (501, 502, 503, 504, 505)}
 POLICIES = ('shadow_fast', 'shadow_fast_lru')
@@ -42,12 +42,13 @@ def main():
         if scenario['name'] not in shapes:
             continue
         for seed in seeds[args.split]:
+            prepared = inputs(scenario, seed, 120)
             for admission in ('always', 'no_remote'):
                 original = None
                 for repeat in (0, 1):
                     run = {}
                     for policy in policies[::1 if not repeat else -1]:
-                        _, row = trial(scenario, seed, admission, policy)
+                        _, row = trial(scenario, seed, admission, policy, prepared=prepared)
                         deterministic = {k:v for k,v in row.items()
                                          if k not in TIMING_FIELDS and k != 'policy'}
                         if original is None:

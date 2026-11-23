@@ -59,8 +59,8 @@ class SpillSimulator(MeasuredSimulator):
         residual['ttft_error_ms'] = row['ttft_ms'] - residual['predicted_ttft_ms']
 
 
-def trial(scenario, seed, admission, policy, profile, fits):
-    params, specs, requests, hot, initial = inputs(scenario, seed, 120)
+def trial(scenario, seed, admission, policy, profile, fits, prepared):
+    params, specs, requests, hot, initial = prepared
     config = Config(policy=policy, admission=admission, fabric_gib_s=params['fabric'],
                     gpu_ms_per_new_token=.003*params['compute_scale'],
                     gpu_ms_per_attention_pair=1.8e-6*params['compute_scale'])
@@ -121,11 +121,12 @@ def main():
     with gzip.GzipFile(str(out/'traces.jsonl.gz'), 'wb', mtime=0) as traces:
         for scenario in scenarios:
             for seed in SEEDS[args.split]:
+                prepared = inputs(scenario, seed, 120)
                 for admission in ('always', 'no_remote'):
                     for profile in PROFILES:
                         results = {}
                         for policy in POLICIES:
-                            sim, row = trial(scenario, seed, admission, policy, profile, fits)
+                            sim, row = trial(scenario, seed, admission, policy, profile, fits, prepared)
                             rows.append(row)
                             results[policy] = row
                             if args.verify_against:
