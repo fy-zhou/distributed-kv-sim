@@ -36,7 +36,9 @@ def cold_forecasts(sim, req, nodes):
     """Predict exact ready times without a fork if every queued job is cold."""
     from .shadow import _cold_cost
 
-    if sim.network.flows:
+    if sim.network.flows or any(
+            node.active and node.active.expected_finish_ms is None
+            for node in sim.nodes.values()):
         return None
     memo = {}
 
