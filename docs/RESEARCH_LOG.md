@@ -945,3 +945,14 @@ planning remains about 20 ms/request. The worst LRU pair is replica
 pressure/always seed 1702, 1467.224 vs 1274.658 ms (+15.107% P95).
 The pin-pressure mean change is effectively zero. Exact replay and the
 separately declared controller sensitivity are running.
+
+A joint test crosses the previously frozen finite-transfer placement and
+prefix_fit admission at fresh seeds 1801–1805, with 190–191 development
+and four stress shapes. It reports both admission-controlled placement
+and placement-controlled admission pairs. Three of the four shapes use
+default spare capacity and provide exact admission-equivalence controls.
+The first development attempt failed before its first result because
+the runner read explicit scenario capacity instead of resolved defaults.
+Fix `649edb5) and a protocol-level unit test cover inherited capacities.
+The failed raw directory is retained and the fixed development starts
+in a new directory. No candidate weights or workload settings changed.
