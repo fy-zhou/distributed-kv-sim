@@ -1090,3 +1090,17 @@ the original always and no_remote modes. Its oversize unit test checks
 that trimming four full computed blocks to capacity two writes only
 two blocks and does not shift the first-token timestamp. New seeds
 2500–2501 / 2401–2405 are declared. Source `120ad80`, 84 tests pass.
+
+The memoized certificate held-out 320 cases all preserve deterministic
+results. RR-cost total ratios vs direct certificate are 2.170× reference,
+2.343× short-prefix, 1.055× compute-heavy, 1.102× long-prefix.
+Indexed cluster total ratios are 1.208×, 1.113×, 1.013× and 1.027×.
+This removes much of the direct proof's warm-path overhead on these
+shapes, while expensive rollout still dominates cluster CPU. Certifying
+the same actions has no expected simulated P95 change.
+
+The event index is now being compared over real 128-, 512- and
+2048-request synthetic sequences with the same bounded active workload
+per burst and large inter-burst interval. This tests full paired CPU
+cost and exact outcomes beyond a static heap, using development
+2600–2601 and holdouts 2501–2505. It is not a saturated-load benchmark.
