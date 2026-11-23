@@ -783,3 +783,21 @@ All 450 calibration/spill holdout cases independently replayed with exact
 deterministic result fields, including request and cache hashes. Full pair
 and summary CSVs are byte-identical. Both source commits and all result
 checksums are retained in research-spill-eval-20261124/verification.json.
+
+The corrected ordinary CPU-ingress sweep completed 400 runs. With full
+development-measured service times, the known-flow variant versus the
+cache shortcut regressed in all 40 paired conditions (mean −0.325%).
+Versus RR-cost the shortcut averages +8.162% with 18 improvements and
+22 regressions. At quarter service times, known-flow vs shortcut averages
+−0.016%. The no-ingress ordinary matrix and ingress's selected four shapes
+have different denominators. Source manifest records the ingress-rate CSV
+checksum. Both ingress sweeps are now undergoing independent replay.
+
+The new cache fork LRU development timing showed a 1.84× paired median ratio
+under pin pressure, 1.04–1.11× in the other stress shapes. This path optimizes
+unpinned admissions within the fork, which occur even in pin-pressure runs.
+The attempt to index still-pinned paths was slower in all four development
+shapes (ratios 0.87–0.96×); constructing the index may outweigh shorter victim
+search. These are timing observations, not causal proof. Both optimizations
+have separate fresh holdouts in progress, with exact deterministic parity
+required before interpreting speed.
