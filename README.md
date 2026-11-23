@@ -565,3 +565,19 @@ The spill sensitivity runner takes `--fits experiments/research-calibration-audi
 See the [research log](docs/RESEARCH_LOG.md) for the assumptions and run status
 and the [ordinary held-out archive](experiments/research-efficiency-eval-20261124/)
 for timings, paired comparisons and the figure.
+
+| Experiment | Paired finding | Evidence |
+|---|---|---|
+| Certified cold forecast | 6.83 to 1.97 ms mean host planning with exact simulation parity over 140 conditions | [Ordinary holdout](experiments/research-efficiency-eval-20261124/) |
+| Full cluster forecast | 40.39% mean synthetic P95 improvement vs RR-cost in the pressure matrix, with four regressions | [Stress holdout](experiments/research-cluster-stress-evaluation-20261124/) |
+| Finite transfer forecast | +9.45% mean P95 improvement over Cluster-LRU without modeled CPU cost, −2.64% under the full serial CPU sensitivity cost | [Holdout](experiments/research-finite-eval-20261124/) · [CPU sensitivity](experiments/research-finite-ingress-20261124/) |
+| Capacity-fit admission | 40/40 synthetic P95 improvements at the capacity cliff across four offered loads. Traffic direction depends on load | [Figure and replay](experiments/research-prefix-rate-eval-20261124/) |
+| Historical calibration reanalysis | Cold prefill service proxy and separate GPU transfer, scatter and worker-load fits | [Physical input audit](experiments/research-calibration-audit-20261124/) |
+
+The admission settings `prefix_fit` and `prefix_fit_no_remote` apply
+capacity clipping before LRU. They are available with `scripts/run.py --admission`
+and tested with `scripts/research_prefix_fit.py`. The runner supports independent
+factorial, offered-load, joint stress, asymmetric NIC and Zipf protocols.
+`scripts/verify_research_archives.py` resolves a compact archive to matching
+raw output by configuration checksum and validates the file hashes and size.
+See the research log for source snapshots, run limitations and rejected methods.

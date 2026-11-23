@@ -1032,3 +1032,13 @@ all candidate forecasts across 1000 paired samples. At 0, 120, 1000,
 falls 19.213→0.553 ms. Heap construction and request processing are not
 part of this isolated measurement. The 2101–2105 workload timing control
 assesses ordinary 120-request traces and remains in progress.
+
+The optional execution certificate (source `45e879a`) reuses
+the same nonnegative standard-predictor bound. It bypasses a prefix
+lookup only when no hit strictly wins, preserving all reuse choices.
+Its independent AB/BA timing matrix compares RR-cost and the indexed
+cluster policy with the switch off and on, reporting execution
+planning and combined wall time separately. Tests cover cold and
+warm cases. Development 2300–2301 and holdout 2201–2205 are in progress.
+The default remains the original execution selector. The 81-test
+suite passes at this checkpoint.
