@@ -1074,3 +1074,19 @@ shapes. Independent replay is running.
 Both new optional execution flags are exposed in the simulator CLI.
 A paired two-policy prefix_fit smoke run has byte-identical request
 and summary CSVs with and without the memoized option.
+
+The internal-event index held-out study completed 160 runs with exact
+deterministic equality. AB/BA median speed ratios are 1.041× endpoint,
+1.002× fabric, 1.032× pin and 1.027× replica on 120-request traces.
+This modest end-to-end change is consistent with the large-heap
+microbenchmark measuring an isolated operation rather than the full
+rollout under realistic assigned-work churn.
+
+The second physical-cost sensitivity crosses capacity-fit with the
+historical worker-load proxy and serial 16/32 GiB/s D2H assumptions.
+Spill now correctly charges only full new blocks selected by the
+admission policy. This is equivalent to the previous calculation for
+the original always and no_remote modes. Its oversize unit test checks
+that trimming four full computed blocks to capacity two writes only
+two blocks and does not shift the first-token timestamp. New seeds
+2500–2501 / 2401–2405 are declared. Source `120ad80`, 84 tests pass.
