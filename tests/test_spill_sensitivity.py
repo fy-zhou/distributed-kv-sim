@@ -18,3 +18,10 @@ class SpillTests(unittest.TestCase):
         self.assertEqual(second['local_hit_tokens'], 160)
         self.assertEqual(second['spill_bytes'], 0)
         assert_invariants(sim)
+
+    def test_spill_charges_only_full_new_blocks_selected_by_admission(self):
+        sim = SpillSimulator([NodeSpec(0, 2)], Config(policy='round_robin_cost',
+            admission='prefix_fit', gpu_ms_per_new_token=1.), audit=False, spill_gib_s=16.)
+        row = sim.run([Request.from_tokens('r', 0., list(range(64)))])[0]
+        self.assertEqual(row['spill_bytes'], 32*sim.cfg.kv_bytes_per_token)
+        self.assertEqual(row['ttft_ms'], row['compute_ms'])

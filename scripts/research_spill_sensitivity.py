@@ -10,12 +10,14 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from kv_sim import Config
+from kv_sim.cache import admitted_blocks
 from kv_sim.engine.events import EVENT_JOB_DONE
 from scripts.research_common import (archive, assert_invariants, digest, metrics,
                                      new_directory, provenance, write_csv)
 from scripts.research_evaluate import SCENARIOS
 from scripts.research_shadow import MeasuredSimulator, inputs, summaries, TIMING_FIELDS
 
+PREFIX_SEEDS = {'development': (2500, 2501), 'evaluation': (2401, 2402, 2403, 2404, 2405)}
 SEEDS = {'development': (41, 42), 'evaluation': (401, 402, 403, 404, 405)}
 POLICIES = ('round_robin_cost', 'cost_aware', 'shadow_fast')
 PROFILES = ('illustrative', 'cold_proxy', 'worker_load_proxy', 'serial_spill_16', 'serial_spill_32')
@@ -31,8 +33,11 @@ class SpillSimulator(MeasuredSimulator):
 
     def _start_compute(self, job):
         super()._start_compute(job)
-        if self.spill_gib_s and (self.cfg.admission == 'always' or not job.remote_blocks):
-            blocks = len(job.req.hashes)-job.hit
+        if self.spill_gib_s:
+            capacity = self.nodes[job.target].cache.capacity
+            keys = admitted_blocks(job.req.hashes, job.remote_blocks, self.cfg.admission,
+                                   capacity=capacity)
+            blocks = max(0, len(keys)-job.hit)
             if blocks:
                 size = blocks*self.cfg.block_size*self.cfg.kv_bytes_per_token
                 duration_ms = size/2**30/self.spill_gib_s*1000
@@ -100,12 +105,22 @@ def main():
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--archive', type=Path)
     parser.add_argument('--verify-against', type=Path)
+    parser.add_argument('--prefix-cliff', action='store_true',
+                        help='Cross capacity-fit admission with worker load and serial spill')
     args = parser.parse_args()
+    seeds, profiles, admissions = SEEDS, PROFILES, ('always', 'no_remote')
     out = new_directory(args.out)
     fits = json.loads(args.fits.read_text())
     scenarios = [s for s in SCENARIOS if s['name'] in ('reference', 'long_prefix', 'compute_heavy')]
-    config = provenance(dict(seeds=SEEDS[args.split], policies=POLICIES, profiles=PROFILES,
-        scenarios=scenarios, requests=120, admissions=('always', 'no_remote'),
+    if args.prefix_cliff:
+        seeds, profiles, admissions = PREFIX_SEEDS, PROFILES[2:], ('always', 'prefix_fit')
+        scenarios = [
+            dict(name='reuse_cliff', capacity=256, compute_scale=8.),
+            dict(name='variable_length_cliff', capacity=256, compute_scale=8.,
+                 kind='zipf', shared=256, skew=1.2),
+        ]
+    config = provenance(dict(seeds=seeds[args.split], policies=POLICIES, profiles=profiles,
+        scenarios=scenarios, requests=120, admissions=admissions,
         fits_sha256=hashlib.sha256(args.fits.read_bytes()).hexdigest(), fits=fits,
         interpretation='Model sensitivity. Cold fitted coefficients are extrapolated to reuse by the model. '
                        'Worker load replaces H2D component without adding scatter twice. Compute-heavy scales '
@@ -120,10 +135,10 @@ def main():
     rows, pairs = [], []
     with gzip.GzipFile(str(out/'traces.jsonl.gz'), 'wb', mtime=0) as traces:
         for scenario in scenarios:
-            for seed in SEEDS[args.split]:
+            for seed in seeds[args.split]:
                 prepared = inputs(scenario, seed, 120)
-                for admission in ('always', 'no_remote'):
-                    for profile in PROFILES:
+                for admission in admissions:
+                    for profile in profiles:
                         results = {}
                         for policy in POLICIES:
                             sim, row = trial(scenario, seed, admission, policy, profile, fits, prepared)
@@ -152,14 +167,33 @@ def main():
             print(args.split, scenario['name'], len(rows), flush=True)
     assert not expected
     write_csv(out/'pairs.csv', pairs)
-    write_csv(out/'summary.csv', [dict(profile=profile, **r) for profile in PROFILES
+    write_csv(out/'summary.csv', [dict(profile=profile, **r) for profile in profiles
         for r in summaries([p for p in pairs if p['profile'] == profile])])
     if args.verify_against:
         (out/'verification.json').write_text(json.dumps(dict(verified_runs=len(rows),
             ignored_fields=TIMING_FIELDS, reference_sha256=hashlib.sha256(
                 args.verify_against.read_bytes()).hexdigest()), indent=2)+'\n')
+    archived = ['runs.csv', 'pairs.csv', 'summary.csv']
+    if args.prefix_cliff:
+        groups = {}
+        for r in rows:
+            groups.setdefault((r['scenario'], r['seed'], r['policy'], r['profile']), {})[r['admission']] = r
+        admission_pairs = []
+        for (scenario, seed, policy, profile), group in groups.items():
+            a, b = [group[name]['p95_ttft_ms'] for name in ('prefix_fit', 'always')]
+            assert group['prefix_fit']['trace_hash'] == group['always']['trace_hash']
+            delta = 100*(1-a/b)
+            label = 'improve' if delta > 1e-7 else 'regress' if delta < -1e-7 else 'neutral'
+            admission_pairs.append(dict(scenario=scenario, seed=seed, policy=policy, profile=profile,
+                candidate='prefix_fit', baseline='always', candidate_p95_ms=a, baseline_p95_ms=b,
+                p95_improvement_pct=delta, outcome=label))
+        write_csv(out/'admission_pairs.csv', admission_pairs)
+        write_csv(out/'admission_summary.csv', [dict(policy=policy, profile=profile, **r)
+            for policy in POLICIES for profile in profiles for r in summaries(
+                [x for x in admission_pairs if (x['policy'], x['profile']) == (policy, profile)])])
+        archived.extend(['admission_pairs.csv', 'admission_summary.csv'])
     if args.archive:
-        archive(out, args.archive, ['runs.csv', 'pairs.csv', 'summary.csv'],
+        archive(out, args.archive, archived,
                 '# CPU KV materialization and service model sensitivity\n\n'
                 'All latency outcomes are simulated. Fitted cold service and worker load are proxies based on prior measurements. '
                 'Serial spill rates are assumed and are not measurements. Physical spill costs may overlap in real systems.')

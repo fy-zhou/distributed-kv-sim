@@ -33,7 +33,8 @@ def main():
     assert len(original) == len(replay) == args.runs
     assert original == replay, 'deterministic fields differ'
     comparison_files = ['pairs.csv', 'summary.csv']
-    comparison_files += [name for name in ('placement_pairs.csv', 'placement_summary.csv')
+    comparison_files += [name for name in ('placement_pairs.csv', 'placement_summary.csv',
+                                      'admission_pairs.csv', 'admission_summary.csv')
                          if (before/name).exists() or (after/name).exists()]
     for name in comparison_files:
         assert sha(before/name) == sha(after/name), 'paired evidence differs: '+name
