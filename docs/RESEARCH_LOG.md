@@ -385,3 +385,22 @@ cache, admission or service decision changes. Discarded private eviction
 counters are not reported or used by the planner. Prove final ordered-cache
 contents against sequential admission, then replay every development case
 against pilot full-precision results. Do not optimize against 201–205.
+
+Controlled private-LRU timing (500 interleaved AB/BA pairs/case; cache-copy
+setup excluded) preserves a negative optimization result: hot admission median
+127.189 us sequential versus 180.344 us batch (batch slower), cold replacement
+493.458 versus 193.384 us (2.55× ratio), oversized admission 68.150 versus
+50.160 us (1.36×). These are CPU metadata operations, not GPU/cache hardware
+measurements. Do not claim universal speedup; a future semantics-preserving
+hybrid could retain sequential touches for mostly resident requests.
+
+Same-state development probe (compute-heavy seed 21, always): first differing
+placement is hot-000007 at 0.14 ms. Node 0 has four assigned jobs, nodes 1–3
+one each. Frozen forecast scores source node 0 at 200.756 ms and node 1 at
+299.328 ms because it prices another remote fetch. Full rollout accounts for
+the already active node-1 request's eventual admission and predicts local reuse,
+189.803 ms, selecting node 1. Both forecasts use exactly the same causal
+runtime snapshot; no future requests are read. Actual execution outcomes with
+the extra probe match an ordinary full-rollout run exactly. This identifies
+a decision mechanism, not exact global timing: known setup transfers and later
+contention are still approximated by the remaining-work/isolated-link model.
