@@ -14,6 +14,7 @@ from scripts.research_shadow import TIMING_FIELDS, inputs, trial
 SEEDS = {'development': (51, 52), 'evaluation': (501, 502, 503, 504, 505)}
 POLICIES = ('shadow_fast', 'shadow_fast_lru')
 SHAPES = ('reference', 'compute_heavy', 'long_prefix')
+INTEGRATED_SEEDS = {'development': (4400, 4401), 'evaluation': (4501, 4502, 4503, 4504, 4505)}
 LAZY_SEEDS = {'development': (3800, 3801), 'evaluation': (3901, 3902, 3903, 3904, 3905)}
 STREAM_SEEDS = {'development': (2600, 2601), 'evaluation': (2501, 2502, 2503, 2504, 2505)}
 EVENT_SEEDS = {'development': (2200, 2201), 'evaluation': (2101, 2102, 2103, 2104, 2105)}
@@ -38,6 +39,7 @@ def main():
     variants.add_argument('--cluster-events', action='store_true')
     variants.add_argument('--cluster-event-stream', action='store_true')
     variants.add_argument('--cluster-lazy', action='store_true')
+    variants.add_argument('--cluster-integrated', action='store_true')
     args = parser.parse_args()
     scenarios, seeds, policies = SCENARIOS, SEEDS, POLICIES
     stress = args.cluster_pruning or args.cluster_lru or args.cluster_indexed or args.cluster_gated or args.cluster_events
@@ -61,7 +63,7 @@ def main():
         scenarios = [dict(name='stream_%d' % count, count=count,
                           shared=64, gap=1200., compute_scale=16., capacity=128)
                      for count in (128, 512, 2048)]
-    if args.cluster_lazy:
+    if args.cluster_lazy or args.cluster_integrated:
         stress = True
         seeds, policies = LAZY_SEEDS, ('shadow_cluster_events', 'shadow_cluster_lazy')
         scenarios = [
@@ -71,6 +73,10 @@ def main():
                  burst=1, gap=4000.),
             dict(name='burst_warm', compute_scale=16., burst=12, gap=2.),
         ]
+    if args.cluster_integrated:
+        from scripts.research_reuse_shortcut import PARTIAL
+        seeds = INTEGRATED_SEEDS
+        scenarios.append(PARTIAL)
     shapes = tuple(s['name'] for s in scenarios if stress or s['name'] in SHAPES)
     out = new_directory(args.out)
     (out/'config.json').write_text(json.dumps(provenance(dict(
@@ -78,6 +84,7 @@ def main():
         requests_by_shape={s['name']:s.get('count', 120) for s in scenarios if s['name'] in shapes},
         admissions=['always', 'no_remote'], repeats=2,
         scenario_parameters=[s for s in scenarios if s['name'] in shapes],
+        execution_paths=('memoized_cold_certificate', 'reuse_prefix_floor') if args.cluster_integrated else None,
         order='AB then BA for each condition. Scheduler clock excludes setup of workload.',
         estimand='Mean total host CPU planning wall-time per request, paired by condition and repeat.')),
         indent=2)+'\n')
@@ -86,14 +93,19 @@ def main():
         if scenario['name'] not in shapes:
             continue
         count = scenario.get('count',120)
+        admissions = ('always', 'prefix_fit') if scenario['name'] == 'partial_prefix' else ('always', 'no_remote')
         for seed in seeds[args.split]:
             prepared = inputs(scenario, seed, count)
-            for admission in ('always', 'no_remote'):
+            for admission in admissions:
                 original = None
                 for repeat in (0, 1):
                     run = {}
                     for policy in policies[::1 if not repeat else -1]:
-                        _, row = trial(scenario, seed, admission, policy, count, prepared=prepared)
+                        original_policy = policy == policies[0]
+                        _, row = trial(scenario, seed, admission, policy, count, prepared=prepared,
+                                       certified_reuse_shortcut=args.cluster_integrated,
+                                       memoized_reuse_certificate=args.cluster_integrated and original_policy,
+                                       reuse_prefix_floor=args.cluster_integrated and not original_policy)
                         deterministic = {k:v for k,v in row.items()
                                          if k not in TIMING_FIELDS and k != 'policy'}
                         if original is None:
