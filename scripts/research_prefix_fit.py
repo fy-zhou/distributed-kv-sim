@@ -61,6 +61,9 @@ def main():
                 assert len({r['trace_hash'] for r in runs.values()}) == 1
                 assert len({r['initial_cache_hash'] for r in runs.values()}) == 1
                 candidate = runs['prefix_fit']
+                if scenario['capacity'] >= max(len(req.hashes) for req in prepared[2]):
+                    assert all(runs['always'][k] == v for k, v in candidate.items()
+                               if k not in TIMING_FIELDS and k != 'admission')
                 for baseline in ADMISSIONS[:-1]:
                     control = runs[baseline]
                     a, b = candidate['p95_ttft_ms'], control['p95_ttft_ms']
