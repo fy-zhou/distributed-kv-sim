@@ -467,3 +467,13 @@ All per-condition results, uncertainty, absolute metrics and per-candidate
 failures are in experiments/research-shadow-evaluation-20261124/ANALYSIS.md.
 SVG outcome/timing figures were rendered and PNG previews visually reviewed;
 only small SVGs are committed. Full raw traces and previews stay outside Git.
+
+Physical-model completeness note exposed by future-replica scheduling: actual
+_on_job_done admits newly computed KV to persistent CPU cache via zero-time
+metadata insertion. D2H/materialization and spill backpressure are not modeled.
+The rollout matches this existing abstraction exactly; it is not proof that
+physical replicas become available at those times. Do not silently add spill
+cost after evaluation or relabel this as an engine bug. A separately calibrated
+spill model and repeated common baselines are required for physical validation.
+The evaluated candidates have not changed. Detailed limitations are appended
+as LIMITATIONS.md in the new evaluation archive, preserving generated findings.
