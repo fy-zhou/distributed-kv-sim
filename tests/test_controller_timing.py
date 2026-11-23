@@ -20,7 +20,7 @@ class ControllerTimingTests(unittest.TestCase):
         requests = [Request(str(i), 0., (), 1) for i in range(2)]
         traces = []
         for snapshot in ('start', 'finish'):
-            sim = ObservedController([NodeSpec(0, 0)], Config(policy='round_robin_cost',
+            sim = ObservedController([NodeSpec(0, 1)], Config(policy='round_robin_cost',
                 gpu_ms_per_new_token=0., gpu_ms_per_attention_pair=0.), audit=False,
                 placement_ms=5., snapshot=snapshot)
             rows = sim.run(requests)
