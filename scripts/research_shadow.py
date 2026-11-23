@@ -96,12 +96,12 @@ def inputs(scenario,seed,count):
 
 
 def trial(scenario,seed,admission,policy,count=120,*,ingress_ms=0.,prepared=None,certified_reuse_shortcut=False,
-          memoized_reuse_certificate=False):
+          memoized_reuse_certificate=False,simulator_factory=MeasuredSimulator):
     """Optional serial controller sensitivity model, in simulated milliseconds."""
     if prepared is None:
         prepared = inputs(scenario, seed, count)
     params, specs, reqs, hot, initial = prepared
-    sim=MeasuredSimulator(specs,Config(policy=policy,admission=admission,
+    sim=simulator_factory(specs,Config(policy=policy,admission=admission,
         fabric_gib_s=params['fabric'],gpu_ms_per_new_token=.003*params['compute_scale'],
         gpu_ms_per_attention_pair=1.8e-6*params['compute_scale'],shadow_cache_updates=8,
         certified_reuse_shortcut=certified_reuse_shortcut,

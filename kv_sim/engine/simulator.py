@@ -332,6 +332,14 @@ class Simulator:
         node.active = None
         self._start(node_id)
 
+    def _dispatch(self, req, node_id):
+        self.nodes[node_id].queue.append(req)
+        self.arrival_order.append(req.request_id)
+        self._start(node_id)
+
+    def _on_arrival(self, req):
+        self._dispatch(req, self._choose(req))
+
     def run(self, requests):
         if self.events or self.rows:
             raise RuntimeError("Simulator instance can be run only once")
@@ -354,10 +362,7 @@ class Simulator:
             self.clock.advance(now)
             self.now = now
             if kind == EVENT_ARRIVAL:
-                node_id = self._choose(payload)
-                self.nodes[node_id].queue.append(payload)
-                self.arrival_order.append(payload.request_id)
-                self._start(node_id)
+                self._on_arrival(payload)
             elif kind == EVENT_FLOW_START:
                 target, source, size_bytes = payload
                 job = self.nodes[target].active
