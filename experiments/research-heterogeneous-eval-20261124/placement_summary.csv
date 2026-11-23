@@ -1,0 +1,5 @@
+admission,candidate,baseline,conditions,seed_clusters,mean_p95_improvement_pct,seed_bootstrap_p025,seed_bootstrap_p975,improve,neutral,regress
+always,shadow_cluster_finite,round_robin_cost,20,5,2.5153360912478324,2.0975594930328074,2.9305587606362535,14,5,1
+always,shadow_cluster_finite,shadow_cluster_lru,20,5,0.21785425835921413,0.0,0.6196452434662786,2,18,0
+prefix_fit,shadow_cluster_finite,round_robin_cost,20,5,47.3709276221101,40.53262203842228,53.43284724631447,20,0,0
+prefix_fit,shadow_cluster_finite,shadow_cluster_lru,20,5,3.606655778453981,1.1411759013054206,6.072135655602542,6,13,1

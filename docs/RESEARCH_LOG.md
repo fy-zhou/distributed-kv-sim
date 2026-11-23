@@ -1003,3 +1003,14 @@ variable suffix lengths and Poisson arrivals. It repeats the admission and
 finite placement cross with fresh seeds 2100–2101 / 2001–2005 so the
 single-hotspot stress conclusions can be tested under interleaved families.
 Source `722c49c`, running.
+
+The 1901–1905 asymmetric NIC holdout completed 120 runs. Against the
+same-policy always baseline, prefix_fit improves all 20 pairs for each
+policy and yields mean P95 changes of +65.395% RR-cost, +81.185%
+Cluster-LRU and +81.941% finite. This test fixes the 256-block cliff and
+16× compute stress, so the percentages describe the deliberately
+admission-sensitive shape. Within prefix_fit, finite placement versus
+Cluster-LRU improves a mean +3.607% (6 improvements, 13 ties and one
+regression). Within always, mean improvement is +0.218% (2/18/0).
+Independent asymmetric replay is running. The multifamily Zipf protocol
+is also running, to test the admission result beyond hotspot loads.
