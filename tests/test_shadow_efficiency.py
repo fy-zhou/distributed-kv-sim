@@ -246,3 +246,11 @@ class ForecastEfficiencyTests(unittest.TestCase):
                             certified_reuse_shortcut=True)
             self.assertEqual(base.rows, fast.rows)
             self.assertEqual(base.residuals, fast.residuals)
+
+    def test_certified_shortcut_preserves_cache_reuse_on_equal_service_cost(self):
+        sim = Simulator([NodeSpec(0, 16)], Config(policy='round_robin_cost',
+            certified_reuse_shortcut=True, gpu_ms_per_new_token=0.,
+            gpu_ms_per_attention_pair=0., h2d_fixed_ms=0., h2d_ms_per_gib=0.))
+        req = Request.from_tokens('equal', 0., list(range(64)))
+        sim.seed_cache(0, req.hashes)
+        self.assertEqual(sim._reuse_choice(req, 0), (4, None, 4))
