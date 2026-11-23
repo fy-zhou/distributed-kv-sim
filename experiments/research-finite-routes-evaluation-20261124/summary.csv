@@ -1,0 +1,10 @@
+candidate,baseline,conditions,seed_clusters,mean_p95_improvement_pct,seed_bootstrap_p025,seed_bootstrap_p975,improve,neutral,regress
+finite/round_robin_cost,instant/round_robin_cost,30,5,0.2901934613550346,-2.354542756174086,3.1218658036619455,13,5,12
+finite/shadow_cluster_finite,finite/round_robin_cost,30,5,43.66453126780952,39.85940090891801,47.62281085964193,30,0,0
+finite/shadow_cluster_finite,instant/shadow_cluster_finite,30,5,0.7563865566675358,-1.3851162592868678,3.380547741862559,5,19,6
+finite/shadow_cluster_routes,finite/round_robin_cost,30,5,43.458842262679354,38.898772654213055,47.84370970696026,30,0,0
+finite/shadow_cluster_routes,finite/shadow_cluster_finite,30,5,-0.40760842289372556,-2.5151724108785607,0.9413789093516263,9,13,8
+finite/shadow_cluster_routes,instant/shadow_cluster_routes,30,5,4.000222547233186,0.9063917134542467,7.367624873870874,17,9,4
+instant/shadow_cluster_finite,instant/round_robin_cost,30,5,43.58815653723633,38.34830546151876,48.71455081479802,30,0,0
+instant/shadow_cluster_routes,instant/round_robin_cost,30,5,41.42334354175692,34.863561862108554,47.02120492275233,30,0,0
+instant/shadow_cluster_routes,instant/shadow_cluster_finite,30,5,-3.9677601173684174,-7.2832466338518635,-1.129435173192248,5,12,13

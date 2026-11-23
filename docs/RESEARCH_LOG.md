@@ -1153,3 +1153,28 @@ two development seeds motivate checking sensitivity on held-out
 declared in the runner. The controller does not reserve nodes or perform
 a second placement decision, and a single fixed compute interval per
 policy is a sensitivity parameter.
+
+## Finite route choice at readiness
+
+Source `1c12a64`. The previous finite forecast chose an immediate-rate
+route and then refined its duration. The new placement compares finite
+durations for every feasible one-source remote route together with
+local reuse and recompute. A separate execution switch applies the
+same route cost at worker readiness. Test fixtures reverse the route
+in both directions when a competing transfer drains before setup or
+starts during setup. 87 tests pass.
+
+Holdout seeds 3101–3105 across four stress and two near-break-even
+fixtures, paired against finite placement and RR-cost at both execution
+settings. The 180 runs independently replay exactly. With matched
+finite execution, route-aware placement averages −0.41% P95 versus
+previous finite placement (9 improve, 13 tie, 8 regress). With matched
+instant execution it averages −3.97% (5/12/13). Within route-aware
+placement, switching execution improves +4.00% (17/9/4). Within
+RR-cost, where node assignments remain identical, the execution switch
+averages +0.29% (13/5/12). More accurate consideration of known flows
+can change the KV choice and improve model consistency, but the
+placement upgrade has no robust P95 advantage here. Routing remains
+single-source and only already-started or pending setup transfers are
+visible to the profile. Evaluate marginal impact on other known
+transfers separately.

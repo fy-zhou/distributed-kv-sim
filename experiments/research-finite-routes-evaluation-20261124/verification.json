@@ -1,0 +1,30 @@
+{
+  "verified_runs": 180,
+  "ignored_fields": [
+    "decision_max_us",
+    "decision_mean_us",
+    "execution_plan_mean_us",
+    "total_planning_mean_us"
+  ],
+  "compared": "All deterministic run fields and byte-identical paired and summary CSVs.",
+  "original": {
+    "path": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261124-finite-routes-evaluation",
+    "code_commit": "1c12a640f9452a93dc4cf731165d77a991e3a523",
+    "sha256": {
+      "config.json": "f830ee88086c8d4a89da3a273de2a7a65e900f393d8a1028946e7fdff56fb91f",
+      "runs.csv": "666c9557edccff879ffe077e6154b30923106f5094e9c162e8d013bce2c998ea",
+      "pairs.csv": "a6784fafbbe3d29b45ae72be1a528b46d7012646e6c6f3c41a24c3e19162b080",
+      "summary.csv": "71161c9f8478a8943a9caf1c0f392b0ef82b9057e1158196640a397b5de64405"
+    }
+  },
+  "replay": {
+    "path": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261124-finite-routes-replay",
+    "code_commit": "1c12a640f9452a93dc4cf731165d77a991e3a523",
+    "sha256": {
+      "config.json": "f830ee88086c8d4a89da3a273de2a7a65e900f393d8a1028946e7fdff56fb91f",
+      "runs.csv": "240fdc2cc9d0eb0756802516f898f623e3f986d3f4bd3cd219cdd8d636212577",
+      "pairs.csv": "a6784fafbbe3d29b45ae72be1a528b46d7012646e6c6f3c41a24c3e19162b080",
+      "summary.csv": "71161c9f8478a8943a9caf1c0f392b0ef82b9057e1158196640a397b5de64405"
+    }
+  }
+}
