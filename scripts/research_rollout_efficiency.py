@@ -99,7 +99,7 @@ def main():
                         for policy in order:
                             sim, row = trial(scenario, seed, admission, policy,
                                              ingress_ms=scale*rates.get(policy, 0.), prepared=prepared)
-                            row.update(ingress_scale=scale, ingress_ms=scale*rates.get(policy, 0.), prepared=prepared)
+                            row.update(ingress_scale=scale, ingress_ms=scale*rates.get(policy, 0.))
                             results[policy] = row
                             rows.append(row)
                             if args.verify_against:
