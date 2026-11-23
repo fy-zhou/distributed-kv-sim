@@ -6,7 +6,7 @@ from ..cluster.network import FluidNetwork
 
 def _known_completions(sim, proposed=None):
     live = sim.network
-    network = FluidNetwork(live.nic, live.fabric)
+    network = FluidNetwork(live.nic, live.fabric, sharing=live.sharing)
     network.last_update = sim.now
     network.next_id = live.next_id
     network.flows = {i: replace(flow) for i, flow in live.flows.items()}

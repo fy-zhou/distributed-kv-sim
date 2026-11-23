@@ -9,6 +9,7 @@ import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 from kv_sim.cache.admission import ADMISSION_POLICIES
+from kv_sim.cluster.network import SHARING_MODELS
 from kv_sim.core import Config, NodeSpec, run_policy
 from kv_sim.workload import make_workload, make_initial_caches
 
@@ -34,6 +35,7 @@ def main():
     p.add_argument("--arrival-ms", type=float, default=12.0)
     p.add_argument("--nic-gib-s", type=float, default=12.0)
     p.add_argument("--fabric-gib-s", type=float, default=24.0)
+    p.add_argument("--network-sharing", choices=SHARING_MODELS, default="equal_share")
     p.add_argument("--policy", nargs="+", default=[
         "round_robin", "shortest_queue", "max_hit", "greedy"])
     p.add_argument("--admission", choices=ADMISSION_POLICIES,
@@ -71,7 +73,7 @@ def main():
     for policy in a.policy:
         cfg = Config(
             policy=policy, admission=a.admission,
-            fabric_gib_s=a.fabric_gib_s,
+            fabric_gib_s=a.fabric_gib_s, network_sharing=a.network_sharing,
             kv_bytes_per_token=a.kv_bytes_per_token,
             gpu_fixed_ms=a.gpu_fixed_ms,
             gpu_ms_per_new_token=a.gpu_ms_per_new_token,

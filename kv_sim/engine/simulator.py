@@ -39,6 +39,7 @@ class Config:
     shadow_cache_updates: int = 8
     certified_reuse_shortcut: bool = False
     memoized_reuse_certificate: bool = False
+    network_sharing: str = "equal_share"
 
 
 class Simulator:
@@ -67,7 +68,7 @@ class Simulator:
             setup_ms=self.cfg.remote_setup_ms)
         self.network = FluidNetwork(
             {s.node_id: s.nic_gib_s * (2**30) / 1000 for s in specs},
-            self.cfg.fabric_gib_s * (2**30) / 1000)
+            self.cfg.fabric_gib_s * (2**30) / 1000, sharing=self.cfg.network_sharing)
         self.events = []
         # Only the indexed cluster policy needs a view without future arrivals.
         self.service_events = {} if self.cfg.policy == 'shadow_cluster_events' else None
@@ -199,23 +200,7 @@ class Simulator:
         local, source, length = self._reuse_choice(req, node_id)
         if source is None or length <= local or not self.network.flows:
             return 0.0
-        flows = list(self.network.flows.values())
-        counts_src = {}
-        counts_dst = {}
-        for f in flows:
-            counts_src[f.src] = counts_src.get(f.src, 0) + 1
-            counts_dst[f.dst] = counts_dst.get(f.dst, 0) + 1
-        counts_src[source] = counts_src.get(source, 0) + 1
-        counts_dst[node_id] = counts_dst.get(node_id, 0) + 1
-        fabric_share = self.network.fabric / (len(flows) + 1)
-        added = 0.0
-        for f in flows:
-            rate = min(self.network.nic[f.src] / counts_src[f.src],
-                       self.network.nic[f.dst] / counts_dst[f.dst],
-                       fabric_share)
-            added += f.remaining_bytes * (
-                1.0 / rate - 1.0 / f.rate_bytes_per_ms)
-        return max(0.0, added)
+        return self.network.externality_ms(source, node_id)
 
     def _policy_cost(self, req, node_id):
         cost = self._estimate(req, node_id)
