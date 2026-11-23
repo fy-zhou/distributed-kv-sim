@@ -1,0 +1,30 @@
+{
+  "verified_runs": 200,
+  "ignored_fields": [
+    "decision_max_us",
+    "decision_mean_us",
+    "execution_plan_mean_us",
+    "total_planning_mean_us"
+  ],
+  "compared": "All deterministic run fields and byte-identical paired and summary CSVs.",
+  "original": {
+    "path": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261124-network-stress-evaluation",
+    "code_commit": "959107900ef37db2e76b1f135765b9a2ea4d3727",
+    "sha256": {
+      "config.json": "6aba410093fabff840aa284406765f1daebde159e678df1f8c0608137cd66146",
+      "runs.csv": "fd9842891cff59fbd2f4611cc0e3d9536314f7fb15bc03f02b0a8b18562250cc",
+      "pairs.csv": "6b83226e226d910ca1203e70e4870a0f8e2fcb800e588f1c23b402d551de48c6",
+      "summary.csv": "5ad75cabd7e6e76058e274b726fe12ba4d6cd90da3fa345ef277485bb06eac9b"
+    }
+  },
+  "replay": {
+    "path": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261124-network-stress-replay-fixed",
+    "code_commit": "4262642f1f88174c4f377bb65a56a469b68b158c",
+    "sha256": {
+      "config.json": "6b3c13f1641fe52ecb26671d58c33a52e455d59a977099decccd963c60568d90",
+      "runs.csv": "40d0bbc31d1d406e5c72abf368240009fcc385f6166f99fd0de461bed32a84b8",
+      "pairs.csv": "6b83226e226d910ca1203e70e4870a0f8e2fcb800e588f1c23b402d551de48c6",
+      "summary.csv": "5ad75cabd7e6e76058e274b726fe12ba4d6cd90da3fa345ef277485bb06eac9b"
+    }
+  }
+}

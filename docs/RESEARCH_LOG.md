@@ -733,3 +733,24 @@ a private constant-time LRU victim path within the cluster fork when
 no blocks are pinned. It preserves live admission and pin semantics
 (source `21992d7`). AB/BA timing on stress workloads uses fresh test seeds
 1001–1005 and has started. The local 71-test suite passes.
+
+Independent stress replays completed after the exporter correction. All
+200 network and 160 cluster stress cases match every deterministic field.
+Paired and summary CSVs are byte-identical, and source/result provenance
+is saved in each archive's verification.json.
+
+The largest observed known-transfer-only stress regression is Fabric
+pressure/no_remote seed 605. P95 is 4965.30 ms versus 3306.40 ms using the
+cache shortcut, and traffic increases 5.25→8.31 GiB. This is descriptive
+evidence of routing path dependence, not proof of a unique mechanism.
+The worst full-cluster case against RR-cost is pin pressure/always seed
+705, 12421.68 vs 12368.85 ms, a 0.43% regression despite zero mean queue
+prediction error to reported precision. Accurate individual completion
+predictions do not guarantee system-level tail dominance.
+
+A paired pinned-path challenger builds an ordered index of currently
+unpinned keys only for the duration of each private admission. The
+original BlockCache remains the live data path. Exhaustive short
+operations on partially and fully pinned caches compare counters and
+ordered contents, passing with the 72-test suite. The 120–121 development
+and 1101–1105 stress timing batches are running. Source `e9434db`.

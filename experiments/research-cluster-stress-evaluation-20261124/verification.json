@@ -1,0 +1,30 @@
+{
+  "verified_runs": 160,
+  "ignored_fields": [
+    "decision_max_us",
+    "decision_mean_us",
+    "execution_plan_mean_us",
+    "total_planning_mean_us"
+  ],
+  "compared": "All deterministic run fields and byte-identical paired and summary CSVs.",
+  "original": {
+    "path": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261124-cluster-stress-evaluation",
+    "code_commit": "214ab67913e8ccd93ea3c4b4d5486fcd665eb57d",
+    "sha256": {
+      "config.json": "6445159028d6ea10cb279687c2dcd6395551f2bc1dd6ab13217868cc35f66b46",
+      "runs.csv": "b08a1ec60b671011451b35cb7a3cd99e8984480a3172ca57b8256b4ae8a5105d",
+      "pairs.csv": "66282f3a43dd8b43f09613ae9642139cb31c46ae4625e0f4478f24ebbdbe26e7",
+      "summary.csv": "968d293b6c0bc9252441397a8a938e5adfa5f2ee38e9c8bc5541409986cc2d31"
+    }
+  },
+  "replay": {
+    "path": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261124-cluster-stress-replay-fixed",
+    "code_commit": "4262642f1f88174c4f377bb65a56a469b68b158c",
+    "sha256": {
+      "config.json": "f828b8a2f17810a61176a67b1b987ef9e07f5cf88a40987dcc8bd66eeec9ca88",
+      "runs.csv": "ee2519c5167bf9ceafd2fd077557cb5b01f7f48b849bdb5fbeeb83cb442894fe",
+      "pairs.csv": "66282f3a43dd8b43f09613ae9642139cb31c46ae4625e0f4478f24ebbdbe26e7",
+      "summary.csv": "968d293b6c0bc9252441397a8a938e5adfa5f2ee38e9c8bc5541409986cc2d31"
+    }
+  }
+}
