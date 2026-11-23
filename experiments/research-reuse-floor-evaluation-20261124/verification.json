@@ -1,0 +1,26 @@
+{
+  "verified_runs": 400,
+  "ignored_fields": [
+    "decision_max_us",
+    "decision_mean_us",
+    "execution_plan_mean_us",
+    "total_planning_mean_us"
+  ],
+  "compared": "All deterministic run fields. Timing CSVs may vary.",
+  "original": {
+    "path": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261124-reuse-floor-evaluation",
+    "code_commit": "c8367e4330bd22befaad341f2d1063bdb01c5d69",
+    "sha256": {
+      "config.json": "cb8cdc09d6fd84ce6a2469ef36ae4b9eae61d96f7127a793c1db60ab34932598",
+      "runs.csv": "4e052affcdf38dda28a1e7696e04fd9642a6fa60f0ee7ad62e21810ada4abd50"
+    }
+  },
+  "replay": {
+    "path": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261124-reuse-floor-replay",
+    "code_commit": "c8367e4330bd22befaad341f2d1063bdb01c5d69",
+    "sha256": {
+      "config.json": "cb8cdc09d6fd84ce6a2469ef36ae4b9eae61d96f7127a793c1db60ab34932598",
+      "runs.csv": "f20a297179372e1dbbee4b10cf0fdfa1fc55dca43779f2902de0da20aacdae91"
+    }
+  }
+}

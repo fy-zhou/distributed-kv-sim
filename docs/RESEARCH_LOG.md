@@ -1183,3 +1183,21 @@ The opt-in network sharing study is in `research/network-sharing`
 and the fabric-only parity control. A separate 72-request CLI smoke
 trace produced byte-identical request and summary CSVs for eight
 policies under the previous and current default allocators.
+
+## Verify a lower bound on cost-effective prefix reuse
+
+Source `c8367e4`. Using the concavity of positive-hit local service
+cost, identify a checkpoint before which every possible hit strictly
+loses to cold execution. If this block is absent from all caches, skip
+the exact contiguous prefix scan. A hit at the checkpoint falls back
+to the normal scan, including orphan hashes. Numerical near-ties
+fall back, and a predictor change invalidates the memo key. 87 tests
+pass. The existing certificate stays available.
+
+In 400 AB/BA holdout runs on 3701–3705 and 400 independent timing replay
+runs, all deterministic fields agree with the memoized certificate.
+The deliberately capacity-limited Zipf case improves RR-cost combined
+CPU by 2.256× (replay 2.315×) and indexed finite cluster by 1.072×
+(replay 1.056×). Other shapes have median ratios close to one. The
+test exercises the new mechanism and quantifies the lack of broad
+speedup. This optimizes CPU cost without changing modeled latency.
