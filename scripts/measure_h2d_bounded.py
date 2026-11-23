@@ -102,7 +102,7 @@ def main():
             median_cuda_ms=median,median_wall_ms=statistics.median(r['wall_ms']for r in rr),
             aggregate_gib_s=total/2**30/(median/1000),
             old_single_copy_predictor_ms=(1.684+71.210*total/2**30
-                                          if args.direction=='h2d' else ''))
+                                          if args.direction=='h2d' else '')))
     write_csv(out/'summary.csv',summary)
     peak_bytes=torch.cuda.max_memory_allocated()
     assert peak_bytes <= 128*2**20, 'GPU tensor allocation exceeded declared bound'
