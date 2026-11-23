@@ -1,0 +1,28 @@
+         13192039 function calls (13178171 primitive calls) in 4.785 seconds
+
+   Ordered by: cumulative time
+   List reduced from 175 to 20 due to restriction <20>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000    4.787    4.787 /state/partition/fyzhou/distributed-kv-sim/scripts/research_shadow.py:93(trial)
+        1    0.001    0.001    4.021    4.021 /state/partition/fyzhou/distributed-kv-sim/kv_sim/engine/simulator.py:321(run)
+      120    0.000    0.000    3.943    0.033 /state/partition/fyzhou/distributed-kv-sim/scripts/research_shadow.py:55(_choose)
+      120    0.000    0.000    3.942    0.033 /state/partition/fyzhou/distributed-kv-sim/scripts/research_common.py:132(_choose)
+      120    0.000    0.000    3.941    0.033 /state/partition/fyzhou/distributed-kv-sim/kv_sim/engine/simulator.py:215(_choose)
+      120    0.000    0.000    3.941    0.033 /state/partition/fyzhou/distributed-kv-sim/kv_sim/scheduler/__init__.py:16(choose_node)
+      120    0.000    0.000    3.941    0.033 /state/partition/fyzhou/distributed-kv-sim/kv_sim/scheduler/shadow.py:90(select)
+      120    0.006    0.000    3.940    0.033 /state/partition/fyzhou/distributed-kv-sim/kv_sim/scheduler/shadow.py:91(<dictcomp>)
+      480    0.012    0.000    3.934    0.008 /state/partition/fyzhou/distributed-kv-sim/kv_sim/scheduler/shadow.py:46(forecast)
+     7140    0.023    0.000    3.159    0.000 /state/partition/fyzhou/distributed-kv-sim/kv_sim/scheduler/shadow.py:61(complete)
+     7264    1.251    0.000    2.436    0.000 /state/partition/fyzhou/distributed-kv-sim/kv_sim/cache/block_store.py:53(admit)
+   921456    0.533    0.000    0.880    0.000 /state/partition/fyzhou/distributed-kv-sim/kv_sim/cache/lru.py:3(choose_lru_victim)
+     7260    0.512    0.000    0.752    0.000 /state/partition/fyzhou/distributed-kv-sim/kv_sim/cache/block_store.py:32(touch)
+     7150    0.038    0.000    0.711    0.000 /state/partition/fyzhou/distributed-kv-sim/kv_sim/scheduler/shadow.py:27(_service)
+        1    0.000    0.000    0.692    0.692 /state/partition/fyzhou/distributed-kv-sim/scripts/research_shadow.py:79(inputs)
+        1    0.004    0.004    0.689    0.689 /state/partition/fyzhou/distributed-kv-sim/kv_sim/workload/hotspot.py:13(make_hotspot_workload)
+      121    0.140    0.001    0.678    0.006 /state/partition/fyzhou/distributed-kv-sim/kv_sim/cache/prefix_hash.py:4(prefix_hashes)
+      120    0.000    0.000    0.673    0.006 /state/partition/fyzhou/distributed-kv-sim/kv_sim/engine/events.py:12(from_tokens)
+     7270    0.025    0.000    0.660    0.000 /state/partition/fyzhou/distributed-kv-sim/kv_sim/scheduler/reuse.py:9(minimum_service)
+    28600    0.015    0.000    0.531    0.000 /state/partition/fyzhou/distributed-kv-sim/kv_sim/scheduler/shadow.py:21(_hit)
+
+

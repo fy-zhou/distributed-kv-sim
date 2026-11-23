@@ -1,0 +1,12 @@
+{
+  "verified_runs": 560,
+  "ignored_fields": [
+    "decision_mean_us",
+    "decision_max_us",
+    "execution_plan_mean_us",
+    "total_planning_mean_us"
+  ],
+  "reference": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261124-shadow-development/runs.csv",
+  "reference_sha256": "d13a8f1ad9840973f5d36a75ed79021732f942f7b8141051bff2930a060cee47",
+  "compared": "Every remaining metric, per-request outcome hash and final ordered-cache hash."
+}

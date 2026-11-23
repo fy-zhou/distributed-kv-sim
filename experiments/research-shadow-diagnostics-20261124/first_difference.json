@@ -1,0 +1,172 @@
+{
+  "request_id": "hot-000007",
+  "time_ms": 0.14,
+  "full_node": 1,
+  "frozen_node": 0,
+  "full": {
+    "0": {
+      "node": 0,
+      "local_blocks": 256,
+      "remote_blocks": 0,
+      "total_hit_blocks": 256,
+      "source": null,
+      "payload_bytes": 0,
+      "competing_flows": 0,
+      "active_network_flows": 0,
+      "network_ms": 0.0,
+      "h2d_ms": 32.838375,
+      "compute_ms": 7.3408256000000005,
+      "queue_ms": 160.57680240000002,
+      "estimated_ms": 200.75600300000002,
+      "rollout_jobs": 4,
+      "cache_updates": 4
+    },
+    "1": {
+      "node": 1,
+      "local_blocks": 256,
+      "remote_blocks": 0,
+      "total_hit_blocks": 256,
+      "source": null,
+      "payload_bytes": 0,
+      "competing_flows": 0,
+      "active_network_flows": 0,
+      "network_ms": 0.0,
+      "h2d_ms": 32.838375,
+      "compute_ms": 7.3408256000000005,
+      "queue_ms": 149.62420059999997,
+      "estimated_ms": 189.80340119999997,
+      "rollout_jobs": 1,
+      "cache_updates": 1
+    },
+    "2": {
+      "node": 2,
+      "local_blocks": 256,
+      "remote_blocks": 0,
+      "total_hit_blocks": 256,
+      "source": null,
+      "payload_bytes": 0,
+      "competing_flows": 0,
+      "active_network_flows": 0,
+      "network_ms": 0.0,
+      "h2d_ms": 32.838375,
+      "compute_ms": 7.3408256000000005,
+      "queue_ms": 149.6442006,
+      "estimated_ms": 189.8234012,
+      "rollout_jobs": 1,
+      "cache_updates": 1
+    },
+    "3": {
+      "node": 3,
+      "local_blocks": 256,
+      "remote_blocks": 0,
+      "total_hit_blocks": 256,
+      "source": null,
+      "payload_bytes": 0,
+      "competing_flows": 0,
+      "active_network_flows": 0,
+      "network_ms": 0.0,
+      "h2d_ms": 32.838375,
+      "compute_ms": 7.3408256000000005,
+      "queue_ms": 149.6642006,
+      "estimated_ms": 189.8434012,
+      "rollout_jobs": 1,
+      "cache_updates": 1
+    }
+  },
+  "frozen": {
+    "0": {
+      "node": 0,
+      "local_blocks": 256,
+      "remote_blocks": 0,
+      "total_hit_blocks": 256,
+      "source": null,
+      "payload_bytes": 0,
+      "competing_flows": 0,
+      "active_network_flows": 0,
+      "network_ms": 0.0,
+      "h2d_ms": 32.838375,
+      "compute_ms": 7.3408256000000005,
+      "queue_ms": 160.57680240000002,
+      "estimated_ms": 200.75600300000002,
+      "rollout_jobs": 4,
+      "cache_updates": 0
+    },
+    "1": {
+      "node": 1,
+      "local_blocks": 0,
+      "remote_blocks": 256,
+      "total_hit_blocks": 256,
+      "source": 0,
+      "payload_bytes": 469762048,
+      "competing_flows": 0,
+      "active_network_flows": 0,
+      "network_ms": 109.525,
+      "h2d_ms": 32.838375,
+      "compute_ms": 7.3408256000000005,
+      "queue_ms": 149.62420059999997,
+      "estimated_ms": 299.3284012,
+      "rollout_jobs": 1,
+      "cache_updates": 0
+    },
+    "2": {
+      "node": 2,
+      "local_blocks": 0,
+      "remote_blocks": 256,
+      "total_hit_blocks": 256,
+      "source": 0,
+      "payload_bytes": 469762048,
+      "competing_flows": 0,
+      "active_network_flows": 0,
+      "network_ms": 109.525,
+      "h2d_ms": 32.838375,
+      "compute_ms": 7.3408256000000005,
+      "queue_ms": 149.6442006,
+      "estimated_ms": 299.3484012,
+      "rollout_jobs": 1,
+      "cache_updates": 0
+    },
+    "3": {
+      "node": 3,
+      "local_blocks": 0,
+      "remote_blocks": 256,
+      "total_hit_blocks": 256,
+      "source": 0,
+      "payload_bytes": 469762048,
+      "competing_flows": 0,
+      "active_network_flows": 0,
+      "network_ms": 109.525,
+      "h2d_ms": 32.838375,
+      "compute_ms": 7.3408256000000005,
+      "queue_ms": 149.6642006,
+      "estimated_ms": 299.3684012,
+      "rollout_jobs": 1,
+      "cache_updates": 0
+    }
+  },
+  "runtime_nodes": {
+    "0": {
+      "queued": 3,
+      "active": "hot-000000",
+      "current_request_local_hit": 256,
+      "pinned_blocks": 256
+    },
+    "1": {
+      "queued": 0,
+      "active": "hot-000003",
+      "current_request_local_hit": 0,
+      "pinned_blocks": 0
+    },
+    "2": {
+      "queued": 0,
+      "active": "hot-000004",
+      "current_request_local_hit": 0,
+      "pinned_blocks": 0
+    },
+    "3": {
+      "queued": 0,
+      "active": "hot-000005",
+      "current_request_local_hit": 0,
+      "pinned_blocks": 0
+    }
+  }
+}
