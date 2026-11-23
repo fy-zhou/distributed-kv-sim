@@ -8,6 +8,7 @@ import heapq
 from dataclasses import dataclass
 
 from ..cache import BlockCache, admitted_blocks
+from ..cache.admission import ADMISSION_POLICIES
 from ..cluster.node import Node, NodeSpec
 from ..cluster.network import FluidNetwork
 from ..cluster.gpu import is_gpu_idle
@@ -47,7 +48,7 @@ class Simulator:
             raise ValueError("at least one node required")
         if len({s.node_id for s in specs}) != len(specs):
             raise ValueError("node ids must be unique")
-        if self.cfg.admission not in ("always", "no_remote"):
+        if self.cfg.admission not in ADMISSION_POLICIES:
             raise ValueError("invalid admission policy")
         self.nodes = {s.node_id: Node(
             s, BlockCache(s.cache_capacity_blocks, self.cfg.admission))
@@ -283,7 +284,7 @@ class Simulator:
             raise RuntimeError("job completion without active job")
         req = job.req
         node.cache.admit(admitted_blocks(req.hashes, job.remote_blocks,
-                                         self.cfg.admission))
+                                         self.cfg.admission, capacity=node.cache.capacity))
         ttft = self.now - req.arrival_ms
         self.rows.append({
             "request_id": req.request_id,

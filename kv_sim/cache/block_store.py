@@ -2,6 +2,7 @@
 from collections import OrderedDict
 from dataclasses import dataclass, field
 from .lru import choose_lru_victim
+from .admission import ADMISSION_POLICIES
 
 @dataclass
 class BlockCache:
@@ -15,8 +16,8 @@ class BlockCache:
     def __post_init__(self):
         if self.capacity <= 0:
             raise ValueError("cache capacity must be > 0")
-        if self.admission not in ("always", "no_remote"):
-            raise ValueError("admission must be always or no_remote")
+        if self.admission not in ADMISSION_POLICIES:
+            raise ValueError("invalid cache admission policy")
 
     def contains(self, key):
         return key in self.blocks

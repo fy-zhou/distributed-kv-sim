@@ -8,6 +8,7 @@ import pathlib
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
+from kv_sim.cache.admission import ADMISSION_POLICIES
 from kv_sim.core import Config, NodeSpec, run_policy
 from kv_sim.workload import make_workload, make_initial_caches
 
@@ -35,7 +36,7 @@ def main():
     p.add_argument("--fabric-gib-s", type=float, default=24.0)
     p.add_argument("--policy", nargs="+", default=[
         "round_robin", "shortest_queue", "max_hit", "greedy"])
-    p.add_argument("--admission", choices=["always", "no_remote"],
+    p.add_argument("--admission", choices=ADMISSION_POLICIES,
                    default="always")
     p.add_argument("--seed", type=int, default=42)
     # Measurement-backed profiles can be supplied via CLI without modifying
