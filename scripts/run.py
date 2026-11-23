@@ -48,6 +48,10 @@ def main():
     p.add_argument("--h2d-fixed-ms", type=float, default=1.684)
     p.add_argument("--h2d-ms-per-gib", type=float, default=71.210)
     p.add_argument("--remote-setup-ms", type=float, default=0.15)
+    p.add_argument("--certified-reuse-shortcut", action="store_true",
+                   help="Skip cache scans only when recomputation is certified cheaper")
+    p.add_argument("--memoized-reuse-certificate", action="store_true",
+                   help="Memoize the optional recomputation cost certificate")
     p.add_argument("--out", type=pathlib.Path,
                    default=pathlib.Path("results/smoke"))
     a = p.parse_args()
@@ -74,7 +78,9 @@ def main():
             gpu_ms_per_attention_pair=a.gpu_ms_per_attention_pair,
             h2d_fixed_ms=a.h2d_fixed_ms,
             h2d_ms_per_gib=a.h2d_ms_per_gib,
-            remote_setup_ms=a.remote_setup_ms)
+            remote_setup_ms=a.remote_setup_ms,
+            certified_reuse_shortcut=(a.certified_reuse_shortcut or a.memoized_reuse_certificate),
+            memoized_reuse_certificate=a.memoized_reuse_certificate)
         sim = run_policy(specs, reqs, seeds, cfg)
         summary_rows.append(sim.summary())
         request_rows += [dict(policy=policy, admission=a.admission, **r)
