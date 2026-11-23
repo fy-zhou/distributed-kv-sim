@@ -1,0 +1,7 @@
+policy,candidate,baseline,conditions,seed_clusters,mean_p95_improvement_pct,seed_bootstrap_p025,seed_bootstrap_p975,improve,neutral,regress
+round_robin_cost,prefix_fit,always,10,2,18.285019338912434,18.073780572012836,18.496258105812032,4,6,0
+round_robin_cost,prefix_fit,no_remote,10,2,28.80262892702178,28.188572698334866,29.41668515570869,8,2,0
+cost_aware,prefix_fit,always,10,2,26.757795503334677,25.49168194493236,28.023909061736994,4,6,0
+cost_aware,prefix_fit,no_remote,10,2,26.618497277741017,25.080794151167808,28.156200404314227,6,2,2
+shadow_cluster_lru,prefix_fit,always,10,2,27.761244289178364,27.557991036846627,27.964497541510106,4,6,0
+shadow_cluster_lru,prefix_fit,no_remote,10,2,40.353466682491046,40.136876588935976,40.570056776046115,8,2,0

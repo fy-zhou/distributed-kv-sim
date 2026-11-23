@@ -801,3 +801,24 @@ shapes (ratios 0.87–0.96×); constructing the index may outweigh shorter victi
 search. These are timing observations, not causal proof. Both optimizations
 have separate fresh holdouts in progress, with exact deterministic parity
 required before interpreting speed.
+
+### Capacity-fit admission
+
+The optional prefix_fit policy clips an oversized request to the first
+cache-capacity full blocks before applying the existing LRU and pin rules.
+This changes admission while keeping placement and execution service
+actions fixed within each pair. It preserves a request's own reusable
+root when capacity would otherwise be filled with its own later blocks.
+Other requests and pin-constrained admissions can still evict or fail to
+retain that root. Existing always and no_remote policies stay as controls.
+
+Pilot seeds 140–141 completed 90 cases. Compared against always, P95
+mean paired improvement was +18.285% for RR-cost, +26.758% for Cost-Aware
+and +27.761% for the cluster LRU policy, each with 4 improvements and
+6 ties. Against no_remote the Cost-Aware pair includes 2 regressions.
+The matrix includes both exact-fit and extra-capacity controls, a
+recompute-dominated case, and mixed-prefix pressure. Fresh 1301–1305
+holdout and independent replay are running. Source `d1de301`,
+runner `bb0966e`, fit-control parity gate `f0854ad`.
+75 tests pass, including closed-form own-root displacement and
+action-consistent shadow forecast checks. CLI smoke covers the policy.
