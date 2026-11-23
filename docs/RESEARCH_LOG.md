@@ -1153,3 +1153,24 @@ two development seeds motivate checking sensitivity on held-out
 declared in the runner. The controller does not reserve nodes or perform
 a second placement decision, and a single fixed compute interval per
 policy is a sensitivity parameter.
+
+## Finite marginal delay at candidate readiness
+
+Source `fd1f638`. Plan placement using the expected service route and
+an exact within-model conditional penalty. Baseline and proposed
+network replays differ only in the added candidate flow. The estimator
+charges the change in the sum of known transfers' completion times.
+Unit cases cover analytical nonzero delay and no delay when a flow
+finishes during setup. Latency forecast and decision score are recorded
+separately. 89 tests pass. This branch builds on source `1c12a64`.
+
+Four stress shapes, pilot 3200–3201, holdouts 3301–3305. All placement
+comparisons use identical finite route selection on execution. The
+80-run holdout independently replays exactly. The predeclared quarter
+weight averages +0.89% paired P95 over Routes (5 improve/12 neutral/3
+regress), with seed-cluster bootstrap spanning zero. Its worst pair
+is −8.28%. Full weight averages −2.17% (2/12/6), with worst −21.41%.
+Both weights change assignments in 10 of 20 conditions. There is no
+evidence for adopting a fixed global penalty on these shapes. The
+penalty excludes flows from future arrivals or from assigned work
+that has yet to enter remote setup.

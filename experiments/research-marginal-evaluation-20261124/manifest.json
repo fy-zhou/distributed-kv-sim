@@ -1,0 +1,144 @@
+{
+  "code_commit": "fd1f6386c04437d84025ece3d42f7fb1b710aa4d",
+  "source_sha256": {
+    "kv_sim/__init__.py": "08523e4461a71f4ebfaf7d9a56ed974f3f9a0c2611a05c0da5d171c23a092e3d",
+    "kv_sim/cache/__init__.py": "d4231d00bf0f8a01444bdd9c9fdf3ec7f4cf1ef2416b965dd88daf28022f44f0",
+    "kv_sim/cache/admission.py": "f3994122d60f3cd17e19665fe04f96f3ee48b982b66e7640fc0ae62154a7e9ee",
+    "kv_sim/cache/block_store.py": "b5525aad9e5564f0618113e38a8fcf11e7cda991639195bc40843600da7071d9",
+    "kv_sim/cache/lru.py": "40b0e518c7d1988ea5285b334a43f5e2db72ac6e7c461473a8033534f9286601",
+    "kv_sim/cache/prefix_hash.py": "d1765799208ee4d617c74995114e6cfcbd8899c50bbb5dba079d5e5f3a5afc63",
+    "kv_sim/cluster/__init__.py": "022eef60d2885f6b9e1717664f37b0c9160d9f165817960d57ea704c456b8fe1",
+    "kv_sim/cluster/gpu.py": "9de12ac72ca5b8059bf5bd7bbab10f32a5dd404111ec70814bfeba617be40925",
+    "kv_sim/cluster/network.py": "54c06b2af4527880f0af81c5a8c321be1fd506348570207e97333f43d88c8246",
+    "kv_sim/cluster/node.py": "3d3be655a591ad414a2e6530a3b6f8e33a43069018892ecfb615a7a7bcac3a4d",
+    "kv_sim/core.py": "182fc002a559b28c72851f3bab639f01c5a288d25ab6d88a7f6e2fc0d9674812",
+    "kv_sim/engine/__init__.py": "f6baf8a7d3209018edaaad2926373b05aa82b4a77ad7f8bbfafbc07de9a1f431",
+    "kv_sim/engine/clock.py": "ca2ec76d43006ce0973756cbf7c8b16deb9680466e46178a184aec4c8437279b",
+    "kv_sim/engine/events.py": "9c866597abf78de232a59c0b3a73747817125c1486d638aba4c8e27a132bc3a9",
+    "kv_sim/engine/simulator.py": "1d068eb48affc112936eb1fbc463ec7b892cfa59954f0cd0a05d54e00310a48d",
+    "kv_sim/metrics/__init__.py": "045a63e826db0c7c612e0a5490ea34a5358ae11589d8c61df507580331c3f140",
+    "kv_sim/metrics/collector.py": "030b05da861e0dc5382de6672875383ed67ff0cd8a6d42f5c275dcdc4178eb39",
+    "kv_sim/network.py": "3e761a67f9ebfb8a070338e597a95754bb3d30702d2c8d8bc5ba57a0264b8472",
+    "kv_sim/predictor/__init__.py": "faba04b47a3dde0256f62d7e62ca5e5d1ba591bdd11d46a9e0f6d375e6bc0627",
+    "kv_sim/predictor/compute.py": "009a5080d77712c965554cdb6b1185e19ed86d1ae78d255e36ae1a6f2338e66d",
+    "kv_sim/predictor/h2d.py": "069effc32b9190ceacd4d1c521f029aefb5bae9424e38f363a070850988840c3",
+    "kv_sim/predictor/transfer.py": "b622113a269e9584c8b064d1a7f5ca804760a5b5980d1adf903011afda8dd1ff",
+    "kv_sim/prefix.py": "caff5b6d64749207177ab2dc75176e8c1cae80d6f32ed062e159b9918a486c81",
+    "kv_sim/scheduler/__init__.py": "69f4c09256db7ff59e6ae89690e5af1c9486501c26b0e88a0f5eae35a05a693e",
+    "kv_sim/scheduler/bandwidth_aware.py": "888699a4209583d1a512788633b80bb4ac3efe6677778c8a3bfe9f633d472b95",
+    "kv_sim/scheduler/cost_aware.py": "7b51a6bb5ac0ba41c26755865d972dd1e95cdde0c963e56f5c6377339fe7bec3",
+    "kv_sim/scheduler/greedy.py": "a147977196774f14864e0fdc1b9366eb64d0afa2c624c451d7672e0d0eb378a3",
+    "kv_sim/scheduler/max_hit.py": "f1a4fac70a3a11950bdce6e25c02cfc09812cfe7ef0683210c46836250a2be88",
+    "kv_sim/scheduler/reuse.py": "5d174c02cd6787c8f1fff2fd5d936a4583b32b84fff9d586b07bff7700ffbb71",
+    "kv_sim/scheduler/round_robin.py": "8ac097812642b20945eb72bafa4bc6640993946da69064af2e577055960b4fe2",
+    "kv_sim/scheduler/shadow.py": "70465f5e670795bff1750d247818990b98640d8243b20f0f159dffef8be98d3d",
+    "kv_sim/scheduler/shadow_cluster.py": "65b3b173426c7ba99d09fc38567fd2c9bb3c87274ea74c6504257fb73d0f950d",
+    "kv_sim/scheduler/shadow_network.py": "829d43fd56e886560295c5fa24bebeda1449025e553936334254b5cc7616e007",
+    "kv_sim/scheduler/shortest_queue.py": "c4283d711d7bf57e679e8435ff77af2edbe4fceec6e3ee1f9c6e9f95a18bc818",
+    "kv_sim/workload/__init__.py": "ed1a7088bc0e20befbc32a2674bb23bd337933154f3a263ab980c1dd21c179a6",
+    "kv_sim/workload/hotspot.py": "d630e6cf14f14d6a43b79b93823578b547d3e41aab589f5ac7a1aa400e60042b",
+    "kv_sim/workload/synthetic.py": "5295e3acbbfab4690ccb82dd683522a4040770e6298e62a9a98eb43d498fb08b",
+    "kv_sim/workload/trace.py": "b54e1caf25f2add69f42a461d1dee202fc604ef1acd57d5b58ca61bb9dab6797",
+    "scripts/research_audit_compare.py": "5f44054df6b9853df538e1c4167e9c25f28aaa1ce3b3ac9e3bff9c599af74180",
+    "scripts/research_calibration_audit.py": "ee05aae60bb2e6a4e3b3e15e815fe0170e895dd2875956ba1176047d18d28f4a",
+    "scripts/research_common.py": "956830718307fd019cd4faf6529d71cb430412a1c6ff6aebcf8c83a752f2e8bf",
+    "scripts/research_controller_timing.py": "62941d4af4863dbbece81f1c93730038319a470a4f9c97fd3baeea156a40954b",
+    "scripts/research_evaluate.py": "0c54c83bb748d4f01427ff87e2e726a0d8de337ef8ef14c33643bb4f5c3a48ad",
+    "scripts/research_event_index.py": "ac1a15993bb499b25a47467fdc69151bee06b1c2ebeaee0dfeefcfab6485c698",
+    "scripts/research_externality_probe.py": "193ad889daadf6e4be89ac624ef51c519b7877d7c46748ecb5db35ec7d2f5a53",
+    "scripts/research_figures.py": "7135d556e8c15436dfdb3dc33285d8890ed601fc52f8316b155c555ead8ee30e",
+    "scripts/research_finite_routes.py": "ce0619f4dbe43427ddd43d2c9802dbbd1106730e8396abeba622f85fbe6b2bec",
+    "scripts/research_h2d_archive.py": "2df0ed17d7357a6d77c3377e59bfc08f21779a6c14a1c67af221277d27f406a9",
+    "scripts/research_marginal_network.py": "4cd0e0cd312d0c4206772bbee3b6d7e097e9220ffeb15e61f75a1d8334b86961",
+    "scripts/research_mechanisms.py": "c59c6742ac2b83e85a465d9922345bf9a2a43bc9ad151e055fb868f000614c5e",
+    "scripts/research_prefix_fit.py": "27f839e3d159baef6b0fb715a214b9b95c7c7437f3de9226d5200557c19126b2",
+    "scripts/research_prefix_trace.py": "e291d4f78955dfc0c9ad2f46c5b51638cadc201b5e4e50d237582f83d42c2cff",
+    "scripts/research_replay_proof.py": "062e3de41397a1434642b39c66f9beb9ee528b7de28c7cca7c21b7e3f57a6bc3",
+    "scripts/research_reuse_shortcut.py": "afccd20141f5e9393989d7e78953fd0ed69e4273b6fea33c8d9bc45e510a6267",
+    "scripts/research_rollout_efficiency.py": "0c8e36efc99e409112223a08557313f6800627f2b7b1e4244f3c7a59dbb0e43d",
+    "scripts/research_rollout_lru.py": "8d47183748b70ad5b9877ebab0a8a980b9712f698db00a06c7347d23a83a56cd",
+    "scripts/research_shadow.py": "c79bdf287a7fa040e18371743aecfe20663acc643dfdd6cc7418c52d0ed40117",
+    "scripts/research_shadow_baseline.py": "237595eb7e86a0e833703881d5d8ab56760b6cf48e45eff637c4e6d110f47249",
+    "scripts/research_shadow_bounds.py": "0adbfa0f3b79ff0e3bc2cfde2c58fccb9d8d5f5c932cbc411fa594d45df16a91",
+    "scripts/research_shadow_lru_bench.py": "9c2a97383c9041709070a8b341975346945cd9c4d1f2f9ca3e5dc33461ae98ed",
+    "scripts/research_shadow_probe.py": "91b2688e05d360ef1a1fcea7a541676c81450a725c686d5934bdd041174798b2",
+    "scripts/research_shadow_report.py": "93d6cb469120cdd61cc3c81ec0e83b450e45ca4eb9725b343293251f3bb5044e",
+    "scripts/research_spill_sensitivity.py": "efa9849a5d682cb64b22be712db242d6050fbf84d21ff90553164a1d59ffde64",
+    "scripts/research_synthesis.py": "df04477581265a3ae56a8e1c4c90a7c2d30c5a0f33b3eee9636355c94ed3c995"
+  },
+  "python": "3.8.10",
+  "config": {
+    "split": "evaluation",
+    "seeds": [
+      3301,
+      3302,
+      3303,
+      3304,
+      3305
+    ],
+    "scenarios": [
+      {
+        "name": "endpoint_pressure",
+        "compute_scale": 16.0,
+        "nic": 2.0,
+        "fabric": 16.0,
+        "burst": 12
+      },
+      {
+        "name": "fabric_pressure",
+        "compute_scale": 16.0,
+        "nic": 16.0,
+        "fabric": 2.0,
+        "burst": 12
+      },
+      {
+        "name": "pin_pressure",
+        "compute_scale": 16.0,
+        "nic": 4.0,
+        "fabric": 4.0,
+        "capacity": 256,
+        "burst": 12
+      },
+      {
+        "name": "replica_pressure",
+        "compute_scale": 16.0,
+        "nic": 4.0,
+        "fabric": 4.0,
+        "nodes": 8,
+        "burst": 16
+      }
+    ],
+    "settings": {
+      "rr": [
+        "round_robin_cost",
+        0.0
+      ],
+      "routes": [
+        "shadow_cluster_routes",
+        0.0
+      ],
+      "marginal_quarter": [
+        "shadow_cluster_marginal",
+        0.25
+      ],
+      "marginal_full": [
+        "shadow_cluster_marginal",
+        1.0
+      ]
+    },
+    "admission": "always",
+    "requests": 120,
+    "finite_execution_routes": true,
+    "penalty": "Change in summed transfer completion times to currently known work; charge at predicted readiness of candidate node. Add nonnegative penalty to placement only.",
+    "limits": "No future arrivals or queued requests\u2019 future transfer starts enter the marginal probe. Does not choose a different KV route to reduce the penalty."
+  },
+  "synthetic": true,
+  "note": "Configured fluid network and illustrative compute; no hardware speedup claim.",
+  "raw_sha256": {
+    "config.json": "c898683e8ba4499df39f01a02b3e11315267468ba41fb4640f68b53212d61a6f",
+    "pairs.csv": "da490a83c5df13b23953ce405d37c10bbb3431288a828b9fdc4f5c249344d488",
+    "runs.csv": "a8eee5685c8ddcc682cd4c31c1d73cfca5d081901102ede017d48f317a856a1d",
+    "summary.csv": "ce20bd3ec477d8e704210dadcdffe9d2040935c15c94a3eb701dfb482053fba9",
+    "traces.jsonl.gz": "825a053392d1b5779750c0c1c5355b6ccff544a7723da4233e458135ba275722"
+  }
+}
