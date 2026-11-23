@@ -1153,3 +1153,33 @@ two development seeds motivate checking sensitivity on held-out
 declared in the runner. The controller does not reserve nodes or perform
 a second placement decision, and a single fixed compute interval per
 policy is a sensitivity parameter.
+
+### Controller snapshot holdout
+
+All 300 runs independently replay with exact deterministic fields and
+comparison tables. Full-cost starts and finishes emit identical dispatch
+times for each policy and seed, as do the quarter-cost modes.
+Round-Robin produces identical assignments and outcomes at both snapshot
+times. At full cost, state-dependent policy assignments change in 14/20
+Cluster-LRU and 13/20 Finite pairs. Taking the state at the beginning of
+the interval instead of at dispatch changes mean P95 by −1.46% and
+−2.07% respectively, expressed as improvement. Finite's worst pair is
+pin pressure seed 2605 at −27.47%. This reverses the pilot's average
+Finite snapshot effect. At full cost the average controller-inclusive
+arrival-to-dispatch delay is 1089 ms for Cluster-LRU and 1057 ms for
+Finite under these bursty trace assumptions.
+
+The relative Finite vs Cluster-LRU mean is +3.44% at zero controller
+cost, −3.09% starting the decision at quarter cost and +2.56% starting
+at full cost. The full-cost start comparison improves 17/20 pairs. At
+the same modeled full cost, Finite still averages +32.65% over RR-cost
+in the four stress shapes, with 18 improvements and 2 regressions.
+These are placement latency effects in a serial controller sensitivity,
+with service execution replanned separately on the worker. Runtimes
+and end-to-end effects can change with different placement CPU models.
+
+The opt-in network sharing study is in `research/network-sharing`
+(`ff96ae6`). Its full 120-run replay validates the allocator comparison
+and the fabric-only parity control. A separate 72-request CLI smoke
+trace produced byte-identical request and summary CSVs for eight
+policies under the previous and current default allocators.
