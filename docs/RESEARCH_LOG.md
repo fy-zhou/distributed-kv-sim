@@ -956,3 +956,29 @@ the runner read explicit scenario capacity instead of resolved defaults.
 Fix `649edb5) and a protocol-level unit test cover inherited capacities.
 The failed raw directory is retained and the fixed development starts
 in a new directory. No candidate weights or workload settings changed.
+
+Finite-service independent replay now verifies all 120 cases,
+with byte-identical comparison files. The 240 finite-service ingress
+runs use the finite stress development CPU rates. Against Cluster-LRU,
+mean paired P95 improvement changes from +9.450% without modeled
+controller overhead to −1.108% at quarter time and −2.642% at full time.
+At full time there are 20 improvements and 20 regressions. Against
+RR-cost the full-cost mean is +37.825% with 40 improvements in the
+selected pressure shapes. Separate ingress replay is running.
+
+The combined stress holdout completed 120 runs on seeds 1801–1805.
+Against Cluster-LRU with the same admission, finite prediction averages
++4.334% with always and +4.088% with prefix_fit. Regressions are six
+and eight out of 20 respectively. Compared against the same placement
+and always admission, prefix_fit averages +17.419% RR-cost, +20.457%
+Cluster-LRU, +20.403% finite, with all five pin-pressure pairs improving
+and the 15 fit-control pairs exactly neutral. The isolated gains should
+not be added arithmetically. Combined replay is running.
+
+The archive-source audit found one discrepancy in the incremental-LRU
+timing holdout. The run started during a separate edit and three recorded
+source hashes differed from its reported Git HEAD. All 56 recorded
+source blobs match a reconstructed commit `7ff5589` on branch
+`research/lru-timing-source`. The original manifest and raw runs were
+preserved. SOURCE_PROVENANCE.json links the reconstruction and a separate
+timing replication from that exact committed tree is running.
