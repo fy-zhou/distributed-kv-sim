@@ -928,3 +928,20 @@ still never realizes a complete new hot replica. Prefix_fit reduces remote
 fetches to 16 and yields 118 snapshots with non-source replicas. This
 paired trace identifies one path by which load reverses traffic impact
 without establishing general traffic reduction. Source `205ae7c`.
+
+All 180 factorial admission holdout cases replay identically, with raw
+hashes and source commits in verification.json. The gated victim-index
+holdout completed all 160 runs with exact deterministic parity.
+Median paired speed ratios are 0.988× endpoint, 1.021× fabric, 1.004× pin
+and 0.955× replica. This heuristic does not establish a useful speedup.
+
+The finite-service holdout 1701–1705 completed 120 runs. Against Cluster-LRU
+ready-time instantaneous service, simulated P95 improves by mean +9.450%
+(19 improvements, 16 ties, 5 regressions). Seed-bootstrap descriptive
+endpoints are +4.119 to +15.420%. It improves all 40 RR-cost pairs by
+mean +45.563% within this stress matrix. Mean abs TTFT forecast error
+drops 19.659→5.940 ms, mean traffic drops 4.091→3.128 GiB, and mean host
+planning remains about 20 ms/request. The worst LRU pair is replica
+pressure/always seed 1702, 1467.224 vs 1274.658 ms (+15.107% P95).
+The pin-pressure mean change is effectively zero. Exact replay and the
+separately declared controller sensitivity are running.

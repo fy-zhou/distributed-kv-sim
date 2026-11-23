@@ -1,0 +1,30 @@
+{
+  "verified_runs": 180,
+  "ignored_fields": [
+    "decision_max_us",
+    "decision_mean_us",
+    "execution_plan_mean_us",
+    "total_planning_mean_us"
+  ],
+  "compared": "All deterministic run fields and byte-identical paired and summary CSVs.",
+  "original": {
+    "path": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261124-prefix-factorial-evaluation",
+    "code_commit": "89d1d1692b86066c34f3c2c1d73267d01a5002f5",
+    "sha256": {
+      "config.json": "d040c0d890df037e301b4041ad0be6fa904e37014baf85defb574d57e83162f5",
+      "runs.csv": "c28e9e45e38837c9125cb0aebff4523e6d9732947019188ff4c4e494a4d999fa",
+      "pairs.csv": "05be71be0bdef2b68fa0e267e359c2ecc675845f2ea2a0c0416661ef8eac8e75",
+      "summary.csv": "01a686a52ae61210803d7ba1d55062d9fc30e7d3e454dc06d223ae89a2d756ed"
+    }
+  },
+  "replay": {
+    "path": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261124-prefix-factorial-replay",
+    "code_commit": "da2ef928ee780d9cf60d1fd6af60449f7f720233",
+    "sha256": {
+      "config.json": "e11b82ab0277c3c2fdf4909c9ab0dc60caea543c01ac607e83247c97303a05c3",
+      "runs.csv": "1d25586b5306ab6a6033ba347731f65f83c9d78e702483bd7d779da3eae28416",
+      "pairs.csv": "05be71be0bdef2b68fa0e267e359c2ecc675845f2ea2a0c0416661ef8eac8e75",
+      "summary.csv": "01a686a52ae61210803d7ba1d55062d9fc30e7d3e454dc06d223ae89a2d756ed"
+    }
+  }
+}
