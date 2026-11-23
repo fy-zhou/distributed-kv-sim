@@ -13,7 +13,7 @@ from ..cache import BlockCache, admitted_blocks
 from .reuse import minimum_service
 
 POLICIES = ('shadow_frozen', 'shadow_cache', 'shadow_bounded',
-            'shadow_fast', 'shadow_network')
+            'shadow_fast', 'shadow_network', 'shadow_fast_lru')
 
 
 class _LocalView:
@@ -68,6 +68,22 @@ def complete_cache(cache, request, remote, local, admission):
     cache.blocks = OrderedDict.fromkeys(order[-cache.capacity:])
 
 
+def complete_unpinned_lru(cache, request, remote, local, admission):
+    """Update the existing ordered dictionary with constant-time victims."""
+    keys = admitted_blocks(request.hashes, remote, admission)
+    if cache.pins or not keys:
+        complete_cache(cache, request, remote, local, admission)
+        return
+    blocks = cache.blocks
+    for key in keys:
+        if key in blocks:
+            blocks.move_to_end(key)
+        else:
+            if len(blocks) == cache.capacity:
+                blocks.popitem(last=False)
+            blocks[key] = None
+
+
 def _cold_cost(sim, req):
     """Return a cache-independent cost only if reuse strictly loses."""
     compute, h2d, transfer = sim.compute_predictor, sim.h2d_predictor, sim.transfer_predictor
@@ -118,7 +134,8 @@ def _cold_forecast(sim, req, node, horizon, waiting, memo):
                 cache_updates=jobs if horizon is None else min(jobs, horizon))
 
 
-def forecast(sim, req, node_id, horizon=None, *, cold_memo=None, remaining=None):
+def forecast(sim, req, node_id, horizon=None, *, cold_memo=None, remaining=None,
+             cache_update=complete_cache):
     """Predict completion after known FIFO work; never mutate live state.
 
     horizon limits cache updates, not accounted queue work. Tail jobs are
@@ -140,7 +157,7 @@ def forecast(sim, req, node_id, horizon=None, *, cold_memo=None, remaining=None)
     def complete(request, remote, local):
         nonlocal updates
         if horizon is None or updates < horizon:
-            complete_cache(cache, request, remote, local, sim.cfg.admission)
+            cache_update(cache, request, remote, local, sim.cfg.admission)
             updates += 1
 
     if node.active is not None:
@@ -174,7 +191,9 @@ def select(sim, req):
 
 def forecasts(sim, req, nodes):
     policy = sim.cfg.policy
-    memo = {} if policy in ('shadow_fast', 'shadow_network') else None
+    memo = {} if policy in ('shadow_fast', 'shadow_network', 'shadow_fast_lru') else None
+    update = complete_unpinned_lru if policy == 'shadow_fast_lru' else complete_cache
     remaining = active_remaining(sim) if policy == 'shadow_network' else {}
     return {node: forecast(sim, req, node, horizon(sim), cold_memo=memo,
-                           remaining=remaining.get(node)) for node in nodes}
+                           remaining=remaining.get(node), cache_update=update)
+            for node in nodes}

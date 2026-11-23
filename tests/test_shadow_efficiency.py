@@ -84,3 +84,16 @@ class ForecastEfficiencyTests(unittest.TestCase):
         self.assertEqual(first['arrival_ms'], 0.)
         self.assertAlmostEqual(first['queue_ms'], 1.)
         self.assertAlmostEqual(first['ttft_ms'], first['finished_ms'])
+
+    def test_incremental_private_lru_matches_batch_order_for_oversized_request(self):
+        from kv_sim.cache import BlockCache
+        from kv_sim.scheduler.shadow import complete_cache, complete_unpinned_lru
+        from itertools import product
+        for keys in product('abcd', repeat=5):
+            a, b = BlockCache(3), BlockCache(3)
+            for cache in (a, b):
+                cache.admit('bza')
+            req = Request('r', 0., keys, 80)
+            complete_cache(a, req, 0, 1, 'always')
+            complete_unpinned_lru(b, req, 0, 1, 'always')
+            self.assertEqual(list(a.blocks), list(b.blocks))

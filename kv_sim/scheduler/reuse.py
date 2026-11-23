@@ -40,7 +40,8 @@ REUSE_PLANNERS = {'cost_aware': minimum_service,
                   'shadow_cache': minimum_service,
                   'shadow_bounded': minimum_service,
                   'shadow_fast': minimum_service,
-                  'shadow_network': minimum_service}
+                  'shadow_network': minimum_service,
+                  'shadow_fast_lru': minimum_service}
 
 
 def choose_reuse(sim, req, node_id, isolated=False):
