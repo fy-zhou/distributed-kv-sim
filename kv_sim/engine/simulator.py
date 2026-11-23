@@ -5,6 +5,7 @@ serialized in the default model. Remote transfer progresses concurrently
 across nodes under a fluid shared-NIC/fabric capacity constraint.
 """
 import heapq
+import math
 from dataclasses import dataclass
 
 from ..cache import BlockCache, admitted_blocks
@@ -47,6 +48,10 @@ class Simulator:
         self.cfg = config or Config()
         if self.cfg.shadow_cache_updates < 0:
             raise ValueError("shadow_cache_updates must be nonnegative")
+        if self.cfg.policy == 'shadow_cluster_marginal':
+            weight = self.cfg.network_externality_weight
+            if not math.isfinite(weight) or weight < 0:
+                raise ValueError("marginal externality weight must be finite and nonnegative")
         if not specs:
             raise ValueError("at least one node required")
         if len({s.node_id for s in specs}) != len(specs):
@@ -230,11 +235,14 @@ class Simulator:
         if self.cfg.trace_decisions:
             for node_id in sorted(self.nodes):
                 d = self._estimate_breakdown(req, node_id)
+                selection_ms = (d.get('selection_ms', d['estimated_ms'])
+                                if self.cfg.policy == 'shadow_cluster_marginal'
+                                else self._policy_cost(req, node_id))
                 d.update(request_id=req.request_id,
                          arrival_ms=req.arrival_ms,
                          policy=self.cfg.policy,
                          network_externality_ms=self._externality_ms(req, node_id),
-                         policy_score_ms=self._policy_cost(req, node_id),
+                         policy_score_ms=selection_ms,
                          selected=int(chosen == node_id))
                 self.decisions.append(d)
         return chosen

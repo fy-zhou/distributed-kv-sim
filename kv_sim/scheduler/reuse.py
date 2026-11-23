@@ -85,6 +85,7 @@ REUSE_PLANNERS = {'cost_aware': minimum_service,
                   'shadow_cluster_finite': minimum_service,
                   'shadow_cluster_events': minimum_service,
                   'shadow_cluster_routes': minimum_service,
+                  'shadow_cluster_marginal': minimum_service,
                   'shadow_cold_queue': minimum_service}
 
 

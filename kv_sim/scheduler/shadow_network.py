@@ -69,3 +69,12 @@ def transfer_cost(sim, target):
         return costs[key]
 
     return cost
+
+
+def known_flow_externality_ms(sim, source, target, size):
+    """Aggregate extra completion delay to flows active or already in setup."""
+    baseline = dict(_known_completions(sim))
+    if not baseline:
+        return 0.
+    with_route = dict(_known_completions(sim, (source, target, size)))
+    return max(0., sum(with_route[node] - elapsed for node, elapsed in baseline.items()))

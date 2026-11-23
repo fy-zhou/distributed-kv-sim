@@ -3,7 +3,7 @@ from dataclasses import replace
 import copy
 import heapq
 
-from .shadow_network import proposed_transfer_ms
+from .shadow_network import known_flow_externality_ms, proposed_transfer_ms
 
 from ..cache import BlockCache
 from ..cluster.node import Node
@@ -152,7 +152,7 @@ def cold_forecasts(sim, req, nodes):
 
 
 def forecasts(sim, req, nodes, *, prune=False, cache_type=BlockCache, finite_service=False,
-              compare_finite_routes=False):
+              compare_finite_routes=False, externality_weight=0.):
     """Score service on the forecast state when each candidate becomes idle.
 
     A single fork drains the already assigned queues. The new request is
@@ -180,12 +180,22 @@ def forecasts(sim, req, nodes, *, prune=False, cache_type=BlockCache, finite_ser
         waiting = shadow.now - sim.now
         plan.update(queue_ms=waiting, estimated_ms=waiting+plan.pop('service_ms'),
                     rollout_jobs=len(sim.nodes[node_id].queue)+int(sim.nodes[node_id].active is not None))
+        if externality_weight:
+            extra_delay = 0.
+            if plan['remote_blocks']:
+                extra_delay = known_flow_externality_ms(
+                    shadow, plan['source'], node_id, plan['payload_bytes'])
+            plan['known_flow_externality_ms'] = extra_delay
+            plan['selection_ms'] = plan['estimated_ms'] + externality_weight*extra_delay
         predictions[node_id] = plan
         needed.remove(node_id)
 
     for node_id in sorted(needed):
         ready(node_id)
-    best_finish = min((p['estimated_ms'] for p in predictions.values()), default=float('inf'))
+    def score(prediction):
+        return prediction.get('selection_ms', prediction['estimated_ms'])
+
+    best_finish = min(map(score, predictions.values()), default=float('inf'))
 
     while needed and shadow.events:
         now, _, kind, payload, epoch = heapq.heappop(shadow.events)
@@ -209,7 +219,7 @@ def forecasts(sim, req, nodes, *, prune=False, cache_type=BlockCache, finite_ser
             shadow._on_job_done(payload)
             ready(payload)
             if payload in predictions:
-                best_finish = min(best_finish, predictions[payload]['estimated_ms'])
+                best_finish = min(best_finish, score(predictions[payload]))
     if needed:
         raise RuntimeError('assigned work did not drain in cluster forecast')
     return predictions

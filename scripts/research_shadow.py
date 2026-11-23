@@ -96,7 +96,7 @@ def inputs(scenario,seed,count):
 
 
 def trial(scenario,seed,admission,policy,count=120,*,ingress_ms=0.,prepared=None,certified_reuse_shortcut=False,
-          memoized_reuse_certificate=False,simulator_factory=MeasuredSimulator, finite_execution_routes=False):
+          memoized_reuse_certificate=False,simulator_factory=MeasuredSimulator, finite_execution_routes=False, network_externality_weight=1.):
     """Optional serial controller sensitivity model, in simulated milliseconds."""
     if prepared is None:
         prepared = inputs(scenario, seed, count)
@@ -106,7 +106,8 @@ def trial(scenario,seed,admission,policy,count=120,*,ingress_ms=0.,prepared=None
         gpu_ms_per_attention_pair=1.8e-6*params['compute_scale'],shadow_cache_updates=8,
         certified_reuse_shortcut=certified_reuse_shortcut,
         memoized_reuse_certificate=memoized_reuse_certificate,
-        finite_execution_routes=finite_execution_routes),hot=hot,audit=False)
+        finite_execution_routes=finite_execution_routes,
+        network_externality_weight=network_externality_weight),hot=hot,audit=False)
     for node,keys in initial.items():sim.seed_cache(node,keys)
     dispatched = reqs
     if ingress_ms:

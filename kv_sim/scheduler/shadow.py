@@ -14,7 +14,7 @@ POLICIES = ('shadow_frozen', 'shadow_cache', 'shadow_bounded',
             'shadow_fast', 'shadow_network', 'shadow_fast_lru', 'shadow_cluster',
             'shadow_cluster_pruned', 'shadow_cluster_fast', 'shadow_cluster_lru',
             'shadow_cluster_indexed', 'shadow_cluster_gated', 'shadow_cluster_finite', 'shadow_cluster_events',
-            'shadow_cluster_routes', 'shadow_cold_queue')
+            'shadow_cluster_routes', 'shadow_cluster_marginal', 'shadow_cold_queue')
 
 
 class _LocalView:
@@ -165,7 +165,8 @@ def select(sim, req):
     predictions = forecasts(sim, req, sim.nodes)
     # Exposed for observation after select; never used across later decisions.
     sim.shadow_last_forecast = (req.request_id, predictions)
-    return min(predictions, key=lambda i: (predictions[i]['estimated_ms'], i))
+    return min(predictions, key=lambda i: (
+        predictions[i].get('selection_ms', predictions[i]['estimated_ms']), i))
 
 
 def cold_queue_forecasts(sim, req, nodes):
@@ -197,7 +198,7 @@ def forecasts(sim, req, nodes):
                                      cold_forecasts, forecasts as cluster_forecasts)
         if policy in ('shadow_cluster_fast', 'shadow_cluster_lru', 'shadow_cluster_indexed',
                       'shadow_cluster_gated', 'shadow_cluster_finite', 'shadow_cluster_events',
-                      'shadow_cluster_routes'):
+                      'shadow_cluster_routes', 'shadow_cluster_marginal'):
             cold = cold_forecasts(sim, req, nodes)
             if cold is not None:
                 return cold
@@ -211,10 +212,13 @@ def forecasts(sim, req, nodes):
                       'shadow_cluster_gated': _ForecastGatedCache,
                       'shadow_cluster_finite': _ForecastCache,
                       'shadow_cluster_events': _ForecastCache,
-                      'shadow_cluster_routes': _ForecastCache}.get(policy, BlockCache)
+                      'shadow_cluster_routes': _ForecastCache,
+                      'shadow_cluster_marginal': _ForecastCache}.get(policy, BlockCache)
         return cluster_forecasts(sim, req, nodes, prune=prune, cache_type=cache_type,
                                  finite_service=policy in ('shadow_cluster_finite', 'shadow_cluster_events'),
-                                 compare_finite_routes=policy == 'shadow_cluster_routes')
+                                 compare_finite_routes=policy in ('shadow_cluster_routes', 'shadow_cluster_marginal'),
+                                 externality_weight=(sim.cfg.network_externality_weight
+                                     if policy == 'shadow_cluster_marginal' else 0.))
     memo = {} if policy in ('shadow_fast', 'shadow_network', 'shadow_fast_lru') else None
     update = complete_unpinned_lru if policy == 'shadow_fast_lru' else complete_cache
     remaining = active_remaining(sim) if policy == 'shadow_network' else {}
