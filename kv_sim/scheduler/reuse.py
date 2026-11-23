@@ -11,18 +11,21 @@ import math
 from ..predictor import ComputePredictor, H2DPredictor, TransferPredictor
 
 
-def certified_cold_cost(sim, req):
-    """Return a cache-independent cost only if reuse strictly loses."""
+def _standard_cost_model(sim):
     compute, h2d, transfer = sim.compute_predictor, sim.h2d_predictor, sim.transfer_predictor
     if (type(compute) is not ComputePredictor or type(h2d) is not H2DPredictor
             or type(transfer) is not TransferPredictor):
-        return None
+        return False
     coefficients = (compute.fixed_ms, compute.ms_per_new_token,
                     compute.ms_per_causal_pair, h2d.fixed_ms,
                     h2d.ms_per_gib, h2d.kv_bytes_per_token, transfer.setup_ms)
-    if not all(math.isfinite(x) and x >= 0 for x in coefficients):
-        return None
-    if sim.cfg.kv_bytes_per_token <= 0 or sim.cfg.block_size <= 0:
+    return (all(math.isfinite(x) and x >= 0 for x in coefficients)
+            and sim.cfg.kv_bytes_per_token > 0 and sim.cfg.block_size > 0)
+
+
+def certified_cold_cost(sim, req):
+    """Return a cache-independent cost only if reuse strictly loses."""
+    if not _standard_cost_model(sim):
         return None
     cold = sim._compute_time(req, 0)
     if not req.hashes:
@@ -35,6 +38,37 @@ def certified_cold_cost(sim, req):
     if min(ends) > cold + margin:
         return cold
     return None
+
+
+def profitable_prefix_floor(sim, req):
+    """Conservative lower bound on the blocks needed to match cold service."""
+    if not _standard_cost_model(sim):
+        return 1
+    full = len(req.hashes)
+    if not full:
+        return 1
+
+    def score(hit):
+        return sim._h2d_time(hit) + sim._compute_time(req, hit)
+
+    cold = sim._compute_time(req, 0)
+    first, last = score(1), score(full)
+    limit = cold + max(abs(cold), abs(first), abs(last), 1.)*1e-12
+    if first <= limit or not math.isfinite(limit):
+        return 1
+    if last > limit:
+        return full+1
+
+    # Both endpoints of [1, below_floor] are strictly worse than cold.
+    # Concavity certifies the entire interval even for a near-tied endpoint.
+    below_floor, above_floor = 1, full
+    while above_floor-below_floor > 1:
+        mid = (below_floor+above_floor)//2
+        if score(mid) > limit:
+            below_floor = mid
+        else:
+            above_floor = mid
+    return above_floor
 
 
 def minimum_service(sim, req, dest, isolated=False):
@@ -85,16 +119,22 @@ REUSE_PLANNERS = {'cost_aware': minimum_service,
                   'shadow_cold_queue': minimum_service}
 
 
-def _execution_certificate(sim, req):
-    cache = sim.reuse_certificates
-    if cache is None:
-        return certified_cold_cost(sim, req)
+def _predictor_key(sim, req):
     compute, h2d, transfer = sim.compute_predictor, sim.h2d_predictor, sim.transfer_predictor
     if (type(compute) is not ComputePredictor or type(h2d) is not H2DPredictor
             or type(transfer) is not TransferPredictor):
         return None
-    key = (compute, h2d, transfer, sim.cfg.block_size, sim.cfg.kv_bytes_per_token,
-           req.length_tokens, len(req.hashes))
+    return (compute, h2d, transfer, sim.cfg.block_size, sim.cfg.kv_bytes_per_token,
+            req.length_tokens, len(req.hashes))
+
+
+def _execution_certificate(sim, req):
+    cache = sim.reuse_certificates
+    if cache is None:
+        return certified_cold_cost(sim, req)
+    key = _predictor_key(sim, req)
+    if key is None:
+        return None
     if key not in cache:
         if len(cache) >= 4096:
             cache.clear()
@@ -102,10 +142,31 @@ def _execution_certificate(sim, req):
     return cache[key]
 
 
+def _can_skip_prefix_scan(sim, req):
+    key = _predictor_key(sim, req)
+    if key is None:
+        return False
+    cache = sim.reuse_prefix_floors
+    if key not in cache:
+        if len(cache) >= 4096:
+            cache.clear()
+        cache[key] = profitable_prefix_floor(sim, req)
+    floor = cache[key]
+    if floor > len(req.hashes):
+        return True
+    if floor == 1:
+        return False
+    checkpoint = req.hashes[floor-1]
+    return all(checkpoint not in n.cache.blocks for n in sim.nodes.values())
+
+
 def choose_reuse(sim, req, node_id, isolated=False):
     planner = REUSE_PLANNERS.get(sim.cfg.policy)
     if planner is None:
         return sim._best_source(req, node_id)
-    if sim.cfg.certified_reuse_shortcut and _execution_certificate(sim, req) is not None:
+    if sim.reuse_prefix_floors is not None:
+        if _can_skip_prefix_scan(sim, req):
+            return 0, None, 0
+    elif sim.cfg.certified_reuse_shortcut and _execution_certificate(sim, req) is not None:
         return 0, None, 0
     return planner(sim, req, node_id, isolated=isolated)

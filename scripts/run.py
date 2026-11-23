@@ -52,6 +52,8 @@ def main():
                    help="Skip cache scans only when recomputation is certified cheaper")
     p.add_argument("--memoized-reuse-certificate", action="store_true",
                    help="Memoize the optional recomputation cost certificate")
+    p.add_argument("--reuse-prefix-floor", action="store_true",
+                   help="Certify unaffordable resident prefixes using a block membership probe")
     p.add_argument("--out", type=pathlib.Path,
                    default=pathlib.Path("results/smoke"))
     a = p.parse_args()
@@ -80,7 +82,8 @@ def main():
             h2d_ms_per_gib=a.h2d_ms_per_gib,
             remote_setup_ms=a.remote_setup_ms,
             certified_reuse_shortcut=(a.certified_reuse_shortcut or a.memoized_reuse_certificate),
-            memoized_reuse_certificate=a.memoized_reuse_certificate)
+            memoized_reuse_certificate=a.memoized_reuse_certificate,
+            reuse_prefix_floor=a.reuse_prefix_floor)
         sim = run_policy(specs, reqs, seeds, cfg)
         summary_rows.append(sim.summary())
         request_rows += [dict(policy=policy, admission=a.admission, **r)
