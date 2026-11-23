@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Bounded single-host pinned-memory H2D measurement; never inter-node NIC data.
+"""Bounded single-host pinned-memory H2D/D2H measurement; never inter-node NIC data.
 
 Uses an existing torch environment. At most 128 MiB tensor allocation on one
 idle GPU and 128 MiB pinned host tensors, plus CUDA context/allocator overhead.
@@ -22,6 +22,7 @@ def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--gpu',type=int,default=0)
     p.add_argument('--out',type=Path,required=True)
+    p.add_argument('--direction',choices=('h2d','d2h'),default='h2d')
     args=p.parse_args()
     sample=subprocess.check_output(['nvidia-smi','-i',str(args.gpu),
         '--query-gpu=uuid,name,driver_version,pci.bus_id,memory.used,utilization.gpu',
@@ -35,7 +36,7 @@ def main():
     torch.set_num_threads(1)
     out=new_directory(args.out)
     deadline=time.monotonic()+25
-    config=provenance(dict(kind='single_host_contiguous_pinned_H2D',gpu=args.gpu,
+    config=provenance(dict(kind='single_host_contiguous_pinned_'+args.direction.upper(),gpu=args.gpu,
         samples=15,warmups=3,sizes_mib=[.0625,1,16,64],streams=[1,2],
         max_gpu_tensor_bytes=128*2**20,max_host_pinned_bytes=128*2**20,
         time_limit_seconds=25,gpu_before=sample,torch=torch.__version__,
@@ -56,6 +57,9 @@ def main():
             size=int(mib*2**20)
             host=[torch.full((size,),i+1,dtype=torch.uint8,pin_memory=True)for i in range(concurrency)]
             device=[torch.empty((size,),dtype=torch.uint8,device='cuda')for _ in range(concurrency)]
+            if args.direction=='d2h':
+                for i in range(concurrency):
+                    device[i].fill_(i+2)
             streams=[torch.cuda.Stream()for _ in range(concurrency)]
             for rep in range(-3,15):
                 if time.monotonic()>deadline:raise SystemExit('Measurement time limit reached; partial results preserved.')
@@ -67,7 +71,10 @@ def main():
                 for i,stream in enumerate(streams):
                     stream.wait_event(start)
                     with torch.cuda.stream(stream):
-                        device[i].copy_(host[i],non_blocking=True)
+                        if args.direction=='h2d':
+                            device[i].copy_(host[i],non_blocking=True)
+                        else:
+                            host[i].copy_(device[i],non_blocking=True)
                         done[i].record()
                 for event in done:torch.cuda.current_stream().wait_event(event)
                 end.record();end.synchronize()
@@ -78,8 +85,10 @@ def main():
                         total_bytes=size*concurrency,wall_ms=wall_ms,cuda_makespan_ms=cuda_ms,
                         aggregate_gib_s=size*concurrency/2**30/(cuda_ms/1000)))
             # Validate first/last bytes without allocating a large readback.
-            for i,tensor in enumerate(device):
-                assert tensor[0].item()==i+1 and tensor[-1].item()==i+1
+            destination, offset = (device, 1) if args.direction=='h2d' else (host, 2)
+            for i,tensor in enumerate(destination):
+                assert tensor[0].item()==i+offset and tensor[-1].item()==i+offset
+            del destination
             del tensor  # Do not retain the previous cell through the loop variable.
             del host,device,streams
             torch.cuda.empty_cache()
@@ -92,7 +101,8 @@ def main():
         summary.append(dict(payload_per_stream_bytes=size,streams=concurrency,samples=len(rr),
             median_cuda_ms=median,median_wall_ms=statistics.median(r['wall_ms']for r in rr),
             aggregate_gib_s=total/2**30/(median/1000),
-            old_single_copy_predictor_ms=1.684+71.210*total/2**30))
+            old_single_copy_predictor_ms=(1.684+71.210*total/2**30
+                                          if args.direction=='h2d' else ''))
     write_csv(out/'summary.csv',summary)
     peak_bytes=torch.cuda.max_memory_allocated()
     assert peak_bytes <= 128*2**20, 'GPU tensor allocation exceeded declared bound'
