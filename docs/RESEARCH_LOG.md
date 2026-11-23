@@ -851,3 +851,25 @@ new-key misses. That runtime-only heuristic uses source `cd6d0bf` and
 fresh seeds 150–151 / 1401–1405. It does not change eviction order.
 The 320 cluster-controller replay runs are complete and deterministic,
 with byte-identical paired tables and raw-file proof in the archive.
+
+Capacity-fit holdout 1301–1305 completed 225 runs. P95 mean improvement
+against always is +17.852% RR-cost, +27.210% Cost-Aware and +27.929%
+Cluster-LRU. Each comparison has 10 improvements and 15 exact-neutral
+conditions. Cold-cliff timing is unchanged, and the capacity-260/512
+controls equal always in every deterministic field. Each policy still
+has two regressions against the different no_remote control.
+
+In the two oversize shapes where reuse pays under the illustrative model,
+network traffic increases. Mean traffic across policies and seeds rises
+from 1.25 to 5.51 GiB in reuse-cliff and from 0.90 to 8.49 GiB in mixed
+prefixes, while mean paired P95 improves 67.07% and 54.58% respectively.
+This is a trade between retaining useful prefix roots, executing more
+remote reuse, and avoiding expensive recomputation. It does not establish
+low network cost or physical serving gain. Preserve all traffic metrics.
+
+The follow-up crosses prefix clipping with remote admission. The fourth
+cell prefix_fit_no_remote clips only non-remote completions. It is compared
+to no_remote, prefix_fit and always within the same placement and trace.
+Seed sets 160–161 / 1501–1505 are separate from the first admission study,
+with three predeclared shapes. Source `fc63ac0`. The 76 tests pass and
+independent ordinary controller replay now verifies all 400 cases.
