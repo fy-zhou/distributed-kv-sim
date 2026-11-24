@@ -1183,3 +1183,38 @@ The opt-in network sharing study is in `research/network-sharing`
 and the fabric-only parity control. A separate 72-request CLI smoke
 trace produced byte-identical request and summary CSVs for eight
 policies under the previous and current default allocators.
+
+## Local GPU availability and bounded calibration
+
+GPU 0 became idle and passed the occupancy guard. Single-host pinned
+contiguous copies were measured with 120 samples per direction on
+logical CPUs 0–3. At 64 MiB, one-stream CUDA interval corresponds to
+13.09 GiB/s H2D and 6.98 GiB/s D2H. With two equal streams, aggregate
+rates are 11.41 and 6.94 GiB/s. Small payloads are strongly affected
+by launch/event costs. Both results verified destination data and
+used at most 128 MiB of tensor storage. D2H's measured rate is below
+earlier synthetic serial writeback sensitivities of 16 and 32 GiB/s.
+It should be treated as a single contiguous-buffer condition.
+An immediate D2H repeat was stopped by the occupancy guard.
+
+A separate bounded run measures actual Qwen3-0.6B BF16 decoder forward
+on GPU 0 using Transformers SDPA and prebuilt device-only dynamic KV.
+Sources `8871a42`, `4ddd53d`, `61a31a2`. The first attempt encountered
+an optional Accelerate dependency before executing prefill. A bounded
+CPU model load followed by explicit device placement resolved it.
+The failed attempt is retained in the raw results directory. The
+ascending and descending hit-order runs each complete 96 samples
+across 512, 2048 and 4096 tokens and four reused fractions. The
+lowest cosine similarity to the uncached final hidden state exceeds
+0.9998. Peak allocated tensors stay below 2.0 GiB in both runs.
+
+At 4096 tokens, ascending/descending median CUDA interval in ms is
+55.36/55.50 cold, 68.32/68.19 at 1024 reused, 46.30/46.03 at 2048,
+and 34.87/33.52 at 3584. The nonmonotonic 4096-token result persists
+with reverse order. Short-shape medians vary more with order, and
+dynamic cache growth, backend selection and kernel launch gaps are
+inside the interval. These are decoder-run measurements and are kept
+separate from the simulator's monotone illustrative compute curve.
+Measured D2H and compute samples are available for a future profile
+fit. There is no cross-host bandwidth or paged KV scatter measurement
+in this hardware checkpoint.
