@@ -1212,3 +1212,11 @@ and keeps the original cache and network forecast. The fresh-state
 control assumes a complete decision at dispatch with no extra lag.
 Consequently these comparisons isolate stale placement effects in a
 simulated controller, with CPU revalidation runtime tracked separately.
+
+The independent 225-run replay matches deterministic run fields and
+comparison CSVs. The compressed per-request, controller and forecast
+traces also match byte for byte, SHA-256 `b92598b8a62c3ac7903faf784f117966748c105c5a98741bc6d428ad8fac7f8b`.
+Mean measured dispatch revalidation cost is 6.97 μs for Cluster-LRU and
+6.68 μs for Finite across the holdout. The worst regressions versus the
+frozen start path are −10.58% and −18.19%, both under endpoint pressure.
+No fixed tuning weight was selected on these evaluation seeds.
