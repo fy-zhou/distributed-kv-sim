@@ -1218,3 +1218,24 @@ separate from the simulator's monotone illustrative compute curve.
 Measured D2H and compute samples are available for a future profile
 fit. There is no cross-host bandwidth or paged KV scatter measurement
 in this hardware checkpoint.
+
+The deferred D2H repeat passed the idle guard and completed 120 more
+samples on CPUs 0–3. The 64 MiB rates are 7.78 GiB/s for one stream and
+7.14 GiB/s aggregate for two. Both repeat runs keep the contiguous
+writeback anchor below the previous 16/32 GiB/s simulated doses.
+The copy and ordered model-prefill chart is in
+`experiments/research-prefill-figures-20261124/calibration.svg`.
+
+## Verified branches from this research round
+
+| Branch | Code checkpoint | Evidence checkpoint | Key result |
+| --- | --- | --- | --- |
+| `research/network-sharing` | `2b63a0f` | `ff96ae6` | Max-min vs equal-share sensitivity and 120 independent replays |
+| `research/finite-service-routes` | `1c12a64` | `c4ff3f6` | 180 paired route factorial outcomes and exact replays |
+| `research/network-marginal` | `fd1f638` | `7e4d7f7` | 80 runs and replays of two predeclared network penalties |
+| `research/pin-aware-admission` | `f9278f8` | `b38615c` | 120 replayed tests of pin-aware prefix capacity |
+| `research/reuse-floor` | `c8367e4` | `4f3be5a` | 400 timing runs and replays, faster partial-residency RR-cost |
+| `research/lazy-rollout` | `dc765f9` | `b26989e` | 160 timing runs and replays, 2.31–2.63× on sparse warm shapes |
+| `research/prefix-regime-shifts` | `e52553b` | `666a8a2` | 120 runs and replays; 45 cliff wins, 15 roomy controls |
+| `research/controller-concurrency` | `5a611e3` | `6d23b27` | 360 runs and replays; concurrent stale snapshots degrade tail |
+| `research/integrated-optimizations` | `2c73f23` | `a090fd3` | 200 runs and replays; sparse warm speeds up 2.34–2.60× |
