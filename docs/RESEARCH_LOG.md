@@ -1239,3 +1239,21 @@ The copy and ordered model-prefill chart is in
 | `research/prefix-regime-shifts` | `e52553b` | `666a8a2` | 120 runs and replays; 45 cliff wins, 15 roomy controls |
 | `research/controller-concurrency` | `5a611e3` | `6d23b27` | 360 runs and replays; concurrent stale snapshots degrade tail |
 | `research/integrated-optimizations` | `2c73f23` | `a090fd3` | 200 runs and replays; sparse warm speeds up 2.34–2.60× |
+| `research/controller-revalidation` | `dff3d85` | `89f24ea` | 225 outcomes and exact replay, including matched request traces |
+
+The dispatch-time revalidation pass improves simulated mean paired
+P95 over frozen concurrent placement by 12.90% for Cluster-LRU and
+10.81% for Finite, at average measured CPU cost of 6.97 and 6.68 μs.
+Relative to fresh finish-state decisions, it still trails by 5.36%
+and 6.07%. The worst relative degradation against frozen start is
+18.19% in Finite endpoint pressure. All 225 replayed configurations match, including compressed per-request traces.
+
+The root branch passes 85 unit/integration tests on Python 3.8.10.
+The revalidation branch passes 87. Final raw/source verification
+covers 62 root archives and 20 branch-specific archives with 396 raw
+hashes and 4862 Git source hashes. The hardware checkpoint contains
+552 samples across five completed bounded runs. Calibration remains
+scoped to single-host copies and Qwen3 decoder prefill. The next
+calibration question is how to model measured dynamic-cache forward
+cost and host writeback with uncertainty; the archive preserves the
+original synthetic sensitivity treatments for comparison.
