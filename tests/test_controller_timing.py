@@ -46,3 +46,16 @@ class ControllerTimingTests(unittest.TestCase):
         self.assertEqual(sim.decision_states[:2], [('0', 0., False), ('1', 0., False)])
         self.assertEqual(sim.in_flight, 0)
         assert_invariants(sim)
+
+    def test_revalidation_spreads_two_choices_from_the_same_idle_snapshot(self):
+        from scripts.research_controller_revalidation import RevalidatedController
+        sim = RevalidatedController([NodeSpec(i, 1) for i in range(2)],
+            Config(policy='shadow_cluster_finite'), audit=False,
+            placement_ms=5., snapshot='start', slots=2)
+        reqs = [Request(str(i), 0., (), 1) for i in range(2)]
+        sim.run(reqs)
+        self.assertEqual([(r['request_id'], r['node'], r['dispatch_ms'])
+                          for r in sim.controller_trace], [('0', 0, 5.), ('1', 1, 5.)])
+        self.assertEqual(sim.revised, 1)
+        self.assertFalse(sim.shortlists)
+        assert_invariants(sim)

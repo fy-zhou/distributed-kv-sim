@@ -65,6 +65,9 @@ class ControllerSimulator(MeasuredSimulator):
         # this callback just as they omit all undispatched requests.
         self._schedule(end, EVENT_ARRIVAL, (req, self.now, chosen))
 
+    def _placement_at_dispatch(self, req, chosen):
+        return self._decision(req, self.now) if self.snapshot == 'finish' else chosen
+
     def _on_arrival(self, event):
         if not self.placement_ms:
             super()._on_arrival(event)
@@ -77,8 +80,7 @@ class ControllerSimulator(MeasuredSimulator):
             return
 
         req, started, chosen = event
-        if self.snapshot == 'finish':
-            chosen = self._decision(req, self.now)
+        chosen = self._placement_at_dispatch(req, chosen)
         self.controller_trace.append(dict(request_id=req.request_id, node=chosen,
             arrival_ms=req.arrival_ms, start_ms=started, dispatch_ms=self.now))
         self._dispatch(req, chosen)
