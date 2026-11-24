@@ -1183,3 +1183,32 @@ The opt-in network sharing study is in `research/network-sharing`
 and the fabric-only parity control. A separate 72-request CLI smoke
 trace produced byte-identical request and summary CSVs for eight
 policies under the previous and current default allocators.
+
+## Dispatch-time placement revalidation
+
+Source `dff3d85` and 87 passing tests. A fixed four-slot controller
+compares frozen start snapshots, the same snapshots with a cheap
+commit-work correction, and an optimistic fresh snapshot at finish.
+The candidate re-ranks the original shortlist using the cumulative
+forecast service of work committed since the snapshot. Timing of
+this short pass is measured separately and excluded from simulated
+dispatch pacing. A targeted integration test moves one of two
+initially identical idle-worker choices to the other worker.
+
+Development 4600–4601 and evaluation 4701–4705. The 225-run holdout
+includes four pressure fixtures and a sparse control. Dispatch times,
+requests, caches and worker execution action space are matched.
+Round-Robin control outcomes match exactly. Relative to the frozen
+start path, revalidation improves mean paired P95 by +12.90% for
+Cluster-LRU (15 improve, 5 tie, 5 regress) and +10.81% for Finite
+(14/5/6). Seed-cluster bootstrap ranges are +6.59% to +19.35%
+and +5.18% to +17.31%. Relative to full finish-state placement,
+revalidation averages −5.36% and −6.07%, with substantial individual
+variation. An independent full replay is in progress at this checkpoint.
+
+The correction can charge assignments whose service has already
+started. It cannot add nodes omitted from the original shortlist
+and keeps the original cache and network forecast. The fresh-state
+control assumes a complete decision at dispatch with no extra lag.
+Consequently these comparisons isolate stale placement effects in a
+simulated controller, with CPU revalidation runtime tracked separately.

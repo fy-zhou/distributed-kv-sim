@@ -1,0 +1,10 @@
+policy,candidate,baseline,conditions,seed_clusters,mean_p95_improvement_pct,seed_bootstrap_p025,seed_bootstrap_p975,improve,neutral,regress
+round_robin_cost,revalidate,finish,10,2,0.0,0.0,0.0,0,10,0
+round_robin_cost,revalidate,start,10,2,0.0,0.0,0.0,0,10,0
+round_robin_cost,start,finish,10,2,0.0,0.0,0.0,0,10,0
+shadow_cluster_lru,revalidate,finish,10,2,-11.868806035649149,-16.520793731329615,-7.2168183399686825,1,2,7
+shadow_cluster_lru,revalidate,start,10,2,15.178876433456837,12.465839092882213,17.89191377403146,7,2,1
+shadow_cluster_lru,start,finish,10,2,-36.630248593356086,-37.32340059416136,-35.9370965925508,1,2,7
+shadow_cluster_finite,revalidate,finish,10,2,-13.181121278355597,-16.83957304165958,-9.522669515051613,1,2,7
+shadow_cluster_finite,revalidate,start,10,2,10.245749740762475,5.0974689025141,15.39403057901085,6,2,2
+shadow_cluster_finite,start,finish,10,2,-28.98139645849275,-34.41828623794494,-23.54450667904056,1,2,7
