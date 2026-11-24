@@ -66,10 +66,11 @@ def main():
         scope='Decoder forward with output KV cache. Excludes LM head, tokenizer, prefix preparation, '
               'CPU/GPU copies, model load, scheduler and network. CUDA events include launch gaps.'))
     config['synthetic'] = False
+    config['note'] = 'Measured local GPU decoder prefill with GPU-resident prefix KV.'
     (out/'config.json').write_text(json.dumps(config, indent=2)+'\n')
     model = AutoModelForCausalLM.from_pretrained(str(args.model), local_files_only=True,
-        trust_remote_code=False, dtype=torch.bfloat16, device_map={'': 0},
-        attn_implementation='sdpa').eval().model
+        trust_remote_code=False, dtype=torch.bfloat16,
+        attn_implementation='sdpa').eval().model.to('cuda')
     rows, summary, check = [], [], []
     with torch.inference_mode():
         for length in LENGTHS:
