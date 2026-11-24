@@ -1,0 +1,26 @@
+{
+  "verified_runs": 200,
+  "ignored_fields": [
+    "decision_max_us",
+    "decision_mean_us",
+    "execution_plan_mean_us",
+    "total_planning_mean_us"
+  ],
+  "compared": "All deterministic run fields. Timing CSVs may vary.",
+  "original": {
+    "path": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261124-integrated-evaluation",
+    "code_commit": "2c73f238600187997d29f477bd368bad8eb5c2cd",
+    "sha256": {
+      "config.json": "a5f7bc443e24053db44f8e5d1360afe4d819222185f4fcb69885881cba8ac3aa",
+      "runs.csv": "38f33efd4bfaf5042bd988412d1adc3aee398677867c76ede87adb725faeffb4"
+    }
+  },
+  "replay": {
+    "path": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261124-integrated-replay",
+    "code_commit": "2c73f238600187997d29f477bd368bad8eb5c2cd",
+    "sha256": {
+      "config.json": "a5f7bc443e24053db44f8e5d1360afe4d819222185f4fcb69885881cba8ac3aa",
+      "runs.csv": "3a5c58ea272c9da64cb33d5e96421be1d965f21beb69a5213fbf59e345b0c5fa"
+    }
+  }
+}

@@ -1183,3 +1183,21 @@ The opt-in network sharing study is in `research/network-sharing`
 and the fabric-only parity control. A separate 72-request CLI smoke
 trace produced byte-identical request and summary CSVs for eight
 policies under the previous and current default allocators.
+
+## Joint idle fork and prefix checkpoint optimizations
+
+Source `a86251d`/ `227d16a` combine the separately verified changes.
+The paired runner is `de99690` with metadata fixed in `2c73f23`.
+The development manifest listed a common admission set, while the
+partially resident shape used always and prefix_fit. The run rows have
+the actual labels. Evaluation and replay manifests record each shape's
+actual admission set. 89 tests pass.
+
+In 200 held-out runs (4501–4505) and 200 independent AB/BA replays,
+all non-timing fields match. Against indexed rollout with the memoized
+cold certificate, combined planning accelerates sparse warm by 2.34×
+(replay 2.35×) and sparse long warm by 2.60× (replay 2.61×).
+The partial-prefix case shows 1.05× (replay 1.12×); cold and burst
+conditions are essentially flat. Equivalence preserves all simulated
+TTFT and cache outcomes. The timing estimates are host wall-clock
+ratios rather than independent per-request samples.
