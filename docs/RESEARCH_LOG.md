@@ -1183,3 +1183,25 @@ The opt-in network sharing study is in `research/network-sharing`
 and the fabric-only parity control. A separate 72-request CLI smoke
 trace produced byte-identical request and summary CSVs for eight
 policies under the previous and current default allocators.
+
+## Capacity-fit during a shift in hot prefix
+
+Source `e52553b`. The same four 30-request arrival cohorts either hold
+family 0 stable or rotate across 0→1→2→0. Every condition initially
+warms only family 0 at the designated node. Family choices are seeded
+and the policy cannot see popularity schedules. We pair each admission
+within fixed workload, placement, compute, NIC and initial cache. 85
+tests pass. Used 4000–4001 for development and 4101–4105 for evaluation.
+
+All 120 held-out runs replay, including the four deterministic cohort
+tables. All 45 capacity-cliff pairs improve P95 and all 15 roomy
+controls match exactly. Mean changes across the four fixtures are
++43.45% for RR-cost, +52.15% for Cost-Aware and +58.31% for Cluster-Finite.
+In the alternating burst fixture, mean improvements are +65.59%,
++71.03% and +80.58%, respectively. The local hit fraction of the hot
+family in the first changed cohort goes from zero to 0.74, 0.77, and
+0.87. Mean fabric GiB rise for all three policies in this fixture.
+This joint shift shows the advantage is not explained by reducing
+transfer volume. Cohorts have 30 requests and can overlap in service,
+so cohort tail metrics are descriptive. The simulation uses synthetic
+popularity and an illustrative compute cost scaled by 16.

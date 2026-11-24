@@ -1,0 +1,32 @@
+{
+  "verified_runs": 120,
+  "ignored_fields": [
+    "decision_max_us",
+    "decision_mean_us",
+    "execution_plan_mean_us",
+    "total_planning_mean_us"
+  ],
+  "compared": "All deterministic run fields and byte-identical comparison CSVs.",
+  "original": {
+    "path": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261124-regime-shifts-evaluation",
+    "code_commit": "e52553b14dbf165c1f26bf6193609a42843409e0",
+    "sha256": {
+      "config.json": "a93c9503df69bc52f354e600d704aca392199a92a2f58c8bcd69c6fdeda00df0",
+      "runs.csv": "d28dfdf1750f7f855ee4fa04274c231bb13379cd2406b56e18d47edacf036006",
+      "pairs.csv": "7aad4334d9e09dc83398b49335a130392c5306bad0f8337f7dbee2983b976fe8",
+      "summary.csv": "046abc4c933adefc54c97eaca54528b01524d69c01040addae234f373821b2fd",
+      "segments.csv": "97d2ce64f93f2a4cba81f0704d13b4515e8f45f12325f7102fedcf0fe9980eea"
+    }
+  },
+  "replay": {
+    "path": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261124-regime-shifts-replay",
+    "code_commit": "e52553b14dbf165c1f26bf6193609a42843409e0",
+    "sha256": {
+      "config.json": "a93c9503df69bc52f354e600d704aca392199a92a2f58c8bcd69c6fdeda00df0",
+      "runs.csv": "93b6df5bdadca599783e4b3b76f7e41c3a36884447cf65d991a93e00cddca567",
+      "pairs.csv": "7aad4334d9e09dc83398b49335a130392c5306bad0f8337f7dbee2983b976fe8",
+      "summary.csv": "046abc4c933adefc54c97eaca54528b01524d69c01040addae234f373821b2fd",
+      "segments.csv": "97d2ce64f93f2a4cba81f0704d13b4515e8f45f12325f7102fedcf0fe9980eea"
+    }
+  }
+}
