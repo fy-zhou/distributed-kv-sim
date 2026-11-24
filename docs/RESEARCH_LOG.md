@@ -1183,3 +1183,22 @@ The opt-in network sharing study is in `research/network-sharing`
 and the fabric-only parity control. A separate 72-request CLI smoke
 trace produced byte-identical request and summary CSVs for eight
 policies under the previous and current default allocators.
+
+## Concurrent placement slots
+
+Source `5a611e3`. Hold the per-request placement duration constant and
+vary FCFS controller capacity to one, two and four slots. A focused
+test confirms simultaneous snapshots, FIFO ties and dispatch times.
+86 tests pass. Development 4200–4201, held-out 4301–4305. All 360 runs
+and comparison CSVs replay exactly. Within each slot count and policy,
+the decision-start and decision-finish cases dispatch at identical
+times. RR-cost assignments and outcomes match.
+
+For Finite, four vs one slot improves mean paired P95 by +15.59% with
+finish snapshots (17 improve/3 regress) but changes by −10.51% with
+start snapshots (8/12). At four slots, start vs finish changes mean P95
+by −33.06% for Finite (3/17) and −21.01% for Cluster-LRU (4/16). The
+start model cannot see other in-flight placements. The finish model
+has access to fresh simulated state and makes an optimistic comparison
+at identical pacing. This motivates cheap dispatch-time revalidation
+using only requests already committed, which is evaluated separately.

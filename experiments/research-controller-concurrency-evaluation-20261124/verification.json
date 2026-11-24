@@ -1,0 +1,30 @@
+{
+  "verified_runs": 360,
+  "ignored_fields": [
+    "decision_max_us",
+    "decision_mean_us",
+    "execution_plan_mean_us",
+    "total_planning_mean_us"
+  ],
+  "compared": "All deterministic run fields and byte-identical comparison CSVs.",
+  "original": {
+    "path": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261124-controller-concurrency-evaluation",
+    "code_commit": "5a611e300fa8bfd5969d4cf07c2d08ef9029f8bd",
+    "sha256": {
+      "config.json": "cecbaabcf602812a3fccd262291b01f671e9571fab7e4ac8d82b34136d2265cf",
+      "runs.csv": "fb3079e41e6d3215801a3a5579e94a16dafe3e85c586f604064f0324182ab589",
+      "pairs.csv": "afad6357bc5076111af3fddd73a4540435d20a043cbbcb68195bf84cc1afe0e9",
+      "summary.csv": "efe0981e0bc64dc6d9e93ed1310749e9c117c99a4ad0fe236a9f65c1bb72f8ea"
+    }
+  },
+  "replay": {
+    "path": "/state/partition/fyzhou/results/distributed-kv-sim/research-20261124-controller-concurrency-replay",
+    "code_commit": "5a611e300fa8bfd5969d4cf07c2d08ef9029f8bd",
+    "sha256": {
+      "config.json": "cecbaabcf602812a3fccd262291b01f671e9571fab7e4ac8d82b34136d2265cf",
+      "runs.csv": "767a0140933d8df8993d23dc071e745b7279a3d656a598d92140ca79f1d6be9e",
+      "pairs.csv": "afad6357bc5076111af3fddd73a4540435d20a043cbbcb68195bf84cc1afe0e9",
+      "summary.csv": "efe0981e0bc64dc6d9e93ed1310749e9c117c99a4ad0fe236a9f65c1bb72f8ea"
+    }
+  }
+}
