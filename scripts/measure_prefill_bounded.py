@@ -39,6 +39,8 @@ def main():
     parser.add_argument('--model', type=Path, required=True)
     parser.add_argument('--gpu', type=int, default=0)
     parser.add_argument('--out', type=Path, required=True)
+    parser.add_argument('--reverse-order', action='store_true',
+                        help='Reverse hit-fraction order for an independent measurement control')
     args = parser.parse_args()
     hardware = gpu_read(args.gpu, 'gpu=uuid,name,driver_version,pci.bus_id,memory.used,utilization.gpu')
     fields = next(csv.reader([hardware]))
@@ -55,12 +57,13 @@ def main():
     out = new_directory(args.out)
     deadline = time.monotonic()+45
     torch.cuda.set_per_process_memory_fraction(TENSOR_LIMIT/torch.cuda.get_device_properties(0).total_memory)
+    ratios = HIT_RATIOS[::-1] if args.reverse_order else HIT_RATIOS
     model_paths = [args.model/'config.json', args.model/'model.safetensors']
     config = provenance(dict(kind='qwen3_decoder_prefill_with_gpu_cache', gpu_before=hardware,
         model_files={p.name: sha(p) for p in model_paths}, model_directory=str(args.model),
         script_sha256=sha(Path(__file__)), torch=torch.__version__, transformers=transformers.__version__,
         cuda_runtime=torch.version.cuda, cpu_affinity=sorted(os.sched_getaffinity(0)),
-        dtype='bfloat16', attention='sdpa', lengths=LENGTHS, hit_ratios=HIT_RATIOS,
+        dtype='bfloat16', attention='sdpa', lengths=LENGTHS, hit_ratios=ratios, reverse_order=args.reverse_order,
         samples_per_cell=REPEATS, warmups=WARMUPS, tensor_allocation_limit=TENSOR_LIMIT,
         internal_deadline_seconds=45,
         scope='Decoder forward with output KV cache. Excludes LM head, tokenizer, prefix preparation, '
@@ -76,7 +79,11 @@ def main():
         for length in LENGTHS:
             tokens = torch.randint(model.config.vocab_size, (1, length), device='cuda')
             reference = None
-            for ratio in HIT_RATIOS:
+            if args.reverse_order:
+                cold = model(input_ids=tokens, use_cache=True)
+                reference = cold.last_hidden_state[:, -1].float()
+                del cold
+            for ratio in ratios:
                 apps = gpu_read(args.gpu, 'compute-apps=pid')
                 if any(line.strip() != str(os.getpid()) for line in apps.splitlines() if line.strip()):
                     raise SystemExit('Another process appeared; completed cells are preserved.')
